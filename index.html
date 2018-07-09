@@ -13,7 +13,17 @@
   </body>
 
   <script>
-    // You can also require other files to run in this process
     require('./dist/renderer.js')
+
+    // Test for the .csv to .htaccess conversion tool
+    /*
+      var app = require('electron').remote.app
+
+      var converter = require('./dist/converter/converter.js')
+
+      const testPath = app.getPath('downloads') + '/resolver_export.csv';
+      let array = converter.readCSVToArray(testPath)    
+    */
   </script>
+
 </html>

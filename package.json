@@ -18,7 +18,7 @@
     "typescript"
   ],
   "author": "oSoC18 Resolver Team",
-  "license": "CC0-1.0",
+  "license": "MIT",
   "devDependencies": {
     "electron": "^2.0.2",
     "tslint": "^5.10.0",

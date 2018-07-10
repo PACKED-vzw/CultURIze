@@ -5,11 +5,7 @@
     <title>Hello World!</title>
   </head>
   <body>
-    <h1>Hello World!</h1>
-    <!-- All of the Node.js APIs are available in this renderer process. -->
-    We are using Node.js <script>document.write(process.versions.node)</script>,
-    Chromium <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>
+    <p id='test'></p>
   </body>
 
   <script>
@@ -18,12 +14,28 @@
     // Test for the .csv to .htaccess conversion tool
     /*
       var app = require('electron').remote.app
+      var fs = require('fs')
+      var converter = require('./dist/Converter/Converter.js')
 
-      var converter = require('./dist/converter/converter.js')
-
-      const testPath = app.getPath('downloads') + '/resolver_export.csv';
-      let array = converter.readCSVToArray(testPath)    
-    */
+      const fileIn = app.getPath('downloads') + '/resolver_export.csv'   
+      const fileOut = app.getPath('downloads') + '/.htaccess'   
+      converter.convertCSVtoHTACCESS(fileIn)
+        .then((str) => {
+            fs.writeFile(fileOut,str, function(err){
+                if(err)
+                {
+                    console.error(err)
+                }
+                else
+                {
+                    console.log('success')
+                }
+            })
+        })
+        .catch((error) => {
+          console.error(error)
+        })
+      */
   </script>
 
 </html>

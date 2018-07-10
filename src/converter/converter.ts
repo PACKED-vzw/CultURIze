@@ -1,186 +1,145 @@
-/*
-    This file contains the source code of the CSV to .htaccess converter.
-    
-    To-Do:
-        * Add more documentation: Each function/class should be thouroughly commented
-        * Add a proper 'convertCSVtoHTACCESS' function
-        * Add a way of saving the .htaccess to a file
-        * Offer a proper/cleaner interface to access each function from an external source file.
-*/
+// This is the file charged with converting
+// .csv files to .htaccess files
 
 var csv = require('csv-parser')
 var fs = require('fs')
 
-// Import the Configuration file
-import * as Conf from './CSVConfig';
+import * as Conf from './CSVConfig'
 
-// Class representing a single entry in the CSV file
-class CSVEntry
+// This class contains the relevant data of a CSV Row.
+export class CSVRow
 {
     pid : string 
     docType : string 
-    url : string 
+    url : string
 
-    constructor(pid: string, docType: string, url: string)
+    private constructor(pid: string, docType: string, url: string)
     {
-        this.pid = pid
-        this.docType = docType 
-        this.url = url
+        this.pid     = pid.trim()
+        this.docType = docType.trim()
+        this.url     = url.trim().replace('%','\\%')
     }
 
-    public static createFromRow(data: any) : CSVEntry 
+    // Creates a Array of rows from the contents of a CSVFile located at filepath
+    public static createArrayFromCSV(filepath: string) : Promise<CSVRow[]>
     {
-        return new CSVEntry(
-            data[Conf.COL_PID],
-            data[Conf.COL_DOCTYPE],
-            data[Conf.COL_URL]
-        );
-    }
-}
-
-// Checks if some fields (in a list) are present/not undefined
-// in the row;
-function checkFields(row : any, keys : string[]) : boolean 
-{
-    if(row == null)
-        return false;
-
-    for(let key of keys)
-    {
-        if(row[key] == null)
-            return false;
-    }
-    
-    return true;
-}
-
-// Checks if an entry in the CSV is enabled or not.
-// If the enabled field is undefined, returns true by default
-// If the data is undefined, returns false
-function isEnabled(row : any) : boolean 
-{
-    if(row == null)
-        return false;
-
-    if(row[Conf.COL_ENABLED] == null)
-        return true;
-
-    return (row[Conf.COL_ENABLED] == '1');
-}
-
-// Returns true if the CSV entry should be pushed for further
-// processing.
-function shouldPush(row : any) : boolean 
-{
-    // Check if all required fields are present
-    if(!checkFields(row, [ Conf.COL_PID, Conf.COL_DOCTYPE, Conf.COL_URL ]))
-        return false; 
-
-    if(row[Conf.COL_URL] == "")
-        return false;
-    
-    // All require fields are present? Check if the entry is enabled
-    return isEnabled(row);
-}
-
-// This calls the CSV Parser to read the .csv and add all
-// relevant data to the array returned by this function.
-export function readCSVToArray(filepath : string) : CSVEntry[]
-{
-    var allData : CSVEntry[] = new Array<CSVEntry>();
-
-    fs.createReadStream(filepath)
-        .pipe(csv())
-        .on('data', function (row: any) {
-                if(shouldPush(row))
-                    allData.push(CSVEntry.createFromRow(row))
+        let array : CSVRow[] = new Array<CSVRow>()
+        return new Promise<CSVRow[]>((resolve,reject) => {
+            fs.createReadStream(filepath).pipe(csv())
+            .on('data', function(data: any){
+                let row : CSVRow = CSVRow.createRow(data)
+                if(row != null)
+                    array.push(row)
             })
-        // Temp test
-        .on('finish', function() {
-            let obj = new HTAccessObject(allData)
-            console.log(obj.toString())
-        })
-
-    return allData;
-}
-
-
-// This class takes a CSVEntry as input and
-// creates a in memory representation of the 
-// HTAccess file.
-// This in-memory representation can then be
-// written to a file, which will be the .htaccess
-// file!
-export class HTAccessObject
-{
-    // the .htaccess header
-    header : string
-
-    // each directive in the .htaccess
-    content : string[]
-
-    constructor(csvContent : CSVEntry[])
-    {
-        this.content = new Array<string>()
-        this.setHeader()
-        this.compileArray(csvContent)
-    }
-
-    public toString() : string 
-    {
-        let full : string = this.header + '\n'
-
-        this.content.forEach((element : string) => {
-            full += element + '\n'
-        })
-
-        return full
-    }
-    // Sets the header variable
-    private setHeader() : void
-    {
-        this.header = 'Options +FollowSymLinks\nRewriteEngine on'
-    }
-
-    // Compile the array of CSVEntry to 
-    // the redirections array.
-    private compileArray(csvContent : CSVEntry[]) : void 
-    {
-        csvContent.forEach((entry : CSVEntry) => {
-            let id = entry.pid
-            let url = entry.url
-            let accept_header = this.convertDocTypeToAcceptHeader(entry.docType, function(){
-                console.log('Unknown document type!')
+            .on('error', function(error: any){
+                reject(error)
             })
-
-            this.content.push(this.createRewriteCondRule(accept_header))
-            this.content.push(this.createRewriteRule(id,url))
+            .on('finish', function(row: any){
+                resolve(array)
+            })
         })
     }
 
-    private convertDocTypeToAcceptHeader(docType: string, onError : () => void) : string
+    // Creates a CSVRow from a single row of data
+    public static createRow(row: any) : CSVRow
     {
-        switch(docType)
+        if(this.satisfiesMinimumRequirements(row) && this.isEnabled(row))
         {
-            case Conf.ACCEPT_HTML_DOCTYPE:
-                return 'text/html'
-            case Conf.ACCEPT_IMAGE:
-                return 'image/*'
-            default:
-                onError();
+            return new CSVRow(
+                row[Conf.COL_PID],
+                row[Conf.COL_DOCTYPE],
+                row[Conf.COL_URL]
+            )
         }
-        return ""
+        return null 
     }
 
-    // Creates a "RewriteCond" directive from a AcceptHeader
-    private createRewriteCondRule(acceptHeader : string) : string 
+    // This function checks if a row of data satisfies the minimum requirements to be valid.
+    // For this function to return true, the row must provide non null/empty
+    // values for the following columns:
+        // Conf.COL_URL
+        // Conf.COL_PID
+        // Conf.COL_DOCTYPE
+    private static satisfiesMinimumRequirements(row: any) : boolean
     {
-        return 'RewriteCond %{HTTP_ACCEPT} ' + acceptHeader
+        let isValid = (key: string) : boolean => {
+            var data = row[key] 
+            return (data != null) && (data != '')
+        }
+        return isValid(Conf.COL_PID) && isValid(Conf.COL_URL) && isValid(Conf.COL_DOCTYPE)
     }
 
-    // Creates a "RewriteRule" directive from a PID and a URL
-    private createRewriteRule(from : string, to : string, code : number = 302)
+    // Checks if a row should be enabled. Rows are enabled by default.
+    // A Row is only disabled if the Conf.COL_ENABLED field is present and set to 0
+    private static isEnabled(row: any) : boolean
     {
-        return 'RewriteRule ^' + from + '$ ' + to + ' [R=' + code + ',L]'
+        let value : string = row[Conf.COL_ENABLED]
+        if((value != undefined) && (value == '0'))
+            return false 
+        return true
     }
+}
+
+type IgnoredElementCallback = (element:CSVRow) => void
+
+// This class manages the HTAccess creation
+// process.
+export class HTAccessCreator
+{
+    csvArray: Array<CSVRow>
+
+    constructor(csvArray: CSVRow[])
+    {
+        this.csvArray = csvArray
+    }
+
+    // Compiles the csvArray, creating the HTAccess file.
+    public makeHTAccessFile(onIgnore: IgnoredElementCallback): string 
+    {
+        let data = this.getHeader() + '\n'
+
+        this.csvArray.forEach((row:CSVRow) => {
+            // Add a space between rule so they're more spread out/readable
+            data += this.getRewriteRule(row) + '\n'
+        })
+
+        return data
+    }
+
+    // Gets the header of the .htaccess file
+    private getHeader(): string 
+    {
+        return 'Options +FollowSymLinks\nRewriteEngine on'
+    }
+
+    // Creates the RewriteRule for a CSVRow
+    // Returns "" if the url/pid is empty.
+    private getRewriteRule(row: CSVRow, code : number = 302): string 
+    {
+        if(row.pid == '' || row.url == '')
+            return ''
+        
+        return `RewriteRule ^${row.docType}/${row.pid}$ ${row.url} [R=${code},L]`
+    }
+}
+
+type ErrorCallback = (error:any) => void
+
+// This function performs all the required steps
+// to transform a .csv to a .htaccess file
+// It returns the content of the .htaccess file
+export function convertCSVtoHTACCESS(filepath: string, onError: ErrorCallback) : Promise<string> 
+{
+    return new Promise<string>((resolve,reject) => {
+        CSVRow.createArrayFromCSV(filepath)
+            .then((value: CSVRow[]) => {
+                let creator = new HTAccessCreator(value)
+                resolve(creator.makeHTAccessFile((ignored: CSVRow) => {
+                    console.warn('Ignored element ' + ignored)
+                }))
+            })
+            .catch((error:any) => {
+                reject(error)
+            })
+    })
 }

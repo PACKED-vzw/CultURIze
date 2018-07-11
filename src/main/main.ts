@@ -1,5 +1,6 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow } from 'electron';
 import * as path from "path";
+import { LoginAssistant } from './Api/Auth'
 
 let mainWindow: Electron.BrowserWindow;
 
@@ -11,7 +12,7 @@ function createWindow() {
   });
 
   // and load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, "../index.html"));
+  mainWindow.loadFile(path.join(__dirname, "../../index.html"));
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
@@ -23,6 +24,12 @@ function createWindow() {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
+
+  let assist = new LoginAssistant(mainWindow)
+  assist.requestLogin((token,error)=>{
+      console.log('Token: ' + token)
+      console.log('Error: ' + error)
+  })
 }
 
 // This method will be called when Electron has finished

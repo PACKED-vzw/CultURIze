@@ -20,7 +20,7 @@ type LoginRequestCallback = (token:string,error:RegExpExecArray) => void
 export class LoginAssistant
 {
     private popup : BrowserWindow
-    private static scope : string = '...'
+    private scope : string
     public parentWindow : BrowserWindow
 
     constructor(parent: BrowserWindow)
@@ -31,8 +31,10 @@ export class LoginAssistant
     // Shows the login popup, takes a 
     // callback as argument which is called
     // once the request has been completed.
-    public requestLogin(callback: LoginRequestCallback)
+    public requestLogin(callback: LoginRequestCallback, scope: string = '...')
     {
+        this.scope = scope
+
         let me = this
         let currentlyHandlingRequest : boolean = false
         this.popup = new BrowserWindow({
@@ -60,8 +62,11 @@ export class LoginAssistant
             me.popup.show()
         })
         this.popup.webContents.on('did-get-redirect-request', function(event: Event,oldUrl: string, newUrl: string){
-            currentlyHandlingRequest = true
-            me.gotRedirectRequest(callback,event,newUrl)
+            if(newUrl.includes('localhost'))
+            {
+                currentlyHandlingRequest = true
+                me.gotRedirectRequest(callback,event,newUrl)
+            }
         })
         this.popup.on('closed', function(){
             me.popup = null
@@ -149,6 +154,6 @@ export class LoginAssistant
 
     private getPopupURL(): string
     {
-        return`https://github.com/login/oauth/authorize?client_id=${ApiConf.client_id}&scope=${LoginAssistant.scope}`
+        return`https://github.com/login/oauth/authorize?client_id=${ApiConf.client_id}&scope=${this.scope}`
     }
 }   

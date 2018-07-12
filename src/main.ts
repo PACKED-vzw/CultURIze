@@ -1,22 +1,24 @@
 import { app, BrowserWindow } from 'electron';
 import * as path from "path";
-import { LoginAssistant } from './Api/Auth'
-import { CloneManager } from './Git/Git'
+import { LoginAssistant } from './main/Api/Auth'
+import { GitRepoManager } from './main/Git/Git'
 
 let mainWindow: Electron.BrowserWindow;
 
 function createWindow() {
+
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    height: 600,
+    height: 800,
     width: 800,
   });
+  mainWindow.maximize()
 
-  // and load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, "../../index.html"));
+  //console.log('dir:' + __dirname)
+  mainWindow.loadFile(__dirname + '/../static/index.html')
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  //mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainWindow.on("closed", () => {
@@ -30,14 +32,22 @@ function createWindow() {
   assist.requestLogin((token,error)=>{
       console.log('Token: ' + token)
       console.log('Error: ' + error)
+      if(token)
+      {
+        /*
+          let manager = new GitRepoManager('https://github.com/Pierre-vh/Moonshot.git',token)
+          manager.updateLocalCopy(()=>{
+              console.log('job done ')
+              manager.pushChanges('some message',undefined,() => {
+                  console.log('Changes Pushed')
+              })
+          })
+        */
+      }
+      else 
+        console.log('No token, no HTTPS url, SAD!')
   })
 
-  /*
-  let cm = new CloneManager('https://github.com/Pierre-vh/Moonshot.git')
-  cm.updateLocalCopy(()=>{
-      console.log('job done')
-  })
-  */
 }
 
 // This method will be called when Electron has finished

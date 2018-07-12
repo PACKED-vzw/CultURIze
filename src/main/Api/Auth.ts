@@ -34,6 +34,7 @@ export class LoginAssistant
     public requestLogin(callback: LoginRequestCallback)
     {
         let me = this
+        let currentlyHandlingRequest : boolean = false
         this.popup = new BrowserWindow({
                 title:'Login with GitHub',
                 width: 600,
@@ -47,23 +48,26 @@ export class LoginAssistant
         
         this.popup.loadURL(this.getPopupURL())
         // Set callbacks
+        this.popup.webContents.on('will-navigate', function(event:Event,url:string){
+            if(url.includes('localhost'))
+            {
+                currentlyHandlingRequest = true
+                me.gotRedirectRequest(callback,event,url)
+            }
+        })
         this.popup.on('ready-to-show',function(){
             me.popup.setMenu(null)
             me.popup.show()
         })
-        this.popup.webContents.on('will-navigate', function(event: Event, url: string){
-            if(url.includes('localhost'))
-                me.gotRedirectRequest(callback,event,url)
-            else
-            {
-                event.preventDefault()
-                shell.openItem(url)
-            }
-        })
         this.popup.webContents.on('did-get-redirect-request', function(event: Event,oldUrl: string, newUrl: string){
+            currentlyHandlingRequest = true
             me.gotRedirectRequest(callback,event,newUrl)
         })
-        this.popup.on('closed', this.destroyWindow)
+        this.popup.on('closed', function(){
+            me.popup = null
+            if(!currentlyHandlingRequest)
+                callback(null,null)
+        })
     }
 
     private gotRedirectRequest(callback: LoginRequestCallback, event: Event, newUrl: string) : void 
@@ -147,9 +151,4 @@ export class LoginAssistant
     {
         return`https://github.com/login/oauth/authorize?client_id=${ApiConf.client_id}&scope=${LoginAssistant.scope}`
     }
-
-    private destroyWindow(): void
-    {
-        this.popup = null
-    }
-}
+}   

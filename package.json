@@ -25,6 +25,7 @@
     "typescript": "^2.8.3"
   },
   "dependencies": {
-    "csv-parser": "^1.12.1"
+    "csv-parser": "^1.12.1",
+    "simple-git": "^1.96.0"
   }
 }

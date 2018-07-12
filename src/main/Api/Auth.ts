@@ -60,8 +60,11 @@ export class LoginAssistant
             me.popup.show()
         })
         this.popup.webContents.on('did-get-redirect-request', function(event: Event,oldUrl: string, newUrl: string){
-            currentlyHandlingRequest = true
-            me.gotRedirectRequest(callback,event,newUrl)
+            if(newUrl.includes('localhost'))
+            {
+                currentlyHandlingRequest = true
+                me.gotRedirectRequest(callback,event,newUrl)
+            }
         })
         this.popup.on('closed', function(){
             me.popup = null

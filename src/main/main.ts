@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import * as path from "path";
 import { LoginAssistant } from './Api/Auth'
+import { CloneManager } from './Git/Git'
 
 let mainWindow: Electron.BrowserWindow;
 
@@ -30,6 +31,13 @@ function createWindow() {
       console.log('Token: ' + token)
       console.log('Error: ' + error)
   })
+
+  /*
+  let cm = new CloneManager('https://github.com/Pierre-vh/Moonshot.git')
+  cm.updateLocalCopy(()=>{
+      console.log('job done')
+  })
+  */
 }
 
 // This method will be called when Electron has finished

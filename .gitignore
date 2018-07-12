@@ -1,5 +1,5 @@
 node_modules
-dist
+app
 tsconfig.json
 src/main/Api/ApiConf.ts
 .vscode

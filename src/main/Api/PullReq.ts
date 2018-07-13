@@ -7,20 +7,26 @@ import { ApiConf } from './ApiConf'
 
 export function createPullRequest(token:string)
 {
-    let postData = querystring.stringify({
+    let postData =JSON.stringify({
         "client_id" : ApiConf.client_id,
-        "client_secret" :ApiConf.client_secret
+        "client_secret" :ApiConf.client_secret,
+        "title" : "test voor resolver pull-request",
+        "head" : "BertSchoovaerts:master",
+        "base" : "master",
+        "body" : "blup"
     });
 
     let post = {
         host: "api.github.com",
-        path: "/repos/BertSchoovaerts/w3id.org/pulls",
+        path: "/repos/oSoc18/resolver/pulls",
         method: "POST",
         headers:
         {
-            'Content-Type' :'application/x-www-form-urlencoded',
+            'Content-Type': 'application/x-www-form-urlencoded',
             'Content-Length': postData.length,
-            "Accept": "application/json"
+            "Accept": "application/json",
+           "Authorization" : "Basic QmVydFNjaG9vdmFlcnRzOlBpdGE3NTMzNTc=",
+           "User-Agent" : "BertSchoovaerts"
         }
     };
 
@@ -30,15 +36,20 @@ export function createPullRequest(token:string)
             result+=data;
         });
         response.on('end', () => {
-            let json = JSON.parse(result.toString());
-            console.log(json);
+           // let json = JSON.parse(result.toString());
+            console.log(response.statusCode);
+            console.log(response.body)
         });
         response.on('error', (err:any) => {
             console.log("Error vieze snitch: "+ err.toString);
         });
 
 
-    })
+    });
+    console.log(postData)
+    
+    req.write(postData)
+    req.end()
 
         
 

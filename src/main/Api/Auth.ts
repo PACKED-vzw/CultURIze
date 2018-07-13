@@ -20,7 +20,7 @@ type LoginRequestCallback = (token:string,error:RegExpExecArray) => void
 export class LoginAssistant
 {
     private popup : BrowserWindow
-    private static scope : string = '...'
+    private static scope : string = 'repo'
     public parentWindow : BrowserWindow
 
     constructor(parent: BrowserWindow)

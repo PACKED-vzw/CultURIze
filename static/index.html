@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Culturize - Login</title>
+  </head>
+  <body>
+      <button type="button" id="githublogin" onclick="actOnLogin()">Login with GitHub</button>
+      <p id="login-error-feedback"></p>
+      <script>
+          var electron = require('electron')
+          const ipc = electron.ipcRenderer
+          const loginBtn = document.getElementById('githublogin')
+          const loginFeedback = document.getElementById('login-error-feedback')
+          function actOnLogin()
+          {
+            ipc.send('request-login',null)
+            loginBtn.setAttribute('disabled','disabled')
+          }
+
+          ipc.on('login-failure',(event,arg) => {
+            loginBtn.removeAttribute('disabled')
+            loginFeedback.innerHTML = 'Something went wrong while trying to log you in, sorry!'
+          })
+      </script>
+  </body>
+</html>

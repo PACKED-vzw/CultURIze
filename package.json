@@ -6,7 +6,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "lint": "tslint -c tslint.json -p tsconfig.json",
-    "start": "npm run build && electron ./dist/main/main.js"
+    "start": "npm run build && electron ./dist/main.js"
   },
   "repository": "https://github.com/oSoc18/resolver",
   "keywords": [
@@ -27,6 +27,7 @@
   "dependencies": {
     "@octokit/rest": "^15.9.4",
     "csv-parser": "^1.12.1",
+    "git-url-parse": "^9.0.1",
     "simple-git": "^1.96.0"
   }
 }

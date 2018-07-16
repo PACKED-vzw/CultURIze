@@ -31,8 +31,10 @@ export class LoginAssistant
     // Shows the login popup, takes a 
     // callback as argument which is called
     // once the request has been completed.
-    public requestLogin(callback: LoginRequestCallback)
+    public requestLogin(callback: LoginRequestCallback, scope: string = 'repo')
     {
+        this.scope = scope
+
         let me = this
         let currentlyHandlingRequest : boolean = false
         this.popup = new BrowserWindow({
@@ -118,6 +120,16 @@ export class LoginAssistant
                         // Positive callback
                         callback(token,null)
                     }
+                    else 
+                    {
+                        dialog.showErrorBox('Authentication Error',
+                        `
+                            Sorry, something went wrong while trying to log you in.
+                            (GitHub API ${response.statusCode}).
+                        `)
+                        console.log(json)
+                        callback(null,null)
+                    }
                 });
                 response.on('error', (err:any) => {
                     dialog.showErrorBox('Authentication Error',
@@ -152,6 +164,6 @@ export class LoginAssistant
 
     private getPopupURL(): string
     {
-        return`https://github.com/login/oauth/authorize?client_id=${ApiConf.client_id}&scope=${LoginAssistant.scope}`
+        return`https://github.com/login/oauth/authorize?client_id=${ApiConf.client_id}&scope=${this.scope}`
     }
 }   

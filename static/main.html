@@ -1,22 +1,60 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Culturize - Login</title>
-  </head>
-  <body>
-      <p>
-          (Super secret stuff)
-          <button type="button" id="open_csv" onclick="actOnOpenCSV()">Open</button>
-      </p>
-  </body>
-  <script>
-    const MainMenu = require('./../dist/renderer/MainMenu')
-    function actOnOpenCSV()
-    {
-        MainMenu.lookForFile((success,msg) => {
-            console.log(success + ',' + msg)
-        })
-    }
-  </script>
+    <head>
+        <meta charset="UTF-8">
+        <title>Culturize</title>
+    </head>
+    <body>
+        <p>
+            <form onsubmit="actOnSubmit();return false">
+                Path to CSV:
+                <input type="text" id="csvpath" required>
+                <button type="button" id="open_csv" onclick="actOnOpenCSV()">Open</button>
+                <p id='csvpath-error'></p>
+                <br>
+
+                Name of the subdirectory to push to
+                <input type="text" id="subdir" placeholder="MyOrg/Something">
+                <br>
+
+                Push the changes to:
+                <input type="text" id="github" required>
+                <br>
+
+                <button type="submit" id="done">Publish</button>
+            </form>
+        </p>
+    </body>
+    <script>
+        const MainMenu = require('./../dist/renderer/MainMenu')
+
+        const csvPathField = document.getElementById('csvpath')
+        const subdirField = document.getElementById('subdir')
+        const githubUrlField = document.getElementById('github')
+        const submitButton = document.getElementById('done')
+
+        const csvPathError = document.getElementById('csvpath-error')
+
+        function actOnOpenCSV()
+        {
+            MainMenu.lookForFile((path,msg) => {
+                console.log(path + ',' + msg)
+                if(path)
+                    csvPathField.value = path
+                else 
+                    csvPathError.innerHTML = msg
+            })
+        }
+
+        function actOnSubmit()
+        {
+            submitButton.innerHTML = "Publishing..."
+            submitButton.setAttribute('disabled','disabled')
+            MainMenu.publish(
+                csvPathField.value,
+                subdirField.value, 
+                githubUrlField.value    	
+            )
+        }
+    </script>
 </html>

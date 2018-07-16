@@ -13,7 +13,8 @@ export function createPullRequest(token:string)
         "title" : "test voor resolver pull-request",
         "head" : "BertSchoovaerts:master",
         "base" : "master",
-        "body" : "blup"
+        "body" : "blup",
+        "token" : token
     });
 
     let post = {
@@ -25,7 +26,6 @@ export function createPullRequest(token:string)
             'Content-Type': 'application/x-www-form-urlencoded',
             'Content-Length': postData.length,
             "Accept": "application/json",
-           "Authorization" : "Basic QmVydFNjaG9vdmFlcnRzOlBpdGE3NTMzNTc=",
            "User-Agent" : "BertSchoovaerts"
         }
     };

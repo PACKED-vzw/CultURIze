@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from "path";
 import { LoginAssistant } from './main/Api/Auth'
 import { GitRepoManager } from './main/Git/Git'
+import { PublishRequest } from './common/PublishObjects'
 
 const octokit = require('@octokit/rest')()
 
@@ -56,8 +57,6 @@ ipcMain.on('request-login', (event: Event,arg: any) => {
             let manager = new GitRepoManager('https://github.com/Pierre-vh/Moonshot.git',token)
             manager.updateLocalCopy(()=>{
                 console.log('job done ')
-                manager.saveStringToFile('Some stuff + test content + are you okay','text.txt','some_subdir')
-                console.log('Files created')
             })
           
           // Set credentials 
@@ -97,5 +96,6 @@ app.on("activate", () => {
   }
 });
 
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.
+ipcMain.on('request-publishing',(event: Event, request: PublishRequest) => {
+    console.log(request.csvPath + ',' + request.repoUrl + ',' + request.subdir)
+})

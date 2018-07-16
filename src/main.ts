@@ -1,7 +1,9 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from "path";
 import { LoginAssistant } from './main/Api/Auth'
 import { GitRepoManager } from './main/Git/Git'
+
+const octokit = require('@octokit/rest')()
 
 let mainWindow: Electron.BrowserWindow;
 
@@ -28,27 +30,50 @@ function createWindow() {
     mainWindow = null;
   });
 
-  let assist = new LoginAssistant(mainWindow)
-  assist.requestLogin((token,error)=>{
-      console.log('Token: ' + token)
-      console.log('Error: ' + error)
-      if(token)
-      {
-        /*
-          let manager = new GitRepoManager('https://github.com/Pierre-vh/Moonshot.git',token)
-          manager.updateLocalCopy(()=>{
-              console.log('job done ')
-              manager.pushChanges('some message',undefined,() => {
-                  console.log('Changes Pushed')
-              })
-          })
-        */
-      }
-      else 
-        console.log('No token, no HTTPS url, SAD!')
-  })
-
 }
+
+export class LoginRequestResult 
+{
+    token: string 
+    error: any
+
+    constructor(token: string, error: any)
+    {
+        this.token = token 
+        this.error = error
+    }
+}
+
+ipcMain.on('request-login', (event: Event,arg: any) => {
+    console.log('Requested a login!')
+    let assist = new LoginAssistant(mainWindow)
+    assist.requestLogin((token,error)=>{
+        console.log('Token: ' + token)
+        console.log('Error: ' + error)
+        if(token)
+        {
+          
+            let manager = new GitRepoManager('https://github.com/Pierre-vh/Moonshot.git',token)
+            manager.updateLocalCopy(()=>{
+                console.log('job done ')
+                manager.saveStringToFile('Some stuff + test content + are you okay','text.txt','some_subdir')
+                console.log('Files created')
+            })
+          
+          // Set credentials 
+          octokit.authenticate({
+              type:'oauth',
+              token: token
+          })
+          // Change window
+          mainWindow.loadFile(__dirname + '/../static/main.html')
+        }
+        else 
+        {
+            mainWindow.webContents.send('login-failure',error)
+        }
+    })
+})
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

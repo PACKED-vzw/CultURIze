@@ -31,7 +31,7 @@ export class LoginAssistant
     // Shows the login popup, takes a 
     // callback as argument which is called
     // once the request has been completed.
-    public requestLogin(callback: LoginRequestCallback, scope: string = '...')
+    public requestLogin(callback: LoginRequestCallback, scope: string = 'repo')
     {
         this.scope = scope
 
@@ -119,6 +119,16 @@ export class LoginAssistant
                     if (response && (response.statusCode== 200) && (token && (token != ''))) {
                         // Positive callback
                         callback(token,null)
+                    }
+                    else 
+                    {
+                        dialog.showErrorBox('Authentication Error',
+                        `
+                            Sorry, something went wrong while trying to log you in.
+                            (GitHub API ${response.statusCode}).
+                        `)
+                        console.log(json)
+                        callback(null,null)
                     }
                 });
                 response.on('error', (err:any) => {

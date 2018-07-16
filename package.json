@@ -25,6 +25,7 @@
     "typescript": "^2.8.3"
   },
   "dependencies": {
+    "@octokit/rest": "^15.9.4",
     "csv-parser": "^1.12.1",
     "git-url-parse": "^9.0.1",
     "simple-git": "^1.96.0"

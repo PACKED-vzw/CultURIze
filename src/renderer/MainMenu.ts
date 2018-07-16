@@ -1,9 +1,8 @@
 // This file contains the functions & variables
-// used by the main menu.
+// used by the main menu page.
 
 import { remote, ipcRenderer } from 'electron'
 import { PublishRequest } from './../common/PublishObjects'
-
 const dialog = remote.dialog
 
 type FileFoundCallback = (filepath:string, errorMsg: string) => void
@@ -42,6 +41,9 @@ export function lookForFile(callback: FileFoundCallback)
     )
 }
 
+// This function is called to initiate a publish process. It fires an IPC event,
+// and returns immediatly. You can handle the result of the publish request by
+// handling the finished-publishing event.
 export function publish(filepath: string, subdir: string, repoUrl: string)
 {
     ipcRenderer.send('request-publishing', new PublishRequest(filepath,subdir,repoUrl))

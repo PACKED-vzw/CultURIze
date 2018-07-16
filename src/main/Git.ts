@@ -1,5 +1,5 @@
-// This file is reponsible for the interaction with Git, the command-line tool,
-// through a npm package. 
+// This file is reponsible for the interaction with Git, the command-line tool.
+// simpleGit is used to make the interaction with Git easier.
 
 import { app } from 'electron'
 const GitUrlParse = require('git-url-parse')
@@ -7,7 +7,7 @@ const fs = require('fs')
 
 const simpleGit = require('simple-git')
 
-type LocalCopyUpdatedCallback = () => void
+type LocalCopyUpdatedCallback = (success: boolean, msg?: string) => void
 type PushDoneCallback = () => void
 
 // This class is responsible to manage
@@ -19,7 +19,7 @@ export class GitRepoManager
     workingDir : string
     repoName : string
     ownerName : string
-    repoDir : string
+    repoDir : string    // workingDir + repoName
     token : string
     
     constructor(repoURL: string, token: string, workingDir: string = '')
@@ -45,7 +45,7 @@ export class GitRepoManager
 
     // This will clone the repo if we don't have a local copy yet
     // or will run a pull if we have a local copy.
-    // The callback is called once the operation is completed.
+    // The callback is called once the operation is completed. 
     public updateLocalCopy(callback: LocalCopyUpdatedCallback): void
     {
         this.hasRepo()  
@@ -53,29 +53,24 @@ export class GitRepoManager
             if(result)
             {
                 // We got a local copy, pull
-                console.log('Local copy detected, trying to pull')
                 simpleGit(this.repoDir).pull((err:any) => {
                     if(!err)
-                        console.log('Pulled successfuly')
+                        callback(true)
                     else 
-                        console.log('Error while pulling')
-                    callback()
+                        callback(false, 'Error while pulling')
                 })
             }
             else 
             {
                 // We don't have a local copy, clone.
-                console.log('Local copy not detected, cloning')
                 simpleGit(this.workingDir).clone(this.repoURL,undefined,() => {
-                    console.log('Cloning complete') 
-                    callback()
+                    callback(true)
                 })
             }
         })
         .catch((error) => {
-            console.error('Error while trying to determine if we have a local copy of the repo')
             console.error(error)
-            callback()
+            callback(false,'Error while trying to determine if we have a local copy of the repo')
         })
         
     }
@@ -131,12 +126,7 @@ export class GitRepoManager
     private createFoldersIfNeeded(filepath: string) 
     {
         if(!fs.existsSync(filepath))
-        {
             fs.mkdirSync(filepath)
-            console.log(filepath + ' did not exists, so I created it for you!')
-        }
-        else 
-            console.log(filepath + ' already existed')
     }
 
 }

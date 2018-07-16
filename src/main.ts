@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from "path";
 import { LoginAssistant } from './main/Api/Auth'
-import { GitRepoManager } from './main/Git/Git'
+import { GitRepoManager } from './main/Git'
 import { PublishRequest } from './common/PublishObjects'
 
 const octokit = require('@octokit/rest')()
@@ -53,17 +53,12 @@ ipcMain.on('request-login', (event: Event,arg: any) => {
         console.log('Error: ' + error)
         if(token)
         {
-          
-            let manager = new GitRepoManager('https://github.com/Pierre-vh/Moonshot.git',token)
-            manager.updateLocalCopy(()=>{
-                console.log('job done ')
-            })
-          
           // Set credentials 
           octokit.authenticate({
               type:'oauth',
               token: token
           })
+
           // Change window
           mainWindow.loadFile(__dirname + '/../static/main.html')
         }

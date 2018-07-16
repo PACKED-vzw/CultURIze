@@ -3,7 +3,7 @@ import * as path from "path";
 import { LoginAssistant } from './main/Api/Auth'
 import { GitRepoManager } from './main/Git/Git'
 import { PublishRequest } from './common/PublishObjects'
-
+import {ForkManager} from './main/Api/forkManager'
 const octokit = require('@octokit/rest')()
 
 let mainWindow: Electron.BrowserWindow;
@@ -52,18 +52,14 @@ ipcMain.on('request-login', (event: Event,arg: any) => {
         console.log('Token: ' + token)
         console.log('Error: ' + error)
         if(token)
-        {
-          
-            let manager = new GitRepoManager('https://github.com/Pierre-vh/Moonshot.git',token)
-            manager.updateLocalCopy(()=>{
-                console.log('job done ')
-            })
-          
+        { 
           // Set credentials 
           octokit.authenticate({
               type:'oauth',
               token: token
           })
+          const myForkManager = new ForkManager("dummy", token)
+          myForkManager.forkRepo()
           // Change window
           mainWindow.loadFile(__dirname + '/../static/main.html')
         }

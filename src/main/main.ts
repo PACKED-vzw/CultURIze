@@ -2,7 +2,7 @@ import { app, BrowserWindow } from 'electron';
 import * as path from "path";
 import { LoginAssistant } from './Api/Auth'
 import { CloneManager } from './Git/Git'
-import{createPullRequest } from './Api/PullReq'
+import{createPullRequest, createFork } from './Api/PullReq'
 
 let mainWindow: Electron.BrowserWindow;
 
@@ -28,10 +28,10 @@ function createWindow() {
   });
 
   let assist = new LoginAssistant(mainWindow)
-  assist.requestLogin((token,error)=>{
+  assist.requestLogin((token:string,error:any)=>{
       console.log('Token: ' + token)
       console.log('Error: ' + error)
-      createPullRequest(token)
+      createFork("dummy", "dummy", token)
   })
 
   /*

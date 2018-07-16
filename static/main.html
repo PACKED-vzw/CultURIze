@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Culturize - Login</title>
+  </head>
+  <body>
+      <p>
+          (Super secret stuff)
+          <button type="button" id="open_csv" onclick="actOnOpenCSV()">Open</button>
+      </p>
+  </body>
+  <script>
+    const MainMenu = require('./../dist/renderer/MainMenu')
+    function actOnOpenCSV()
+    {
+        MainMenu.lookForFile((success,msg) => {
+            console.log(success + ',' + msg)
+        })
+    }
+  </script>
+</html>

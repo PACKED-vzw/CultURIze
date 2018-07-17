@@ -90,7 +90,7 @@ export class ForkManager
     {
         return new Promise<number>((resolve,reject)=> {
             octokit.repos.merge({
-                owner : "Pierre-vh",
+                owner : "BertSchoovaerts",
                 repo  : "resolver",
                 base  : "master",
                 head  : sha,

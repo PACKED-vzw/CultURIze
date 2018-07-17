@@ -4,8 +4,6 @@ import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import { LoginAssistant } from './main/Api/Auth'
 import { PublishRequest } from './common/PublishObjects'
 import { publish } from './main/Publishing'
-import {ForkManager} from './main/Api/forkManager'
-const octokit = require('@octokit/rest')()
 
 let mainWindow: BrowserWindow;
 
@@ -40,14 +38,6 @@ ipcMain.on('request-login', (event: Event,arg: any) => {
         if(token)
         {
             currentToken = token
-
-            // Set credentials 
-            octokit.authenticate({
-                type:'oauth',
-                token: token
-            })
-
-            // Change window
             mainWindow.loadFile(__dirname + '/../static/main.html')
           }
           else 

@@ -4,6 +4,7 @@ import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import { LoginAssistant } from './main/Api/Auth'
 import { PublishRequest } from './common/PublishObjects'
 import { publish } from './main/Publishing'
+import {ForkManager} from './main/Api/forkManager'
 const octokit = require('@octokit/rest')()
 
 let mainWindow: BrowserWindow;

@@ -55,7 +55,6 @@
 
         function actOnSubmit()
         {
-            submitButton.innerHTML = "Publishing..."
             submitButton.setAttribute('disabled','disabled')
             MainMenu.publish(
                 csvPathField.value,
@@ -67,7 +66,7 @@
         ipc.on('publish-done', (event,result) => {
             console.log(result)
             if(result.successful == true)
-                publishResult.innerHTML = 'Success:'
+                publishResult.innerHTML = 'Success!'
             else 
                 publishResult.innerHTML = result.error
             

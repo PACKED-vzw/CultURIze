@@ -12,6 +12,5 @@ This is the GitHub repo of the Resolver Project of oSoC18.
   * `npm install`
   
 ## Run the app
-
 * Use npm start
   * `npm start`

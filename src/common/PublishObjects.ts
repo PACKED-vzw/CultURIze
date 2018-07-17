@@ -23,3 +23,16 @@ export class PublishRequest
         return (this.csvPath != '')
     }
 }
+
+// This class encapsulates the result of a Publishing request.
+export class PublishRequestResult
+{
+    successful: boolean 
+    error : string
+
+    constructor(successful: boolean, error: string = null) 
+    {
+        this.successful = successful
+        this.error = error
+    }
+}

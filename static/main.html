@@ -26,6 +26,7 @@
                 on the goal repo. <br>
                 <button type="submit" id="done">Publish</button>
             </form>
+            <p id="publish-result"></p>
         </p>
     </body>
     <script>
@@ -35,8 +36,11 @@
         const subdirField = document.getElementById('subdir')
         const githubUrlField = document.getElementById('github')
         const submitButton = document.getElementById('done')
+        const publishResult = document.getElementById('publish-result')
 
         const csvPathError = document.getElementById('csvpath-error')
+        var electron = require('electron')
+        const ipc = electron.ipcRenderer
 
         function actOnOpenCSV()
         {
@@ -59,5 +63,16 @@
                 githubUrlField.value    	
             )
         }
+
+        ipc.on('publish-done', (event,result) => {
+            console.log(result)
+            if(result.successful == true)
+                publishResult.innerHTML = 'Success:'
+            else 
+                publishResult.innerHTML = result.error
+            
+            submitButton.removeAttribute('disabled')
+
+        })
     </script>
 </html>

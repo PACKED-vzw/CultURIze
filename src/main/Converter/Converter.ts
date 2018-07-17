@@ -32,7 +32,8 @@ export class CSVRow
                     array.push(row)
             })
             .on('error', function(error: any){
-                reject(error)
+                console.error(error)
+                reject('Error while reading "' + filepath + '"')
             })
             .on('finish', function(row: any){
                 resolve(array)
@@ -133,10 +134,11 @@ export function convertCSVtoHTACCESS(filepath: string) : Promise<string>
             .then((value: CSVRow[]) => {
                 let creator = new HTAccessCreator(value)
                 resolve(creator.makeHTAccessFile((ignored: CSVRow) => {
-                    console.warn('Ignored CSV Row: ' + ignored)
+                    console.warn('Ignored row: ' + ignored)
                 }))
             })
-            .catch((error:any) => {
+            .catch((error:string) => {
+                console.error(error)
                 reject(error)
             })
     })

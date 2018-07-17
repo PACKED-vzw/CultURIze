@@ -6,11 +6,13 @@
          The function that handles this event then calls publish.
 */
 
-import { PublishRequest } from './../common/PublishObjects'
+import { PublishRequest, PublishRequestResult } from './../common/PublishObjects'
 import { GitRepoManager } from './Git'
 import { convertCSVtoHTACCESS } from './Converter/Converter'
 import { ForkManager } from './Api/ForkManager'
-import { dialog } from 'electron'
+import { ipcMain } from 'electron'
+import { mainWindow } from './../main'
+const isGithubUrl = require('is-github-url');
 const octokit = require('@octokit/rest')()
 const GitUrlParse = require('git-url-parse')
 
@@ -19,42 +21,67 @@ export async function publish(request: PublishRequest)
 {
     try
     {
+        // Check if the URL is valid
+        console.log('Checking URL')
+        if(!isGithubUrl(request.repoUrl))
+            throw '"' + request.repoUrl + '" is not a valid GitHub repository'
+
         // Parse the url
+        console.log('Parsing URL')
         let parsedURL = GitUrlParse(request.repoUrl);
         let destOwner = parsedURL.owner 
         let destName = parsedURL.name
+        let prettyName = destOwner + '/' + destName
+        console.log(
+            'Parsed URL: owner: ' + destOwner 
+            + ' name: ' + destName 
+            + ' prettyName: ' + prettyName
+        )
+
 
         // Convert the file
         let content = await convertCSVtoHTACCESS(request.csvPath)
 
-        // Todo: fork
+        // Fork the goal repo if we don't own it
+        console.log('Attempting to fork ' + prettyName)
         let forks = new ForkManager(request.token)
         let url = await forks.forkRepo(request.repoUrl)
-        console.log('Completed, url:')
+        console.log('Successfully forked ' + prettyName + ' at "' + url + '"')
 
         // Prepare the repoManager 
+        console.log('Preparing GitRepoManager instance')
         let manager = await prepareGitRepoManager(url,request.token)
 
         // Save the file
+        console.log('Saving the .htaccess to the desired location')
         manager.saveStringToFile(content,'.htaccess',request.subdir)
 
         // Push the changes
+        console.log('Pushing changes')
         await manager.pushChanges('Culturize import', 'master')
     
+        // Make the pull request
+        console.log('Creating pull request')
         await createPullRequest(request.token,destOwner,destName,'Pierre-vh','master',
             () => { return 'some title' }, () => { return 'some body' })
+        
+        sendRequestResult(
+            new PublishRequestResult(true)
+        )
     }
     catch(error)
     {
-        if(error != null)
-        {
-            console.log(error)
-            dialog.showErrorBox('Publishing error',error)
-        }
-        else 
-            console.error('Error caught, but the error is null!')
-        //  todo: fire IPC event here to notify the error.
+        sendRequestResult(
+            new PublishRequestResult(false,error)
+        )
     }
+}
+
+// Sends an IPC event to the renderer process
+// to notify it that we are done.
+function sendRequestResult(result: PublishRequestResult)
+{
+    mainWindow.webContents.send('publish-done',result)
 }
 
 // Prepares an instance of the GitRepoManager class.
@@ -91,7 +118,10 @@ function createPullRequest
             base  : branch,
         }, (error:any ,result:any) => {
             if(error != null)
-                reject(error)
+            {
+                console.error(error)
+                reject('Failed to create the Pull Request.')
+            }
             else 
                 resolve()
         })

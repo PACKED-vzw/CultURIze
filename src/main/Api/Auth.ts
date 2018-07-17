@@ -9,7 +9,7 @@
 var querystring = require('querystring')
 var https = require("https");
 
-import { shell, dialog, BrowserWindow, Event, IncomingMessage } from 'electron'
+import { dialog, BrowserWindow, Event } from 'electron'
 import { ApiConf } from './ApiConf'
 
 type LoginRequestCallback = (token:string,error:RegExpExecArray) => void

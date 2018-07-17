@@ -51,17 +51,20 @@ export class GitRepoManager
             .then((result) => {
                 if(result)
                 {
-                    console.log('Local copy detected, resetting to origin')
-                    simpleGit(this.repoDir).reset('hard',(err:any) => {
+                    console.log('Local copy detected, pulling changes')
+                    // Note, if we start to allow different branches,
+                    // we'll need to pull/checkout the correct branch
+                    // through simpleGit
+                    simpleGit(this.repoDir).pull((err:any) => {
                         if(err == null)
                         {
-                            console.log('Reset success')
+                            console.log('Pull successful')
                             resolve()
                         }
                         else 
                         {
-                            console.error('Reset error')
-                            reject(err)
+                            console.error(err)
+                            reject('Error while pulling')
                         }
                     })
                 }
@@ -70,7 +73,6 @@ export class GitRepoManager
                     // We don't have a local copy, clone.
                     console.log('No local copy detected - Cloning')
                     simpleGit(this.workingDir).clone(this.repoURL,undefined,(err:any) => {
-                        console.log('Done cloning')
                         if(err == null)
                         {
                             console.log('Cloning success')
@@ -78,16 +80,15 @@ export class GitRepoManager
                         }
                         else 
                         {
-                            console.error('Cloning error')
-                            reject(err)
+                            console.error(err)
+                            reject('Failed to clone "' + this.repoURL + '"')
                         }
                     })
                 }
             })
             .catch((error) => {
-                console.error('hasRepo error')
                 console.error(error)
-                reject(error)
+                reject('Error while attempting to determine if "' + this.repoDir + '" is a repository')
             })
         })   
     }
@@ -113,7 +114,10 @@ export class GitRepoManager
                 .commit(commitMessage)
                 .push(url,branch, (err:any) => {
                     if(err != null)
-                        reject(err)
+                    {
+                        console.error(err)
+                        reject('Failed to push changes')
+                    }
                     else
                         resolve()
                 })
@@ -143,8 +147,8 @@ export class GitRepoManager
                 simpleGit(this.repoDir).checkIsRepo((error: Error,result: boolean) => {
                     if(error)
                     {
-                        console.error('Error while checking if "' + this.repoDir + '" is a repository')
-                        reject(error)
+                        console.error(error)
+                        reject('Error while checking if "' + this.repoDir + '" is a repository')
                     }
                     else 
                     {

@@ -30,7 +30,7 @@ export class ForkManager
         }
         catch(error)
         {
-            console.error(error)
+            return Promise.reject<string>(error)
         }
     }
 
@@ -42,7 +42,7 @@ export class ForkManager
             }, (error:any, result:any) => {
                 console.log(result)
                 if(error != null){
-                    reject(error)
+                    reject('Error while attempting to fork ' + this.owner + '/' + this.repo)
                 }
                 else{
                     resolve(result.data.svn_url)
@@ -62,35 +62,25 @@ export class ForkManager
                 //console.log(result.data.object)
                 // console.log(error)
                 if(error != null){
-                    console.log("could not get the reference to the upstream head")
-                    console.log(error)
-                    reject(error)
+                    console.error(error)
+                    reject("Couldn't update the fork: failed to retrieve the reference to the upstream head")
                 }
                 else{
                     const resultobject = result.data.object
-                    const sha = resultobject.sha
+                    const sha  = resultobject.sha
                     const type = resultobject.type
-                    const url = resultobject.url
-                    console.log("sha: "+ sha)
-                    console.log("type: "+ type)
-                    console.log("url: " + url)
-                    console.log("succesfully got the reference to upstream head")
-                    const statuscode = this.merge(sha, this.token)
-                    .then((statuscode:number)=>
-                    {
-                        switch (statuscode)
+                    const url  = resultobject.url
+                    console.log("Successfully retrieve the reference to the upstream head")
+                    console.log(`{ sha: ${sha}, type: ${type}, url: ${url} }`)
+                    this.merge(sha, this.token)
+                        .then((statuscode:number)=>
                         {
-                            case 202:
-                                console.log("merge accepted")
-                                break;
-                            default: 
-                                console.log('Unknown status code: ' + statuscode);
-                        }
-                        resolve()
-                    })
-                    .catch((err:any)=>{
-                        reject(error)
-                    })
+                            console.log('Merged successfully (' + statuscode + ')')
+                            resolve()
+                        })
+                        .catch((error: any)=>{
+                            reject(error)
+                        })
                 }
             })
         })    
@@ -106,9 +96,11 @@ export class ForkManager
                 head  : sha,
                 commit_message : "Updating fork"
             },(error:any, result:any) => {
-                console.log(error)
                 if(error != null)
-                    reject(error)
+                {
+                    console.error(error)
+                    reject('Failed to update the fork: merge error')
+                }
                 else
                     resolve(result.status)
             })

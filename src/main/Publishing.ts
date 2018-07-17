@@ -22,9 +22,9 @@ export async function publish(request: PublishRequest)
     try
     {
         // Check if the URL is valid
-        console.log('Checking URL')
-        if(!isGithubUrl(request.repoUrl))
-            throw '"' + request.repoUrl + '" is not a valid GitHub repository'
+        console.log('Checking Request for incorrect input')
+        await checkRequestInput(request)
+        /*
 
         // Parse the url
         console.log('Parsing URL')
@@ -64,7 +64,7 @@ export async function publish(request: PublishRequest)
         console.log('Creating pull request')
         await createPullRequest(request.token,destOwner,destName,'Pierre-vh','master',
             () => { return 'some title' }, () => { return 'some body' })
-        
+        */
         sendRequestResult(
             new PublishRequestResult(true)
         )
@@ -125,5 +125,21 @@ function createPullRequest
             else 
                 resolve()
         })
+    })
+}
+
+// Checks the request for invalid information. For use
+// within the publish function
+function checkRequestInput(request: PublishRequest) : Promise<void>
+{
+    return new Promise<void>((resolve,reject) => {
+        if(!isGithubUrl(request.repoUrl))
+            reject('"' + request.repoUrl + '" is not a valid GitHub repository')
+
+        else if(!/^((\w)+)(((\/)(\w+))+)?$/.test(request.subdir))
+            reject('"' + request.subdir + '" is not a valid path')
+        
+        else 
+            resolve()
     })
 }

@@ -3,12 +3,10 @@
 
 import { app } from 'electron'
 const GitUrlParse = require('git-url-parse')
+const shellJs = require('shelljs')
 const fs = require('fs')
 
 const simpleGit = require('simple-git')
-
-type LocalCopyUpdatedCallback = (success: boolean, msg?: string) => void
-type PushDoneCallback = () => void
 
 // This class is responsible to manage
 // the local clone of a git repo owned
@@ -46,33 +44,52 @@ export class GitRepoManager
     // This will clone the repo if we don't have a local copy yet
     // or will run a pull if we have a local copy.
     // The callback is called once the operation is completed. 
-    public updateLocalCopy(callback: LocalCopyUpdatedCallback): void
+    public updateLocalCopy(): Promise<void>
     {
-        this.hasRepo()  
-        .then((result) => {
-            if(result)
-            {
-                // We got a local copy, pull
-                simpleGit(this.repoDir).pull((err:any) => {
-                    if(!err)
-                        callback(true)
-                    else 
-                        callback(false, 'Error while pulling')
-                })
-            }
-            else 
-            {
-                // We don't have a local copy, clone.
-                simpleGit(this.workingDir).clone(this.repoURL,undefined,() => {
-                    callback(true)
-                })
-            }
-        })
-        .catch((error) => {
-            console.error(error)
-            callback(false,'Error while trying to determine if we have a local copy of the repo')
-        })
-        
+        return new Promise<void>((resolve,reject) => {
+            this.hasRepo()  
+            .then((result) => {
+                if(result)
+                {
+                    console.log('Local copy detected, resetting to origin')
+                    simpleGit(this.repoDir).reset('hard',(err:any) => {
+                        if(err == null)
+                        {
+                            console.log('Reset success')
+                            resolve()
+                        }
+                        else 
+                        {
+                            console.error('Reset error')
+                            reject(err)
+                        }
+                    })
+                }
+                else 
+                {
+                    // We don't have a local copy, clone.
+                    console.log('No local copy detected - Cloning')
+                    simpleGit(this.workingDir).clone(this.repoURL,undefined,(err:any) => {
+                        console.log('Done cloning')
+                        if(err == null)
+                        {
+                            console.log('Cloning success')
+                            resolve()
+                        }
+                        else 
+                        {
+                            console.error('Cloning error')
+                            reject(err)
+                        }
+                    })
+                }
+            })
+            .catch((error) => {
+                console.error('hasRepo error')
+                console.error(error)
+                reject(error)
+            })
+        })   
     }
 
     // Save the content of a string (often the .htaccess file)
@@ -87,13 +104,20 @@ export class GitRepoManager
     }
 
     // This will call Git Commit/Push to send every change to the remote.
-    public pushChanges(commitMessage: string, branch = 'master', callback: PushDoneCallback)
+    public pushChanges(commitMessage: string, branch = 'master') : Promise<void>
     {
-        let url = this.makeGitHTTPSUrl();
-        simpleGit(this.repoDir)
-            .add('./*')
-            .commit(commitMessage)
-            .push(url,branch,callback())
+        return new Promise<void>((resolve,reject) => {
+            let url = this.makeGitHTTPSUrl();
+            simpleGit(this.repoDir)
+                .add('./*')
+                .commit(commitMessage)
+                .push(url,branch, (err:any) => {
+                    if(err != null)
+                        reject(err)
+                    else
+                        resolve()
+                })
+        })
     }
 
     // Creates the https url of the repo for git to use.
@@ -109,14 +133,27 @@ export class GitRepoManager
     {
         return new Promise<boolean>((resolve,reject) => {
             if(!fs.existsSync(this.repoDir))
+            {
+                console.log('"' + this.repoDir + '" does not exists, so it can\'t contain a repo.')
                 resolve(false) 
+            }
             else 
             {
+                console.log('"' + this.repoDir + '" exists, checking if it\'s a repo')
                 simpleGit(this.repoDir).checkIsRepo((error: Error,result: boolean) => {
                     if(error)
+                    {
+                        console.error('Error while checking if "' + this.repoDir + '" is a repository')
                         reject(error)
+                    }
                     else 
+                    {
+                        if(result)
+                            console.log('"' + this.repoDir + '" is a repository')
+                        else 
+                            console.log('"' + this.repoDir + '" is not a repository')
                         resolve(result)
+                    }
                 })
             }
         })
@@ -125,8 +162,9 @@ export class GitRepoManager
     // Creates one or more folder if they don't exist
     private createFoldersIfNeeded(filepath: string) 
     {
+        console.log('Creating if needed :"' + filepath + '"')
         if(!fs.existsSync(filepath))
-            fs.mkdirSync(filepath)
+            shellJs.mkdir('-p',filepath)
     }
 
 }

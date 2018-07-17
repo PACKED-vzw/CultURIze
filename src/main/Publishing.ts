@@ -2,25 +2,49 @@
 // the whole 'publishing' process. 
 // Explanation
 /*
-    0.  'request-publishing' IPC Event is fired, and caught below. 
-         The function that handles this event then calls beginPublishing.
+    0.  'request-publishing' IPC Event is fired, and caught in the main. 
+         The function that handles this event then calls publish.
 */
 
-import { ipcMain } from 'electron';
 import { PublishRequest } from './../common/PublishObjects'
 import { GitRepoManager } from './Git'
+import { convertCSVtoHTACCESS } from './Converter/Converter'
+import { dialog } from 'electron'
 
-ipcMain.on('request-publishing',(event: Event, request: PublishRequest) => {
-    console.log(request.csvPath + ',' + request.repoUrl + ',' + request.subdir)
-})
+const path = require('path')
 
 // Handle a publishing request
-function beginPublishing(request: PublishRequest) 
+export async function publish(request: PublishRequest) 
 {
-    console.log(request)
-    // To-Do: Figure out how the token should be passed
-    // to this file.
-    // Using a global variable maybe? Or nodejs global
+    try
+    {
+        // Convert the file
+        let content = await convertCSVtoHTACCESS(request.csvPath)
+
+        // Todo: fork
+
+        // Prepare the repoManager                  \/\/\/\/\/ Replace with fork url
+        let manager = await prepareGitRepoManager(request.repoUrl,request.token)
+
+        // Save the file
+        manager.saveStringToFile(content,'.htaccess',request.subdir)
+
+        // Push the changes
+        await manager.pushChanges('Culturize import', 'master')
+    
+        // Todo: pull request
+    }
+    catch(error)
+    {
+        if(error != null)
+        {
+            console.log(error)
+            dialog.showErrorBox('Publishing error',error)
+        }
+        else 
+            console.error('Error caught, but the error is null!')
+        //  todo: fire IPC event here to notify the error.
+    }
 }
 
 // Prepares an instance of the GitRepoManager class.
@@ -30,11 +54,8 @@ function prepareGitRepoManager(repoURL: string, token: string) : Promise<GitRepo
 {
     return new Promise<GitRepoManager>((resolve,reject) => {
         let grm = new GitRepoManager(repoURL, token)
-        grm.updateLocalCopy((success: boolean, msg: string) => {
-            if(success)
-                resolve(grm)
-            else 
-                reject(msg)
-        })
+        grm.updateLocalCopy()
+            .then(() => { resolve(grm) })
+            .catch((err:any) => { reject(err) })
     })
 }

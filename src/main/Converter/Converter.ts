@@ -123,19 +123,17 @@ export class HTAccessCreator
     }
 }
 
-type ErrorCallback = (error:any) => void
-
 // This function performs all the required steps
 // to transform a .csv to a .htaccess file
 // It returns the content of the .htaccess file
-export function convertCSVtoHTACCESS(filepath: string, onError: ErrorCallback) : Promise<string> 
+export function convertCSVtoHTACCESS(filepath: string) : Promise<string> 
 {
     return new Promise<string>((resolve,reject) => {
         CSVRow.createArrayFromCSV(filepath)
             .then((value: CSVRow[]) => {
                 let creator = new HTAccessCreator(value)
                 resolve(creator.makeHTAccessFile((ignored: CSVRow) => {
-                    console.warn('Ignored element ' + ignored)
+                    console.warn('Ignored CSV Row: ' + ignored)
                 }))
             })
             .catch((error:any) => {

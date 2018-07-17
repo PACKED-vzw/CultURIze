@@ -1,50 +1,35 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
-import * as path from "path";
+// This file is then entry point of the app and handles
+// most ipc event coming from the renderer process.
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import { LoginAssistant } from './main/Api/Auth'
-import { GitRepoManager } from './main/Git'
 import { PublishRequest } from './common/PublishObjects'
-
+import { publish } from './main/Publishing'
 const octokit = require('@octokit/rest')()
 
-let mainWindow: Electron.BrowserWindow;
+let mainWindow: BrowserWindow;
+
+// The current token of the
+// authenticated user. If this is null
+// the user is not authenticated.
+let currentToken: string = null
 
 function createWindow() {
+    mainWindow = new BrowserWindow({
+        height: 800,
+        width: 800,
+    });
+    mainWindow.maximize()
 
-  // Create the browser window.
-  mainWindow = new BrowserWindow({
-    height: 800,
-    width: 800,
-  });
-  mainWindow.maximize()
+    mainWindow.loadFile(__dirname + '/../static/index.html')
+    //mainWindow.webContents.openDevTools()
 
-  //console.log('dir:' + __dirname)
-  mainWindow.loadFile(__dirname + '/../static/index.html')
-
-  // Open the DevTools.
-  //mainWindow.webContents.openDevTools()
-
-  // Emitted when the window is closed.
-  mainWindow.on("closed", () => {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    mainWindow = null;
-  });
+    mainWindow.on("closed", () => {
+        mainWindow = null;
+    });
 
 }
 
-export class LoginRequestResult 
-{
-    token: string 
-    error: any
-
-    constructor(token: string, error: any)
-    {
-        this.token = token 
-        this.error = error
-    }
-}
-
+// Handle login requests
 ipcMain.on('request-login', (event: Event,arg: any) => {
     console.log('Requested a login!')
     let assist = new LoginAssistant(mainWindow)
@@ -53,44 +38,55 @@ ipcMain.on('request-login', (event: Event,arg: any) => {
         console.log('Error: ' + error)
         if(token)
         {
-          // Set credentials 
-          octokit.authenticate({
-              type:'oauth',
-              token: token
-          })
+            currentToken = token
 
-          // Change window
-          mainWindow.loadFile(__dirname + '/../static/main.html')
-        }
-        else 
-        {
-            mainWindow.webContents.send('login-failure',error)
-        }
+            // Set credentials 
+            octokit.authenticate({
+                type:'oauth',
+                token: token
+            })
+
+            // Change window
+            mainWindow.loadFile(__dirname + '/../static/main.html')
+          }
+          else 
+              mainWindow.webContents.send('login-failure',error)
     })
 })
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+// Handle publishing requests
+ipcMain.on('request-publishing',(event: Event, request: PublishRequest) => {
+    // If the token is not null, proceed, else, display an error
+    if((currentToken != null) && (currentToken != ''))
+    {
+        // Complete the request with the token
+        request.token = currentToken
+        // Proceed
+        publish(request)
+    }
+    else 
+    {
+        dialog.showErrorBox('Forbidden action'
+        ,"You can't publish a file without being authenticated.")
+        // todo: send ipc event 'publish-done' with an error message.
+    }
+})
+
+// app-specific events
 app.on("ready", createWindow);
 
-// Quit when all windows are closed.
 app.on("window-all-closed", () => {
-  // On OS X it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+    // On OS X it is common for applications and their menu bar
+    // to stay active until the user quits explicitly with Cmd + Q
+    if (process.platform !== "darwin") {
+        app.quit();
+    }
 });
 
 app.on("activate", () => {
-  // On OS X it"s common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (mainWindow === null) {
-    createWindow();
-  }
+    // On OS X it"s common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    if (mainWindow === null) {
+        createWindow();
+    }
 });
-
-ipcMain.on('request-publishing',(event: Event, request: PublishRequest) => {
-    console.log(request.csvPath + ',' + request.repoUrl + ',' + request.subdir)
-})

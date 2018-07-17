@@ -80,8 +80,14 @@ export class ForkManager
                     {
                         switch (statuscode)
                         {
+                            case 201:
+                                console.log("merge accepted and executed")
+                                break;
                             case 202:
                                 console.log("merge accepted")
+                                break;
+                            case 204:
+                                console.log("nothing to merge")
                                 break;
                             default: 
                                 console.log('Unknown status code: ' + statuscode);
@@ -89,7 +95,7 @@ export class ForkManager
                         resolve()
                     })
                     .catch((err:any)=>{
-                        reject(error)
+                        reject(err)
                     })
                 }
             })
@@ -100,7 +106,7 @@ export class ForkManager
     {
         return new Promise<number>((resolve,reject)=> {
             octokit.repos.merge({
-                owner : "Pierre-vh",
+                owner : "BertSchoovaerts",
                 repo  : "resolver",
                 base  : "master",
                 head  : sha,

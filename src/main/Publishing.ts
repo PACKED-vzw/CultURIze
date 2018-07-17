@@ -41,7 +41,7 @@ export async function publish(request: PublishRequest)
         // Push the changes
         await manager.pushChanges('Culturize import', 'master')
     
-        await createPullRequest(request.token,destOwner,destName,'Pierre-vh','master',
+        await createPullRequest(request.token,destOwner,destName,'BertSchoovaerts','master',
             () => { return 'some title' }, () => { return 'some body' })
     }
     catch(error)

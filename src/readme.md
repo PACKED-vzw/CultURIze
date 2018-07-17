@@ -5,3 +5,5 @@ The code in main is supposed to run on the main process, and the code in rendere
 to run on the renderer project.
 
 this line is a test again.
+
+another test line.

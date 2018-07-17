@@ -5,7 +5,7 @@ import { LoginAssistant } from './main/Api/Auth'
 import { PublishRequest } from './common/PublishObjects'
 import { publish } from './main/Publishing'
 
-let mainWindow: BrowserWindow;
+export let mainWindow: BrowserWindow;
 
 // The current token of the
 // authenticated user. If this is null

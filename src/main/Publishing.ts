@@ -3,7 +3,7 @@
 // Explanation
 /*
     0.  'request-publishing' IPC Event is fired, and caught in the main. 
-         The function that handles this event then calls publish.
+         The function that handles this event then calls 'publish' below.
 */
 
 import { PublishRequest, PublishRequestResult } from './../common/PublishObjects'
@@ -21,10 +21,10 @@ export async function publish(request: PublishRequest)
 {
     try
     {
-        // Check if the URL is valid
+        // Check the request for incorrect input
         console.log('Checking Request for incorrect input')
         await checkRequestInput(request)
-        /*
+        
 
         // Parse the url
         console.log('Parsing URL')
@@ -41,7 +41,7 @@ export async function publish(request: PublishRequest)
 
         // Convert the file
         let content = await convertCSVtoHTACCESS(request.csvPath)
-
+        
         // Fork the goal repo if we don't own it
         console.log('Attempting to fork ' + prettyName)
         let forks = new ForkManager(request.token)
@@ -55,7 +55,7 @@ export async function publish(request: PublishRequest)
         // Save the file
         console.log('Saving the .htaccess to the desired location')
         manager.saveStringToFile(content,'.htaccess',request.subdir)
-
+        
         // Push the changes
         console.log('Pushing changes')
         await manager.pushChanges('Culturize import', 'master')
@@ -64,7 +64,7 @@ export async function publish(request: PublishRequest)
         console.log('Creating pull request')
         await createPullRequest(request.token,destOwner,destName,'Pierre-vh','master',
             () => { return 'some title' }, () => { return 'some body' })
-        */
+        
         sendRequestResult(
             new PublishRequestResult(true)
         )
@@ -136,8 +136,11 @@ function checkRequestInput(request: PublishRequest) : Promise<void>
         if(!isGithubUrl(request.repoUrl))
             reject('"' + request.repoUrl + '" is not a valid GitHub repository')
 
-        else if(!/^((\w)+)(((\/)(\w+))+)?$/.test(request.subdir))
+        else if((request.subdir.length > 0) && (!/^((\w)+)(((\/)(\w+))+)?$/.test(request.subdir)))
+        {
+            console.log('length: ' + request.subdir.length)
             reject('"' + request.subdir + '" is not a valid path')
+        }
         
         else 
             resolve()

@@ -44,12 +44,13 @@ export class CSVRow {
             });
 
             parser.on("error", (err: any) => {
-                console.log(err);
+                console.error(err);
                 reject("Error while parsing the CSV file");
             });
 
             parser.on("finish", () => {
-                console.log(array);
+                // Log all the entries
+                //console.log(array);
                 resolve(array);
             });
 
@@ -58,23 +59,6 @@ export class CSVRow {
 
             // Close the stream
             parser.end();
-
-            /*
-            let array : CSVRow[] = new Array<CSVRow>()
-            fs.createReadStream(filepath).pipe(csv())
-            .on('data', function(data: any){
-                let row : CSVRow = CSVRow.createRow(data)
-                if(row != null)
-                    array.push(row)
-            })
-            .on('error', function(error: any){
-                console.error(error)
-                reject('Error while reading "' + filepath + '"')
-            })
-            .on('finish', function(row: any){
-                resolve(array)
-            })
-            */
         });
     }
 

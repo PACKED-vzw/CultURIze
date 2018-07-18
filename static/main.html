@@ -1,77 +1,137 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Culturize</title>
-    </head>
-    <body>
-        <p>
-            <form onsubmit="actOnSubmit();return false">
-                Path to CSV:
-                <input type="text" id="csvpath" required>
-                <button type="button" id="open_csv" onclick="actOnOpenCSV()">Open</button>
-                <p id='csvpath-error'></p>
-                <br>
+<html lang="en">
 
-                Name of the subdirectory to push to
-                <input type="text" id="subdir" placeholder="MyOrg/Something">
-                <br>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/main.css">
+  <title>Culturize</title>
+</head>
 
-                Send a pull request to:
-                <input type="url" id="github" required>
-                <br>
+<body>
+  <div class="kader">
+    <form onsubmit="actOnSubmit();return false">
+      <div class="field">
+        <span class="p-form">CSV File: </span> <input class="input-form" type="text" id="csvpath" required>
+        <button class="input-submit" type="button" name="button" onclick="actOnOpenCSV()">
+          <span class="submit-p">open</span>
+        </button>
+        <button title="This is the CSV file that is going to be translated to .htaccess" class="info" type="button" name="button" disabled>
+          <span class="info-p">?</span>
+        </button>
+      </div>
 
-                When you click on publish, the repository that you want to make a pull request to will be 
-                forked on your github account. Then, we'll push the .htaccess file on the fork and make a pull request on your behalf
-                on the goal repo. <br>
-                <button type="submit" id="done">Publish</button>
-            </form>
-            <p id="publish-result"></p>
-        </p>
-    </body>
-    <script>
-        const MainMenu = require('./../dist/renderer/MainMenu')
+      <div class="field">
+        <span class="p-form">Subdirectory ? </span> <input class="input-form" type="text" id="subdir">
+        <button title="This is the subdirectory where we'll place the .htaccess file" class="info" type="button" name="button" disabled>
+          <span class="info-p">?</span>
+        </button>
+      </div>
+      
+      <div class="field">
+        <span class="p-form">Send to: </span> <input class="input-form" type="url" id="github" required>
+        <button title="This is the GitHub repo where we'll make a pull request (or push if you're the owner)" class="info" type="button" name="button" disabled>
+          <span class="info-p">?</span>
+        </button>     
+      </div>
 
-        const csvPathField = document.getElementById('csvpath')
-        const subdirField = document.getElementById('subdir')
-        const githubUrlField = document.getElementById('github')
-        const submitButton = document.getElementById('done')
-        const publishResult = document.getElementById('publish-result')
+      <div id="opts_more" class="invisible">
+        <div class="field">
+          <span class="p-form">Branch: </span> <input class="input-form" type="text">
+        </div>
 
-        const csvPathError = document.getElementById('csvpath-error')
-        var electron = require('electron')
-        const ipc = electron.ipcRenderer
+        <div class="field">
+          <span class="p-form">Commit message: </span> <input class="input-form" type="text">
+        </div>
 
-        function actOnOpenCSV()
-        {
-            MainMenu.lookForFile((path,msg) => {
-                console.log(path + ',' + msg)
-                if(path)
-                    csvPathField.value = path
-                else 
-                    csvPathError.innerHTML = msg
-            })
-        }
+        <div class="field">
+          <span class="p-form">Pull request title: </span> <input class="input-form" type="text">
+        </div>
 
-        function actOnSubmit()
-        {
-            submitButton.setAttribute('disabled','disabled')
-            MainMenu.publish(
-                csvPathField.value,
-                subdirField.value, 
-                githubUrlField.value    	
-            )
-        }
+        <div class="field">
+          <span class="p-form">Pull request body: </span> <input class="input-form" type="text">
+        </div>
+      </div>
 
-        ipc.on('publish-done', (event,result) => {
-            console.log(result)
-            if(result.successful == true)
-                publishResult.innerHTML = 'Success!'
-            else 
-                publishResult.innerHTML = result.error
-            
-            submitButton.removeAttribute('disabled')
+      <div class="buttons">
+        <button id="publish_button" class="button" type="submit" name="button">
+          <span>Publish</span>
+        </button>
+        <button id="extra_button" class="extra_button" type="button" name="button" onclick="actOnShowMore()">
+          <span class="hidden">+</span>
+        </button>
+      </div>
 
-        })
-    </script>
+      <div id="feedback"></div>
+    </form>
+  </div>
+</body>
+<script>
+  const MainMenu = require('./../dist/renderer/MainMenu')
+
+  const csvPathField = document.getElementById('csvpath')
+  const subdirField = document.getElementById('subdir')
+  const githubUrlField = document.getElementById('github')
+
+  const feedbackDiv = document.getElementById('feedback')
+
+  const submitButton = document.getElementById('publish_button')
+  const showMoreButton = document.getElementById('extra_button')
+
+  // Options fields
+  const moreOpt = document.getElementById('opts_more')
+
+  let optionsAreRevealed = false
+
+  var electron = require('electron')
+  const ipc = electron.ipcRenderer
+
+  function actOnOpenCSV()
+  {
+    MainMenu.lookForFile((path,msg) => {
+      console.log(path + ',' + msg)
+      if(path)
+        csvPathField.value = path
+      else 
+        feedbackDiv.innerHTML = msg
+    })
+  }
+
+  function actOnSubmit()
+  {
+    submitButton.setAttribute('disabled','disabled')
+    MainMenu.publish(
+      csvPathField.value,
+      subdirField.value, 
+      githubUrlField.value    	
+    )
+  }
+
+  function actOnShowMore()
+  {
+    if(optionsAreRevealed)
+    {
+      // Hide options
+      moreOpt.classList.add('invisible')
+      optionsAreRevealed = false 
+    }
+    else 
+    {
+      // Reveal options
+      moreOpt.classList.remove('invisible')
+      optionsAreRevealed = true 
+    }
+  }
+
+  ipc.on('publish-done', (event,result) => {      
+    if(result.successful == true)
+      feedbackDiv.innerHTML = 'Success!'
+    else 
+      feedbackDiv.innerHTML = result.error
+    
+    submitButton.removeAttribute('disabled')
+  })
+</script>
 </html>

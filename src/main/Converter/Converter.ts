@@ -38,6 +38,15 @@ export class CSVRow {
                 while (data = parser.read()) {
                     const row: CSVRow = CSVRow.createRow(data);
                     if (row != null) {
+                        // If it isn't null, check the 'legality'/validity of the row
+                        let validity = row.isValid()
+                        if(validity != null)
+                        {
+                            console.log('Rejected invalid row, reason: ' + validity)
+                            reject(validity)
+                            return
+                        }
+                        // We're good, push
                         array.push(row);
                     }
                 }
@@ -49,9 +58,18 @@ export class CSVRow {
             });
 
             parser.on("finish", () => {
-                // Log all the entries
-                //console.log(array);
-                resolve(array);
+                if(array.length === 0)
+                    reject('No valid row found in the CSV File.')
+                else
+                {
+                    CSVRow.checkArrayForDuplicates(array)
+                        .then(() => {
+                            resolve(array);
+                        })
+                        .catch((reason: string) => {
+                            reject(reason)
+                        })
+                }
             });
 
             // Send the data to the parser
@@ -63,6 +81,8 @@ export class CSVRow {
     }
 
     // Creates a CSVRow from a single row of data
+    // This will return null if the row doesn't provide enough information to
+    // create a valid CSVRow object.
     public static createRow(row: any): CSVRow {
         if (this.satisfiesMinimumRequirements(row) && this.isEnabled(row)) {
             return new CSVRow(
@@ -73,6 +93,68 @@ export class CSVRow {
         }
         return null;
     }
+
+    // Checks an array of CSVRows for duplicate redirections
+    // The promise is rejected on error, resolved on success
+    private static checkArrayForDuplicates(array: CSVRow[]) : Promise<void> {
+        return new Promise<void>((resolve,reject) => {
+            // Iterate over all elements, and populate an array of strings
+            // of the format (document type)/(pid), this array is then checked for duplicates
+            let redirs = new Array<string>()
+
+            for(let element of array)
+                redirs.push(element.docType + '/' + element.pid)
+
+            // Now, sort the array
+            redirs.sort()
+
+            // Check if there's a place where the element before === the element after
+            let duplicates = new Array<string>()
+            let redirs_length = redirs.length
+            for(let k = 0; k < redirs_length - 1; k++) {
+                if(redirs[k] == redirs[k+1]) {
+                    duplicates.push(redirs[k])
+                }
+            }
+
+            // Check if the duplicates contains anything
+            if(duplicates.length !== 0)
+            {
+                // Create a "diagnostic" string that contains every duplicate
+                let diagStr : string = "Duplicate redirections found: "
+                for(let duplicate of duplicates)
+                {
+                    console.error("Duplicate redirection of \"" + duplicate + "\"")
+                    diagStr += duplicate + ", "
+                }
+                reject(diagStr)
+                return;
+            }
+
+            // If we passed every check, we are good!
+            resolve()
+        })
+    }
+
+    // Checks the validity of this row
+        // The strings for the PID and document type can
+        // only contain 'a-z' 'A-Z' '0-9' '-' and '_'
+    // Returns a null string on success, on failure,
+    // returns a string containing the error message
+    private isValid() : string {
+        let fn = (text: string) : boolean => {
+            return /^([a-z]|[A-Z]|[0-9]|-|_)+$/.test(text)
+        }
+
+        if(!fn(this.docType))
+            return "The document type \"" + this.docType + "\" contains invalid characters"
+        
+        if(!fn(this.pid))
+            return "The PID \"" + this.pid + "\" contains invalid characters"
+        
+        return null
+    }
+
 
     // This function checks if a row of data satisfies the minimum requirements to be valid.
     // For this function to return true, the row must provide non null/empty
@@ -97,9 +179,10 @@ export class CSVRow {
         }
         return true;
     }
-    public pid: string;
-    public docType: string;
-    public url: string;
+
+    pid: string;
+    docType: string;
+    url: string;
 
     private constructor(pid: string, docType: string, url: string) {
         this.pid     = pid.trim();
@@ -107,8 +190,6 @@ export class CSVRow {
         this.url     = url.trim().replace("%", "\\%");
     }
 }
-
-type IgnoredElementCallback = (element: CSVRow) => void;
 
 // This class manages the HTAccess creation
 // process.
@@ -120,7 +201,7 @@ export class HTAccessCreator {
     }
 
     // Compiles the csvArray, creating the HTAccess file.
-    public makeHTAccessFile(onIgnore: IgnoredElementCallback): string {
+    public makeHTAccessFile(): string {
         let data = this.getHeader() + "\n";
 
         this.csvArray.forEach((row: CSVRow) => {
@@ -155,9 +236,7 @@ export function convertCSVtoHTACCESS(filepath: string): Promise<string> {
         CSVRow.createArrayFromCSV(filepath)
             .then((value: CSVRow[]) => {
                 const creator = new HTAccessCreator(value);
-                resolve(creator.makeHTAccessFile((ignored: CSVRow) => {
-                    console.warn("Ignored row: " + ignored);
-                }));
+                resolve(creator.makeHTAccessFile());
             })
             .catch((error: string) => {
                 console.error(error);

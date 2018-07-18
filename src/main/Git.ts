@@ -138,12 +138,11 @@ export class GitRepoManager
         return new Promise<boolean>((resolve,reject) => {
             if(!fs.existsSync(this.repoDir))
             {
-                console.log('"' + this.repoDir + '" does not exists, so it can\'t contain a repo.')
+                console.log('"' + this.repoDir + '" does not contain a repository')
                 resolve(false) 
             }
             else 
             {
-                console.log('"' + this.repoDir + '" exists, checking if it\'s a repo')
                 simpleGit(this.repoDir).checkIsRepo((error: Error,result: boolean) => {
                     if(error)
                     {
@@ -155,7 +154,7 @@ export class GitRepoManager
                         if(result)
                             console.log('"' + this.repoDir + '" is a repository')
                         else 
-                            console.log('"' + this.repoDir + '" is not a repository')
+                            console.log('"' + this.repoDir + '" does not contain a repository')
                         resolve(result)
                     }
                 })
@@ -166,7 +165,6 @@ export class GitRepoManager
     // Creates one or more folder if they don't exist
     private createFoldersIfNeeded(filepath: string) 
     {
-        console.log('Creating if needed :"' + filepath + '"')
         if(!fs.existsSync(filepath))
             shellJs.mkdir('-p',filepath)
     }

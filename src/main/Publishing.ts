@@ -85,6 +85,7 @@ export async function publish(request: PublishRequest) {
             console.log("The current owner owns the repo, no Pull Request required")
 
         console.log('Done !')
+        
         sendRequestResult(
             new PublishRequestResult(true),
         );

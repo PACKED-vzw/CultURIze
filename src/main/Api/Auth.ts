@@ -44,10 +44,8 @@ export class LoginAssistant
                 show: false,
                 alwaysOnTop: true,
                 parent: this.parentWindow,
-                titleBarStyle: 'hidden',
-                //frame:false
             })
-        
+        this.popup.setMenu(null)
         this.popup.loadURL(this.getPopupURL())
         // Set callbacks
         this.popup.webContents.on('will-navigate', function(event:Event,url:string){
@@ -141,6 +139,7 @@ export class LoginAssistant
                     callback(null,err)
                 });
             });
+            console.log('Trying to exchange code for token..')
             req.write(postData);
             req.end();
         }

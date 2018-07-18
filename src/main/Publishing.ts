@@ -64,7 +64,7 @@ export async function publish(request: PublishRequest)
         console.log('Creating pull request')
         await createPullRequest(request.token,destOwner,destName,'Pierre-vh','master',
             () => { return 'some title' }, () => { return 'some body' })
-        
+    
         sendRequestResult(
             new PublishRequestResult(true)
         )

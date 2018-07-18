@@ -2,21 +2,21 @@
 // simpleGit is used to make the interaction with Git easier.
 
 import { app } from "electron";
+import fs = require("fs");
 const GitUrlParse = require("git-url-parse");
 const shellJs = require("shelljs");
-import fs = require("fs");
 const simpleGit = require("simple-git");
 
 // This class is responsible to manage
 // the local clone of a git repo owned
 // by the current user.
 export class GitRepoManager {
-    public repoURL: string;
-    public workingDir: string;
-    public repoName: string;
-    public ownerName: string;
-    public repoDir: string;    // workingDir + repoName
-    public token: string;
+    repoURL: string
+    workingDir: string
+    repoName: string
+    ownerName: string
+    repoDir: string
+    token: string
 
     constructor(repoURL: string, token: string, workingDir: string = "") {
         this.repoURL = repoURL;

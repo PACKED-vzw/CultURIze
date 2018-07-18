@@ -79,7 +79,7 @@ export async function publish(request: PublishRequest) {
         if(!isOwnerOfRepo)
         {
             console.log("Creating pull request");
-            await createPullRequest(request.token, destOwner, destName, "Pierre-vh", "master",
+            await createPullRequest(request.token, destOwner, destName, user.userName, "master",
                 () => "some title", () => "some body");
         }
         else 
@@ -164,6 +164,10 @@ function checkRequestInput(request: PublishRequest): Promise<void> {
         }
         if(!fs.existsSync(request.csvPath)){
             reject("this path is not valid: "+request.csvPath)
+            return
+        }
+        if(!request.csvPath.endsWith(".csv")){
+            reject("this is not a csv file")
             return
         }
         

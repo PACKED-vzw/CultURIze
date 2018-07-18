@@ -1,7 +1,12 @@
 // This is the file charged with converting
 // .csv files to .htaccess files
 
-var csv = require('csv-parser')
+// Potential Area of Improvements:
+    // Make the .htaccess generation more complete by generating multiple files
+    // for each document type, and store each of theses files in another folder.
+    // This can speed up the redirection time by 2x, at the cost of creating 2 more files.
+
+var csv_parser = require('csv-parse')
 var fs = require('fs')
 
 import * as Conf from './CSVConfig'
@@ -23,8 +28,51 @@ export class CSVRow
     // Creates a Array of rows from the contents of a CSVFile located at filepath
     public static createArrayFromCSV(filepath: string) : Promise<CSVRow[]>
     {
-        let array : CSVRow[] = new Array<CSVRow>()
         return new Promise<CSVRow[]>((resolve,reject) => {
+            let buffer: string = fs.readFileSync(filepath,'utf8')
+            let array : CSVRow[] = new Array<CSVRow>()
+            let str:string = ''
+            
+            if(buffer)
+                str = buffer.toString()
+
+
+            if(str.length == 0)
+            {
+                reject('The file is empty') 
+                return
+            }
+
+            let parser = csv_parser({ columns: true, relax_column_count:true })
+
+            parser.on('readable', () => {
+                let data:any
+                while(data = parser.read())
+                {
+                    let row : CSVRow = CSVRow.createRow(data)
+                    if(row != null)
+                        array.push(row)
+                }
+            })
+
+            parser.on('error', (err:any) => {
+                console.log(err)
+                reject('Error while parsing the CSV file')
+            })
+
+            parser.on('finish', () => {
+                console.log(array)
+                resolve(array)
+            })
+
+            // Send the data to the parser
+            parser.write(str)
+
+            // Close the stream
+            parser.end()
+
+            /*
+            let array : CSVRow[] = new Array<CSVRow>()
             fs.createReadStream(filepath).pipe(csv())
             .on('data', function(data: any){
                 let row : CSVRow = CSVRow.createRow(data)
@@ -38,6 +86,7 @@ export class CSVRow
             .on('finish', function(row: any){
                 resolve(array)
             })
+            */
         })
     }
 

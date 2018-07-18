@@ -147,26 +147,28 @@ function createPullRequest (token: string, owner: string, repo: string, user: st
 // within the publish function
 function checkRequestInput(request: PublishRequest): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-        if (!isGithubUrl(request.repoUrl)) {
-            reject('"' + request.repoUrl + '" is not a valid GitHub repository');
+        const repoUrl = request.repoUrl
+        if (!isGithubUrl(repoUrl)) {
+            reject('"' + repoUrl + '" is not a valid GitHub repository');
             return
         } 
-        
-        if ((request.subdir.length > 0) && (!/^((\w)+)(((\/)(\w+))+)?$/.test(request.subdir))) {
-            reject('"' + request.subdir + '" is not a valid path');
+        const subdir = request.subdir
+        if ((subdir.length > 0) && (!/^((\w)+)(((\/)(\w+))+)?$/.test(subdir))) {
+            reject('"' + subdir + '" is not a valid path');
             return
         } 
-        
-        if((request.token === "") || (request.token == null))
+        const token = request.token
+        if((token === "") || (token == null))
         {
             reject("Unauthorized user (empty/null token)")
             return
         }
-        if(!fs.existsSync(request.csvPath)){
-            reject("this path is not valid: "+request.csvPath)
+        const path = request.csvPath
+        if(!fs.existsSync(path)){
+            reject("this path is not valid: "+path)
             return
         }
-        if(!request.csvPath.endsWith(".csv")){
+        if(!path.endsWith(".csv")){
             reject("this is not a csv file")
             return
         }

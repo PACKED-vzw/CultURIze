@@ -40,7 +40,7 @@ export class ForkManager
                 owner : this.owner,
                 repo  : this.repo
             }, (error:any, result:any) => {
-                console.log(result)
+                //console.log(result)
                 if(error != null){
                     reject('Error while attempting to fork ' + this.owner + '/' + this.repo)
                 }

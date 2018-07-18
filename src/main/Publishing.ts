@@ -12,6 +12,7 @@ import { ForkManager } from "./Api/ForkManager";
 import { convertCSVtoHTACCESS } from "./Converter/Converter";
 import { GitRepoManager } from "./Git";
 import { User } from './Api/User'
+import fs = require('fs')
 const isGithubUrl = require("is-github-url");
 const octokit = require("@octokit/rest")();
 const GitUrlParse = require("git-url-parse");
@@ -161,7 +162,11 @@ function checkRequestInput(request: PublishRequest): Promise<void> {
             reject("Unauthorized user (empty/null token)")
             return
         }
-
+        if(!fs.existsSync(request.csvPath)){
+            reject("this path is not valid: "+request.csvPath)
+            return
+        }
+        
         resolve();
     });
 }

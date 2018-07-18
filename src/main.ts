@@ -17,6 +17,7 @@ function createWindow() {
         height: 800,
         width: 800,
     });
+    mainWindow.setMenu(null)
     mainWindow.maximize()
 
     mainWindow.loadFile(__dirname + '/../static/index.html')

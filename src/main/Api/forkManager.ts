@@ -2,9 +2,11 @@ const octokit = require("@octokit/rest")();
 const GitUrlParse = require("git-url-parse");
 
 export class ForkManager {
-    public owner: string;
-    public repo: string;
-    public token: string;
+    baseOwner: string   // The owner of the original repo
+    currentUser: string // The username of the current user
+    repo: string        // The name of the repo
+    branch: string
+    token: string      
 
     constructor(token: string) {
         this.token = token;
@@ -15,30 +17,36 @@ export class ForkManager {
     }
 
     // Forks a repo and updates it with the main branch.
-    public async forkRepo(repoURL: string): Promise<string> {
+    public async forkRepo(repoURL: string, currentUser: string, branch: string): Promise<string> {
+        this.currentUser = currentUser;
+        this.branch = branch;
         try {
             const parsedURL = GitUrlParse(repoURL);
-            this.owner = parsedURL.owner;
+            this.baseOwner = parsedURL.owner;
             this.repo = parsedURL.name;
-            const fork_url = await this.createFork();
-            console.log("Created fork URL");
-            await this.updateFork();
 
+            const fork_url = await this.createFork();
+            console.log('Fork created/found at "' + fork_url + '"')
+
+            console.log('Attempting to update fork')
+            await this.updateFork();
+            console.log('Done')
             return fork_url;
         } catch (error) {
             return Promise.reject<string>(error);
         }
     }
 
+    // Creates the fork
     private createFork(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             octokit.repos.fork({
-                owner : this.owner,
+                owner : this.baseOwner,
                 repo  : this.repo,
             }, (error: any, result: any) => {
                 // console.log(result)
                 if (error != null) {
-                    reject("Error while attempting to fork " + this.owner + "/" + this.repo);
+                    reject("Error while attempting to fork " + this.baseOwner + "/" + this.repo);
                 } else {
                     resolve(result.data.svn_url);
                 }
@@ -49,9 +57,9 @@ export class ForkManager {
     private updateFork(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             octokit.gitdata.getReference({
-                owner : this.owner,
+                owner : this.baseOwner,
                 repo  : this.repo,
-                ref   : "heads/master",
+                ref   : "heads/" + this.branch,
             }, (refError: any, result: any) => {
                 // console.log(result.data.object)
                 // console.log(error)
@@ -63,7 +71,7 @@ export class ForkManager {
                     const sha  = resultobject.sha;
                     const type = resultobject.type;
                     const url  = resultobject.url;
-                    console.log("Successfully retrieve the reference to the upstream head");
+                    console.log("Successfully retrieved the reference to the upstream head, attempting merge operation");
                     console.log(`{ sha: ${sha}, type: ${type}, url: ${url} }`);
                     this.merge(sha, this.token)
                         .then((statuscode: number) => {
@@ -71,6 +79,8 @@ export class ForkManager {
                             resolve();
                         })
                         .catch((mergeError: any) => {
+                            console.log('Merge error');
+                            console.error(mergeError);
                             reject(mergeError);
                         });
                 }
@@ -81,9 +91,9 @@ export class ForkManager {
     private merge(sha: string, token: string): Promise<number> {
         return new Promise<number>((resolve, reject) => {
             octokit.repos.merge({
-                owner : "Pierre-vh",
-                repo  : "resolver",
-                base  : "master",
+                owner : this.currentUser,
+                repo  : this.repo,
+                base  : this.branch,
                 head  : sha,
                 commit_message : "Updating fork",
             }, (error: any, result: any) => {

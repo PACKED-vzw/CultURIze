@@ -1,17 +1,15 @@
-import { resolve } from "path";
-import { Url } from "url";
-
+// This file is tasked with retrieving the personal
+// informations of the current logged-in user, like his
+// username, profile picture,etc
 const octokit = require('@octokit/rest')()
 
-export class User{
-
+export class User {
     userName: string
     avatar_url: string
 
     constructor(userName: string, avatar_url: string){
         this.userName = userName
         this.avatar_url = avatar_url
-
     }
 
     public static getUserInfo(token: string): Promise<User>{
@@ -22,9 +20,9 @@ export class User{
         return new Promise<User>((resolve,reject)=> {
             octokit.users.get({})
             .then((result: any) =>{
-               const userName:string = result.data.login
-               const avatar_url:string = result.data.avatar_url
-               var newUser: User = new User(userName, avatar_url)
+               const userName: string = result.data.login
+               const avatar_url: string = result.data.avatar_url
+               let newUser: User = new User(userName, avatar_url)
                resolve(newUser)
             })
             .catch((error: any) => {

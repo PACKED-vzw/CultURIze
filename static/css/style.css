@@ -1,0 +1,119 @@
+html {
+  font-size: 62.5%;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+@font-face {
+  font-family: "montserrat-medium";
+  src: url("../assets/font/montserrat/montserrat-medium.woff2") format("woff2"), url("../assets/font/montserrat/montserrat-medium.woff") format("woff");
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "montserrat-semibold";
+  src: url("../assets/font/montserrat/montserrat-semibold.woff2") format("woff2"), url("../assets/font/montserrat/montserrat-semibold.woff") format("woff");
+}
+
+
+
+body{
+  background-image: url("../assets/bg.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+
+main{
+  background-color: #E9ECEE;
+  width: 48rem;
+  height: 45rem;
+  display: flex;
+  padding: 5rem;
+  margin: auto;
+  border-radius: 8rem;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 15rem;
+  box-shadow: 0px 0px 70px #B0B1B5;
+}
+
+h1{
+  text-align: center;
+  font-size: 1.9rem;
+  padding-top: 4rem;
+  color:#1102DF;
+  font-family: "montserrat-semibold";
+}
+
+#login-error-feedback{  
+  padding: 1rem;
+  font-family: "montserrat-semibold";
+  visibility: hidden;
+  display: block;
+}
+
+.sign-in-p{
+  text-align: center;
+  font-size: 1.4rem;
+  padding-top: 1rem;
+  padding-bottom: 6rem;
+  color:#9199AA;
+  font-family: "montserrat-medium";
+}
+
+.no-account{
+  text-align: center;
+  font-size: 1.3rem;
+  color:#9199AA;
+  font-family: "montserrat-medium";
+}
+
+.button{
+  position: relative;
+  color:white;
+  font-family: "montserrat-medium";
+  font-size: 1.8rem;
+  width: 24rem;
+  height: 8rem;
+  background-color: #1CD2A7;
+  border-radius: 8rem;
+  padding: 3rem;
+  outline: none;
+  transition: background-color 0.5s ease;
+}
+
+button#signin_button {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.button:hover:enabled{
+  background-color: rgb(22, 148, 119);
+}
+
+.button:disabled 
+{
+  background-color:grey;
+}
+
+.no-account{
+  padding-top: 0.5rem;
+} 
+
+.create-one-link{
+  text-decoration: none;
+  color: #1CD2A7;
+  font-family: "montserrat-semibold";
+  transition: border-bottom 0.2s ease;
+}
+
+.create-one-link:hover{
+  border-bottom: 0.2rem solid #1CD2A7;
+}
+

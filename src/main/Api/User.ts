@@ -1,19 +1,29 @@
 import { resolve } from "path";
+import { Url } from "url";
 
 const octokit = require('@octokit/rest')()
 
 export class User{
 
-    userName:string
+    userName: string
+    avatar_url: string
 
-    constructor(userName: string){
+    constructor(userName: string, avatar_url: string){
         this.userName = userName
+        this.avatar_url = avatar_url
     }
-    public static getUserInfo(token: string):Promise<User>{
+
+    public static getUserInfo(token: string): Promise<User>{
         return new Promise<User>((resolve,reject)=> {
             octokit.users.get({}).then((result: any) =>{
-               // newUser:User = get the fields here and resolve the user or tellem to fuckit
-                
+               const userName:string = result.login
+               const avatar_url:string = result.avatar_url
+               var newUser: User = new User(userName, avatar_url)
+               resolve(newUser)
+            })
+            .catch((error: any) => {
+            console.log("error getting UserInfo: ")
+            console.log(error)
             })
         })
     }

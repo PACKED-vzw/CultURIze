@@ -9,7 +9,7 @@
 import * as https from "https";
 import * as querystring from "querystring";
 import { BrowserWindow, dialog, Event } from "electron";
-import { ApiConf } from "./ApiConf";
+import { APIConf } from "./../../culturize.conf";
 
 type LoginRequestCallback = (token: string, error: string) => void;
 
@@ -81,8 +81,8 @@ export class LoginAssistant {
             console.log("Code Received: " + code);
 
             const postData = querystring.stringify({
-                client_id : ApiConf.clientID,
-                client_secret : ApiConf.clientSecret,
+                client_id : APIConf.clientID,
+                client_secret : APIConf.clientSecret,
                 code : code,
             });
 
@@ -134,6 +134,6 @@ export class LoginAssistant {
     }
 
     private getPopupURL(): string {
-        return`https://github.com/login/oauth/authorize?client_id=${ApiConf.clientID}&scope=${this.scope}`;
+        return`https://github.com/login/oauth/authorize?client_id=${APIConf.clientID}&scope=${this.scope}`;
     }
 }

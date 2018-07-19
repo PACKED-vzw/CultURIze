@@ -1,18 +1,20 @@
+import { User } from './UserObject'
+
 // This class encapsulates the data of a publishing requests from the user
 export class PublishRequest {
     csvPath: string;
     subdir: string;
     repoUrl: string;
-    token: string;
     branch: string;
     commitMsg: string;
     prTitle: string;
     prBody : string
+    user: User;
 
-    // Note: the Constructor doesn't take the token as argument because
-    // the token is not available to the renderer process (which creates this object),
-    // the token field is filled by the main process upon reception of the event.
-    constructor(csv: string, dir: string, url: string, 
+    // Note: the Constructor doesn't take the user as argument because
+    // the full user object is not available to the main process (which creates this object),
+    // the user field is filled by the main process upon reception of the 'request publish'.
+    constructor(csv: string, dir: string, url: string,
     branch: string = "", commitMsg: string = "", prTitle: string = "", prBody: string = "") {
         this.csvPath = csv;
         this.subdir = dir;
@@ -23,8 +25,8 @@ export class PublishRequest {
         this.prBody = prBody;
     }
 
-    public hasToken(): boolean {
-        return (this.token !== "");
+    public hasUser(): boolean {
+        return (this.user != null);
     }
 
     public hasSelectedFile(): boolean {

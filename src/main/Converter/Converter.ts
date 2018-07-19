@@ -9,7 +9,7 @@
 const csv_parser = require("csv-parse");
 const fs = require("fs");
 
-import * as Conf from "./CSVConfig";
+import { CSVConf } from "./../../culturize.conf"
 
 // This class contains the relevant data of a CSV Row.
 export class CSVRow {
@@ -86,9 +86,9 @@ export class CSVRow {
     public static createRow(row: any): CSVRow {
         if (this.satisfiesMinimumRequirements(row) && this.isEnabled(row)) {
             return new CSVRow(
-                row[Conf.COL_PID],
-                row[Conf.COL_DOCTYPE],
-                row[Conf.COL_URL],
+                row[CSVConf.COL_PID],
+                row[CSVConf.COL_DOCTYPE],
+                row[CSVConf.COL_URL],
             );
         }
         return null;
@@ -167,13 +167,13 @@ export class CSVRow {
             const data = row[key];
             return (data != null) && (data !== "");
         };
-        return isValid(Conf.COL_PID) && isValid(Conf.COL_URL) && isValid(Conf.COL_DOCTYPE);
+        return isValid(CSVConf.COL_PID) && isValid(CSVConf.COL_URL) && isValid(CSVConf.COL_DOCTYPE);
     }
 
     // Checks if a row should be enabled. Rows are enabled by default.
     // A Row is only disabled if the Conf.COL_ENABLED field is present and set to 0
     private static isEnabled(row: any): boolean {
-        const value: string = row[Conf.COL_ENABLED];
+        const value: string = row[CSVConf.COL_ENABLED];
         if ((value != null) && (value === "0")) {
             return false;
         }

@@ -37,12 +37,16 @@ export async function publish(request: PublishRequest) {
         let isOwnerOfRepo = (destOwner === user.userName)
 
         // Convert the file before doing anything with the GitHub api,
-        // so if this steps fail, we don't mess with the GitHub api
+        // so if this steps fail, we can stop the process without
+        // touching the remote repos.
         let content = await convertCSVtoHTACCESS(request.csvPath);
 
         // The URL of the repo that we're going to clone/manage.
         let repoURL : string
 
+        // Here, depending on if the user's the owner of the repo he wants
+        // to send the .htaccess to, we'll either do a direct push to his repo
+        // or fork the repo so we can make a pull request later.
         if(isOwnerOfRepo)
         {
             // If the current user owns the repo, no forking will be required
@@ -51,20 +55,18 @@ export async function publish(request: PublishRequest) {
         }
         else 
         {
-            // If the current user doesn't own the repo, we'll have to fork it
-
-            // Fork the goal repo if we don't own it
+            // If the current user doesn't own the repo, we have to fork it
             console.log("Attempting to fork " + prettyName);
-            const forks = new ForkManager(request.token);
 
-            // Todo: replace master with request.branch when it's added
-            repoURL = await forks.forkRepo(request.repoUrl, user.userName, "master");
+            const forks = new ForkManager(request.token);
+            repoURL = await forks.forkRepo(request.repoUrl, user.userName, request.branch);
+            
             console.log("Successfully forked " + prettyName + ' at "' + repoURL + '"');
         }
 
         // Prepare the repoManager
         console.log("Preparing GitRepoManager instance");
-        const manager = await prepareGitRepoManager(repoURL, request.token);
+        const manager = await prepareGitRepoManager(repoURL, request.branch, request.token);
 
         // Save the file
         console.log("Saving the .htaccess to the desired location");
@@ -72,14 +74,14 @@ export async function publish(request: PublishRequest) {
 
         // Push the changes
         console.log("Pushing changes");
-        await manager.pushChanges("Culturize import", "master");
+        await manager.pushChanges(request.commitMsg);
 
         // Make the pull request if we don't own the repo
         if(!isOwnerOfRepo)
         {
             console.log("Creating pull request");
-            await createPullRequest(request.token, destOwner, destName, "Pierre-vh", "master",
-                () => "some title", () => "some body");
+            await createPullRequest(request.token, destOwner, destName, user.userName, request.branch,
+                () => request.prTitle, () => request.prBody);
         }
         else 
             console.log("The current owner owns the repo, no Pull Request required")
@@ -105,9 +107,9 @@ function sendRequestResult(result: PublishRequestResult) {
 // Prepares an instance of the GitRepoManager class.
 // The promise resolves once the cloning/pulling process of the
 // local copy of the repo is done. Rejected (with the error message) on error.
-function prepareGitRepoManager(repoURL: string, token: string): Promise<GitRepoManager> {
+function prepareGitRepoManager(repoURL: string, branch: string, token: string): Promise<GitRepoManager> {
     return new Promise<GitRepoManager>((resolve, reject) => {
-        const grm = new GitRepoManager(repoURL, token);
+        const grm = new GitRepoManager(repoURL, branch, token);
         grm.updateLocalCopy()
             .then(() => { resolve(grm); })
             .catch((err: any) => { reject(err); });

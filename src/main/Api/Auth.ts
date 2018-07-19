@@ -11,15 +11,15 @@ import * as querystring from "querystring";
 import { BrowserWindow, dialog, Event } from "electron";
 import { ApiConf } from "./ApiConf";
 
-type LoginRequestCallback = (token: string, error: RegExpExecArray) => void;
+type LoginRequestCallback = (token: string, error: string) => void;
 
 // This class drives the login
 // process, which includes showing a
 // login popup to the user.
 export class LoginAssistant {
-    public parentWindow: BrowserWindow;
+    parentWindow: BrowserWindow;
     private popup: BrowserWindow;
-    private scope: string = "repo";
+    private scope: string;
 
     constructor(parent: BrowserWindow) {
         this.parentWindow = parent;
@@ -111,40 +111,25 @@ export class LoginAssistant {
                         // Positive callback
                         callback(token, null);
                     } else {
-                        dialog.showErrorBox("Authentication Error",
-                        `
-                            Sorry, something went wrong while trying to log you in.
-                            (GitHub API ${response.statusCode}).
-                        `);
+                        let message = "Github API returned code " + response.statusCode;
                         console.log(json);
-                        callback(null, null);
+                        callback(null, message);
                     }
                 });
                 response.on("error", (err: any) => {
-                    dialog.showErrorBox("Authentication Error",
-                    `
-                        Sorry, something went wrong while trying to log you in.
-                        (GitHub OAuth Request Error: ${err}).
-                    `);
-                    // Negative callback
-                    callback(null, err);
+                    console.error(err)
+                    callback(null, "Request error: " + err);
                 });
             });
             console.log("Trying to exchange code for token..");
             req.write(postData);
             req.end();
         } else if (error) {
-            dialog.showErrorBox("Authentication Error",
-            `
-                Sorry, something went wrong while trying to log you in.
-                Please try again.
-            `);
-            // Negative callback
-            callback(null, error);
+            console.error(error);
+            callback(null, "Error: " + error);
         } else {
-            console.error("Critical error: Both the error & code are null");
-            // Critical failure callback
-            callback(null, null);
+            console.error("Both the code & error are null, redirection URL must be invalid!");
+            callback(null, "Invalid redirection, please try again");
         }
     }
 

@@ -43,6 +43,6 @@ export function lookForFile(callback: FileFoundCallback) {
 // This function is called to initiate a publish process. It fires an IPC event,
 // and returns immediatly. You can handle the result of the publish request by
 // handling the finished-publishing event.
-export function publish(filepath: string, subdir: string, repoUrl: string) {
-    ipcRenderer.send("request-publishing", new PublishRequest(filepath, subdir, repoUrl));
+export function publish(filepath: string, subdir: string, repoUrl: string, branch: string, commitMsg: string, prTitle: string, prBody: string) {
+    ipcRenderer.send("request-publishing", new PublishRequest(filepath, subdir, repoUrl, branch, commitMsg, prTitle, prBody ));
 }

@@ -17,10 +17,15 @@ export class GitRepoManager {
     ownerName: string
     repoDir: string
     token: string
+    branch: string;
+    git: any;
 
-    constructor(repoURL: string, token: string, workingDir: string = "") {
+    constructor(repoURL: string, branch: string, token: string, workingDir: string = "") {
         this.repoURL = repoURL;
         this.token = token;
+        this.branch = branch;
+
+        // TODO: ADD CHECKOUTS
         if (workingDir == "") {
             this.workingDir = app.getPath("userData") + "\\repo";
         } else {
@@ -35,6 +40,8 @@ export class GitRepoManager {
 
         this.createFoldersIfNeeded(this.workingDir);
 
+        // Setup git instance
+        this.git = simpleGit(this.repoDir)
         // console.log('GitRepoManager Initialisation complete.')
         // console.log(this)
     }
@@ -51,7 +58,8 @@ export class GitRepoManager {
                     // Note, if we start to allow different branches,
                     // we'll need to pull/checkout the correct branch
                     // through simpleGit
-                    simpleGit(this.repoDir).pull((err: any) => {
+                    // TODO: Add checkouts
+                    this.git.checkout(this.branch).pull((err: any) => {
                         if (err == null) {
                             console.log("Pull successful");
                             resolve();
@@ -63,7 +71,7 @@ export class GitRepoManager {
                 } else {
                     // We don't have a local copy, clone.
                     console.log("No local copy detected - Cloning");
-                    simpleGit(this.workingDir).clone(this.repoURL, undefined, (err: any) => {
+                    this.git.clone(this.repoURL, undefined, (err: any) => {
                         if (err == null) {
                             console.log("Cloning success");
                             resolve();
@@ -71,7 +79,7 @@ export class GitRepoManager {
                             console.error(err);
                             reject('Failed to clone "' + this.repoURL + '"');
                         }
-                    });
+                    }).checkout(this.branch); // Checkout to the correct branch
                 }
             })
             .catch((error) => {
@@ -92,13 +100,14 @@ export class GitRepoManager {
     }
 
     // This will call Git Commit/Push to send every change to the remote.
-    public pushChanges(commitMessage: string, branch = "master"): Promise<void> {
+    public pushChanges(commitMessage: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const url = this.makeGitHTTPSUrl();
-            simpleGit(this.repoDir)
+            try{
+                this.git
                 .add("./*")
                 .commit(commitMessage)
-                .push(url, branch, (err: any) => {
+                .push(url, this.branch, (err: any) => {
                     if (err != null) {
                         console.error(err);
                         reject("Failed to push changes");
@@ -106,6 +115,12 @@ export class GitRepoManager {
                         resolve();
                     }
                 });
+            }
+            catch(err)
+            {
+                console.log('OOF')
+                console.error(err)
+            }
         });
     }
 
@@ -123,7 +138,7 @@ export class GitRepoManager {
                 console.log('"' + this.repoDir + '" does not contain a repository');
                 resolve(false);
             } else {
-                simpleGit(this.repoDir).checkIsRepo((error: Error, result: boolean) => {
+                this.git.checkIsRepo((error: Error, result: boolean) => {
                     if (error) {
                         console.error(error);
                         reject('Error while checking if "' + this.repoDir + '" is a repository');

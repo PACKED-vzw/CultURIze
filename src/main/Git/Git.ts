@@ -1,6 +1,23 @@
 // This file is reponsible for the interaction with Git, the command-line tool.
 // simpleGit is used to make the interaction with Git easier.
 
+// Bug description :
+/*
+    -> Directory is not created even tho it doesn't exists
+
+    Error: Cannot use simple-git on a directory that does not exist.
+    at module.exports (C:\Users\pierre.vanhoutryve\Desktop\Resolver\serious\resolver\node_modules\simple-git\src\index.js:11:15)
+    at new GitRepoManager (C:\Users\pierre.vanhoutryve\Desktop\Resolver\serious\resolver\dist\main\Git\Git.js:33:20)
+    at Promise (C:\Users\pierre.vanhoutryve\Desktop\Resolver\serious\resolver\dist\main\Publishing\Publishing.js:101:21)
+    at new Promise (<anonymous>)
+    at prepareGitRepoManager (C:\Users\pierre.vanhoutryve\Desktop\Resolver\serious\resolver\dist\main\Publishing\Publishing.js:100:12)
+    at Object.<anonymous> (C:\Users\pierre.vanhoutryve\Desktop\Resolver\serious\resolver\dist\main\Publishing\Publishing.js:67:35)
+    at Generator.next (<anonymous>)
+    at fulfilled (C:\Users\pierre.vanhoutryve\Desktop\Resolver\serious\resolver\dist\main\Publishing\Publishing.js:11:58)
+    at <anonymous>
+    at process._tickCallback (internal/process/next_tick.js:188:7)
+*/
+
 import { app } from "electron";
 import fs = require("fs");
 const GitUrlParse = require("git-url-parse");
@@ -25,14 +42,11 @@ export class GitRepoManager {
         this.token = token;
         this.branch = branch;
 
-        // TODO: ADD CHECKOUTS
         if (workingDir == "") {
             this.workingDir = app.getPath("userData") + "\\repo";
         } else {
             this.workingDir = workingDir;
         }
-
-        // RepoName
         const parsedURL = GitUrlParse(this.repoURL);
         this.repoName = parsedURL.name;
         this.ownerName = parsedURL.owner;
@@ -42,8 +56,8 @@ export class GitRepoManager {
 
         // Setup git instance
         this.git = simpleGit(this.repoDir)
-        // console.log('GitRepoManager Initialisation complete.')
-        // console.log(this)
+        console.log('GitRepoManager Initialisation complete.')
+        console.log(this)
     }
 
     // This will clone the repo if we don't have a local copy yet

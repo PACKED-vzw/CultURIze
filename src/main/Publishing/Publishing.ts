@@ -92,6 +92,7 @@ export async function publish(request: PublishRequest) {
             new PublishRequestResult(true),
         );
     } catch (error) {
+        console.error(error)
         sendRequestResult(
             new PublishRequestResult(false, error),
         );
@@ -110,9 +111,15 @@ function sendRequestResult(result: PublishRequestResult) {
 function prepareGitRepoManager(repoURL: string, branch: string, token: string): Promise<GitRepoManager> {
     return new Promise<GitRepoManager>((resolve, reject) => {
         const grm = new GitRepoManager(repoURL, branch, token);
+        console.log("Updating local copy")
         grm.updateLocalCopy()
-            .then(() => { resolve(grm); })
-            .catch((err: any) => { reject(err); });
+            .then(() => { 
+                resolve(grm); 
+            })
+            .catch((err: any) => { 
+                console.error(err);
+                reject(err);
+             });
     });
 }
 

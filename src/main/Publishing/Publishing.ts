@@ -6,13 +6,12 @@
          The function that handles this event then calls 'publish' below.
 */
 
-import { PublishRequest, PublishRequestResult } from "./../common/PublishObjects";
-import { mainWindow } from "./../main";
-import { ForkManager } from "./Api/ForkManager";
-import { convertCSVtoHTACCESS } from "./Converter/Converter";
-import { GitRepoManager } from "./Git";
-import { User } from './Api/User'
-import fs = require('fs')
+import { PublishRequest, PublishRequestResult } from "./../../common/Objects/PublishObjects";
+import { mainWindow } from "./../../main";
+import { ForkManager } from "./../Api/ForkManager";
+import { convertCSVtoHTACCESS } from "./../Converter/Converter";
+import { GitRepoManager } from "./../Git/Git";
+import fs = require('fs');
 const isGithubUrl = require("is-github-url");
 const octokit = require("@octokit/rest")();
 const GitUrlParse = require("git-url-parse");
@@ -20,20 +19,20 @@ const GitUrlParse = require("git-url-parse");
 // Handle a publishing request
 export async function publish(request: PublishRequest) {
     try {
+        console.log('Request Data: ' + JSON.stringify(request))
         // Check the request for incorrect input
         console.log("Checking Request for incorrect input");
         await checkRequestInput(request);
 
-        // Gather user information
-        let user = await User.getUserInfo(request.token)
-
+        // Get user
+        const user = request.user;
+        
         // Parse the url
         console.log("Parsing URL");
         const parsedURL = GitUrlParse(request.repoUrl);
         const destOwner = parsedURL.owner;
         const destName = parsedURL.name;
         const prettyName = destOwner + "/" + destName;
-        console.log({ repoOwner:destOwner, repoName:destName })
 
         let isOwnerOfRepo = (destOwner === user.userName)
 
@@ -59,7 +58,7 @@ export async function publish(request: PublishRequest) {
             // If the current user doesn't own the repo, we have to fork it
             console.log("Attempting to fork " + prettyName);
 
-            const forks = new ForkManager(request.token);
+            const forks = new ForkManager(user.token);
             repoURL = await forks.forkRepo(request.repoUrl, user.userName, request.branch);
             
             console.log("Successfully forked " + prettyName + ' at "' + repoURL + '"');
@@ -67,7 +66,7 @@ export async function publish(request: PublishRequest) {
 
         // Prepare the repoManager
         console.log("Preparing GitRepoManager instance");
-        const manager = await prepareGitRepoManager(repoURL, request.branch, request.token);
+        const manager = await prepareGitRepoManager(repoURL, request.branch, user.token);
 
         // Save the file
         console.log("Saving the .htaccess to the desired location");
@@ -81,13 +80,8 @@ export async function publish(request: PublishRequest) {
         if(!isOwnerOfRepo)
         {
             console.log("Creating pull request");
-<<<<<<< HEAD
-            await createPullRequest(request.token, destOwner, destName, user.userName, request.branch,
+            await createPullRequest(user.token, destOwner, destName, user.userName, request.branch,
                 () => request.prTitle, () => request.prBody);
-=======
-            await createPullRequest(request.token, destOwner, destName, user.userName, "master",
-                () => "some title", () => "some body");
->>>>>>> de3732fd4e127ec3424222b31e254690e0a52aa3
         }
         else 
             console.log("The current owner owns the repo, no Pull Request required")
@@ -156,21 +150,27 @@ function createPullRequest (token: string, owner: string, repo: string, user: st
 function checkRequestInput(request: PublishRequest): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         const repoUrl = request.repoUrl
+
         if (!isGithubUrl(repoUrl)) {
             reject('"' + repoUrl + '" is not a valid GitHub repository');
             return
         } 
+
         const subdir = request.subdir
         if ((subdir.length > 0) && (!/^((\w)+)(((\/)(\w+))+)?$/.test(subdir))) {
             reject('"' + subdir + '" is not a valid path');
             return
         } 
-        const token = request.token
-        if((token === "") || (token == null))
+
+        if(request.user == null)
         {
-            reject("Unauthorized user (empty/null token)")
+            reject("Unauthorized user (user is null)")
+            return
+        } else if ((request.user.token == null) || (request.user.token === "")) {
+            reject("Unauthorized user (token is null or empty)")
             return
         }
+
         const path = request.csvPath
         if(!fs.existsSync(path)){
             reject("this path is not valid: "+path)

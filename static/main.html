@@ -69,7 +69,7 @@
   </div>
 </body>
 <script>
-  const MainMenu = require('./../dist/renderer/MainMenu')
+  const MainMenu = require('./../dist/renderer/Main/MainMenu')
 
   var electron = require('electron')
   const ipc = electron.ipcRenderer
@@ -99,8 +99,8 @@
   const PublishFormDefaults = require('./../dist/culturize.conf.js').PublishFormDefaults
 
   let user = ipc.sendSync('get-user-object')
-  //if(!user)
-    // send loading error/go back to old page? 
+  if(!user) // If the user is null, redirect to the login page
+    ipc.send("request-logout", "Couldn't retrieve the user information.")
 
   branchField.value     = PublishFormDefaults.branch
   commitMsgField.value  = PublishFormDefaults.commitMessage

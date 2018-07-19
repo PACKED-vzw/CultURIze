@@ -57,6 +57,13 @@ ipcMain.on("request-login", (event: Event, arg: any) => {
     });
 });
 
+ipcMain.on("request-logout", (event: Event, error: string) => {
+    if(error){
+        dialog.showErrorBox("Error",error)
+    }
+    loadLoginpage();
+})
+
 // Handles the login process
 async function handleLogin(token: string) {
     try {

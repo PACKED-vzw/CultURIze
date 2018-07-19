@@ -96,13 +96,16 @@
   let optionsAreRevealed = false
 
   // Fill in the fields with the default values
-  const confFile = require('./../dist/culturize.conf.js')
-  const fieldDefaults = confFile.fieldDefaults
+  const PublishFormDefaults = require('./../dist/culturize.conf.js').PublishFormDefaults
 
-  branchField.value     = fieldDefaults.branch 
-  commitMsgField.value  = fieldDefaults.commitMessage
-  prTitleField.value    = fieldDefaults.pullrequestTitle
-  prBodyField.value     = fieldDefaults.pullrequestBody
+  let user = ipc.sendSync('get-user-object')
+  //if(!user)
+    // send loading error/go back to old page? 
+
+  branchField.value     = PublishFormDefaults.branch
+  commitMsgField.value  = PublishFormDefaults.commitMessage
+  prTitleField.value    = PublishFormDefaults.pullrequestTitle
+  prBodyField.value     = PublishFormDefaults.pullrequestBody
 
   function actOnOpenCSV()
   {

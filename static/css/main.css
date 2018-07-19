@@ -48,6 +48,10 @@ body{
   outline: none;
 }
 
+.input-form.large{
+  width: 60rem !important;
+}
+
 .input-submit{
   border-radius: 1.5rem;
   color: white;

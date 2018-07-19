@@ -39,19 +39,19 @@
 
       <div id="opts_more" class="invisible">
         <div class="field">
-          <span class="p-form">Branch: </span> <input class="input-form" type="text">
+          <span class="p-form">Branch: </span> <input class="input-form" type="text" id="branch">
         </div>
 
         <div class="field">
-          <span class="p-form">Commit message: </span> <input class="input-form" type="text">
+          <span class="p-form">Commit message: </span> <input class="input-form large" type="text" id="commit_msg">
         </div>
 
         <div class="field">
-          <span class="p-form">Pull request title: </span> <input class="input-form" type="text">
+          <span class="p-form">Pull request title: </span> <input class="input-form large" type="text" id="pr_title">
         </div>
 
         <div class="field">
-          <span class="p-form">Pull request body: </span> <input class="input-form" type="text">
+          <span class="p-form">Pull request body: </span> <input class="input-form large" type="text" id="pr_body">
         </div>
       </div>
 
@@ -71,22 +71,38 @@
 <script>
   const MainMenu = require('./../dist/renderer/MainMenu')
 
-  const csvPathField = document.getElementById('csvpath')
-  const subdirField = document.getElementById('subdir')
-  const githubUrlField = document.getElementById('github')
+  var electron = require('electron')
+  const ipc = electron.ipcRenderer
 
-  const feedbackDiv = document.getElementById('feedback')
+  // Basic fields
+  const csvPathField    = document.getElementById('csvpath')
+  const subdirField     = document.getElementById('subdir')
+  const githubUrlField  = document.getElementById('github')
 
-  const submitButton = document.getElementById('publish_button')
-  const showMoreButton = document.getElementById('extra_button')
+  // Extra fields
+  const branchField     = document.getElementById('branch')
+  const commitMsgField  = document.getElementById('commit_msg')
+  const prTitleField    = document.getElementById('pr_title')
+  const prBodyField     = document.getElementById('pr_body')
 
-  // Options fields
-  const moreOpt = document.getElementById('opts_more')
+  // Divs
+  const feedbackDiv     = document.getElementById('feedback')
+  const extraOptionsDiv = document.getElementById('opts_more')
+
+  // Buttons
+  const submitButton    = document.getElementById('publish_button')
+  const showMoreButton  = document.getElementById('extra_button')
 
   let optionsAreRevealed = false
 
-  var electron = require('electron')
-  const ipc = electron.ipcRenderer
+  // Fill in the fields with the default values
+  const confFile = require('./../dist/culturize.conf.js')
+  const fieldDefaults = confFile.fieldDefaults
+
+  branchField.value     = fieldDefaults.branch 
+  commitMsgField.value  = fieldDefaults.commitMessage
+  prTitleField.value    = fieldDefaults.pullrequestTitle
+  prBodyField.value     = fieldDefaults.pullrequestBody
 
   function actOnOpenCSV()
   {
@@ -105,7 +121,11 @@
     MainMenu.publish(
       csvPathField.value,
       subdirField.value, 
-      githubUrlField.value    	
+      githubUrlField.value,
+      branch.value, 
+      commitMsgField.value,
+      prTitleField.value,
+      prBodyField.value
     )
   }
 
@@ -114,13 +134,13 @@
     if(optionsAreRevealed)
     {
       // Hide options
-      moreOpt.classList.add('invisible')
+      extraOptionsDiv.classList.add('invisible')
       optionsAreRevealed = false 
     }
     else 
     {
       // Reveal options
-      moreOpt.classList.remove('invisible')
+      extraOptionsDiv.classList.remove('invisible')
       optionsAreRevealed = true 
     }
   }

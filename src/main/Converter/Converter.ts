@@ -9,7 +9,7 @@
 const csv_parser = require("csv-parse");
 const fs = require("fs");
 
-import { CSVConf } from "./../../culturize.conf"
+import { CSVConf, HTAccessConf } from "./../../culturize.conf"
 
 type OnAcceptRow = (row: CSVRow) => void;
 type OnRejectRow = (row: CSVRow) => void;
@@ -43,11 +43,16 @@ export class CSVRow {
                     if (row != null) {
                         // If it isn't null, check the 'legality'/validity of the row
                         let validity = row.isValid()
-                        if(validity != null)
+                        if((validity != null))
                         {
-                            console.log('The CSV file contains invalid data:' + validity)
-                            reject(validity)
-                            return
+                            if(CSVConf.IGNORE_ON_INVALID_DATA)
+                                rowReject(row);
+                            else 
+                            {
+                                console.log('The CSV file contains invalid data:' + validity)
+                                reject(validity)
+                                return
+                            }
                         }
                         // We're good, push
                         rowAccept(row);
@@ -173,7 +178,7 @@ export class CSVRow {
             const data = row[key];
             return (data != null) && (data !== "");
         };
-        return isValid(CSVConf.COL_PID) && isValid(CSVConf.COL_URL) && isValid(CSVConf.COL_DOCTYPE);
+        return isValid(CSVConf.COL_PID) && isValid(CSVConf.COL_URL) && (isValid(CSVConf.COL_DOCTYPE) || CSVConf.ALLOW_NO_DOCTYPE);
     }
 
     // Checks if a row should be enabled. Rows are enabled by default.
@@ -192,7 +197,10 @@ export class CSVRow {
 
     private constructor(pid: string, docType: string, url: string) {
         this.pid     = pid.trim();
-        this.docType = docType.trim();
+        if(docType != null)
+            this.docType = docType.trim();
+        else 
+            this.docType = ""
         this.url     = url.trim().replace("%", "\\%");
     }
 }
@@ -230,7 +238,21 @@ export class HTAccessCreator {
             return "";
         }
 
-        return `RewriteRule ^${row.docType}/${row.pid}$ ${row.url} [R=${code},L]`;
+        // Create options
+        let options : string = "R=" + HTAccessConf.redirectionCode;
+        if(HTAccessConf.caseInsensitiveRedirs)
+            options += ",NC";
+        if(HTAccessConf.noEscape)
+            options += ",NE";
+        options += ",L";
+        
+        // Create redirection 
+        let redir : string = "";
+        if(row.docType != "")
+            redir = row.docType + '/' + row.pid;
+        else 
+            redir = row.pid;
+        return `RewriteRule ^${redir}$ ${row.url} [${options}]`;
     }
 }
 

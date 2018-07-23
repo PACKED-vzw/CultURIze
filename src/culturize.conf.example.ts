@@ -33,11 +33,12 @@ export class PublishFormDefaults
 
 // Api Conf: secret & id
 export class APIConf {
-    static clientID = ""; // Your client ID
-    static clientSecret = ""; // Your client secret
+    static clientID = "";
+    static clientSecret = "";
 }
 
-// CSV File Configuration
+// CSV File Configuration: you can configure custom values for
+// the name of the columns which contains the information we're looking for.
 export class CSVConf {
     // The name of the column which contains the identifier
     static COL_PID = "PID";
@@ -46,9 +47,25 @@ export class CSVConf {
     static COL_URL = "URL";
 
     // The name of the (optional) column which contains a number 
-    // (0/1 -> true/false) to enabled/disable the rule
+    // (0/1 -> true/false) to enable/disable the rule
     static COL_ENABLED = "enabled";
 
-    // The name of the column which contains the document type
+    // The name of the column which contains the document type.
     static COL_DOCTYPE = "document type";
+
+    // Ignore a row that contains a invalid pid/data
+    // instead of throwing an error.
+    static IGNORE_ON_INVALID_DATA = true;
+
+    // If this is set to true, a CSV file/row that
+    // does not provide the Document type field
+    // will default to a empty "" doctype.
+    // the URL will then be "pid" instead of "documenttype/pid"
+    static ALLOW_NO_DOCTYPE = true;
+}
+
+export class HTAccessConf {
+    static redirectionCode = 302;
+    static caseInsensitiveRedirs = true;
+    static noEscape = true;
 }

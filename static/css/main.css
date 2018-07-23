@@ -200,7 +200,7 @@ button#extra_button {
   text-decoration: none;
   border-bottom: 0.2rem solid #F2F7F7;
   padding-bottom: 0.2rem;
-
+  font-size:2rem;
 }
 
 .pf-logout:hover{
@@ -213,7 +213,8 @@ button#extra_button {
   flex-direction: row;
   align-items: center;
   height: 6rem;
-  width: 15rem;
+  text-align:left;
+  width:20rem;
   justify-content: space-between;
   margin-top: 1rem;
 }
@@ -221,7 +222,7 @@ button#extra_button {
 .pf-name{
   font-family: 'Karla', sans-serif;
   color:#727D85;
-  font-size: 2rem;
+  font-size: 2.3rem;
   font-weight:bolder;
   text-align: left !important;
   margin-left: 0 !important;

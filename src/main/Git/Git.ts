@@ -1,23 +1,6 @@
 // This file is reponsible for the interaction with Git, the command-line tool.
 // simpleGit is used to make the interaction with Git easier.
 
-// Bug description :
-/*
-    -> Directory is not created even tho it doesn't exists
-
-    Error: Cannot use simple-git on a directory that does not exist.
-    at module.exports (C:\Users\pierre.vanhoutryve\Desktop\Resolver\serious\resolver\node_modules\simple-git\src\index.js:11:15)
-    at new GitRepoManager (C:\Users\pierre.vanhoutryve\Desktop\Resolver\serious\resolver\dist\main\Git\Git.js:33:20)
-    at Promise (C:\Users\pierre.vanhoutryve\Desktop\Resolver\serious\resolver\dist\main\Publishing\Publishing.js:101:21)
-    at new Promise (<anonymous>)
-    at prepareGitRepoManager (C:\Users\pierre.vanhoutryve\Desktop\Resolver\serious\resolver\dist\main\Publishing\Publishing.js:100:12)
-    at Object.<anonymous> (C:\Users\pierre.vanhoutryve\Desktop\Resolver\serious\resolver\dist\main\Publishing\Publishing.js:67:35)
-    at Generator.next (<anonymous>)
-    at fulfilled (C:\Users\pierre.vanhoutryve\Desktop\Resolver\serious\resolver\dist\main\Publishing\Publishing.js:11:58)
-    at <anonymous>
-    at process._tickCallback (internal/process/next_tick.js:188:7)
-*/
-
 import { app } from "electron";
 import fs = require("fs");
 const GitUrlParse = require("git-url-parse");
@@ -35,7 +18,6 @@ export class GitRepoManager {
     repoDir: string
     token: string
     branch: string;
-    git: any;
 
     constructor(repoURL: string, branch: string, token: string, workingDir: string = "") {
         this.repoURL = repoURL;
@@ -52,10 +34,9 @@ export class GitRepoManager {
         this.ownerName = parsedURL.owner;
         this.repoDir = this.workingDir + "\\" + this.repoName;
 
-        this.createFoldersIfNeeded(this.workingDir);
+        this.createFoldersIfNeeded(this.repoDir);
 
         // Setup git instance
-        this.git = simpleGit(this.repoDir)
         console.log('GitRepoManager Initialisation complete.')
         //console.log(this)
     }
@@ -69,7 +50,8 @@ export class GitRepoManager {
             .then((result) => {
                 if (result) {
                     console.log("Local copy detected, pulling changes");
-                    this.git.checkout(this.branch)
+                    simpleGit(this.repoDir)
+                    .checkout(this.branch)
                         .reset([ "--hard" ], (err:any) => {
                             if(err)
                                 reject("Failed to reset local copy of the repo.");
@@ -85,15 +67,28 @@ export class GitRepoManager {
                 } else {
                     // We don't have a local copy, clone.
                     console.log("No local copy detected - Cloning");
-                    this.git.clone(this.repoURL, undefined, (err: any) => {
+                    simpleGit(this.workingDir)
+                    .clone(this.repoURL, undefined, (err: any) => {
                         if (err == null) {
                             console.log("Cloning success");
-                            resolve();
+                            simpleGit(this.repoDir).checkout(this.branch,(err:any) => {
+                                if(err == null)
+                                {
+                                    console.log("Checkout Success");
+                                    resolve();
+                                }
+                                else 
+                                {
+                                    console.error("Failed to checkout branch");
+                                    console.error(err);
+                                    reject();
+                                }
+                            });
                         } else {
                             console.error(err);
                             reject('Failed to clone "' + this.repoURL + '"');
                         }
-                    }).checkout(this.branch); // Checkout to the correct branch
+                    }); // Checkout to the correct branch
                 }
             })
             .catch((error) => {
@@ -118,7 +113,7 @@ export class GitRepoManager {
         return new Promise<void>((resolve, reject) => {
             const url = this.makeGitHTTPSUrl();
             try{
-                this.git
+                simpleGit(this.repoDir)
                 .add("./*")
                 .commit(commitMessage)
                 .push(url, this.branch, (err: any) => {
@@ -132,8 +127,9 @@ export class GitRepoManager {
             }
             catch(err)
             {
-                console.log('OOF')
-                console.error(err)
+                console.error("Exception Caught");
+                console.error(err);
+                reject("Failed to push changes");
             }
         });
     }
@@ -152,7 +148,7 @@ export class GitRepoManager {
                 console.log('"' + this.repoDir + '" does not contain a repository');
                 resolve(false);
             } else {
-                this.git.checkIsRepo((error: Error, result: boolean) => {
+                simpleGit(this.repoDir).checkIsRepo((error: Error, result: boolean) => {
                     if (error) {
                         console.error(error);
                         reject('Error while checking if "' + this.repoDir + '" is a repository');

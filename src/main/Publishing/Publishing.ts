@@ -40,19 +40,20 @@ export async function publish(request: PublishRequest) {
     try {
         console.log('Request Data: ' + JSON.stringify(request))
         // Check the request for incorrect input
-        console.log("Checking Request for incorrect input");
+        notifyStep("Checking input.");
         await checkRequestInput(request);
 
         // Get user
         const user = request.user;
-        
+        console.log(request);
+    
         // Convert the file before doing anything with the GitHub api,
         // so if this steps fail, we can stop the process without
         // touching the remote repos.
         let content = await convertCSVtoHTACCESS(request.csvPath);
 
         // Parse the url
-        console.log("Parsing URL");
+        notifyStep("Parsing URL");
         const parsedURL = GitUrlParse(request.repoUrl);
         const destOwner = parsedURL.owner;
         const destName = parsedURL.name;
@@ -69,53 +70,59 @@ export async function publish(request: PublishRequest) {
         if(isOwnerOfRepo)
         {
             // If the current user owns the repo, no forking will be required
-            console.log(user.userName + ' owns ' + request.repoUrl + ', no forking required')
+            notifyStep(user.userName + ' owns ' + request.repoUrl + ', no forking required')
             repoURL = request.repoUrl
         }
         else 
         {
             // If the current user doesn't own the repo, we have to fork it
-            console.log("Attempting to fork " + prettyName);
+            notifyStep("Attempting to fork " + prettyName);
 
             const forks = new ForkManager(user.token);
             repoURL = await forks.forkRepo(request.repoUrl, user.userName, request.branch);
             
-            console.log("Successfully forked " + prettyName + ' at "' + repoURL + '"');
+            notifyStep("Successfully forked " + prettyName + ' at "' + repoURL + '"');
         }
 
         // Prepare the repoManager
+        notifyStep("Preparing Git");
         console.log("Preparing GitRepoManager instance");
         const manager = await prepareGitRepoManager(repoURL, request.branch, user.token);
 
         // Save the file
-        console.log("Saving the .htaccess to the desired location");
+        notifyStep("Saving the .htaccess to the desired location");
         manager.saveStringToFile(content, ".htaccess", request.subdir);
 
         // Push the changes
-        console.log("Pushing changes");
+        notifyStep("Pushing changes");
         await manager.pushChanges(request.commitMsg);
 
         // Make the pull request if we don't own the repo
         if(!isOwnerOfRepo)
         {
-            console.log("Creating pull request");
+            notifyStep("Creating pull request");
             await createPullRequest(user.token, destOwner, destName, user.userName, request.branch,
                 () => request.prTitle, () => request.prBody);
         }
         else 
-            console.log("The current owner owns the repo, no Pull Request required")
+            notifyStep("The current owner owns the repo, no Pull Request required")
 
-        console.log('Done !')
-        
+        notifyStep('Done !')
+
         sendRequestResult(
             new PublishRequestResult(true),
         );
     } catch (error) {
-        console.error(error)
+        console.error(<string>error)
         sendRequestResult(
-            new PublishRequestResult(false, error),
+            new PublishRequestResult(false, <string>error),
         );
     }
+}
+
+function notifyStep(stepDesc: string) {
+    console.log(stepDesc);
+    mainWindow.webContents.send("update-publish-step", stepDesc);
 }
 
 // Sends an IPC event to the renderer process

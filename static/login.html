@@ -10,15 +10,24 @@
 </head>
 <body>
   <main>
-    <img src="assets/logo-culturize.png" alt="" width="238" height="102">
-    <header>
-      <h1>Welcome</h1>
-      <p class="sign-in-p">Sign in with GitHub</p>
-    </header>
-    <button id="signin_button" class="button" type="button" name="button" onclick="actOnLogin()"><span>Sign in</span></button>
-    <p id="login-error-feedback">(feedback placeholder)</p>
-    <p class="no-account">Don't have an account yet? <a class="create-one-link" onclick="actOnCreateAccount()" >Create one!</a></p>
+    <div class="box">
+      <img src="assets/logo-culturize.png" alt="" width="238" height="102">
+      <header>
+        <h1>Welcome</h1>
+        <p class="sign-in-p">Sign in with GitHub
+          <p id="login-error-feedback">(feedback placeholder)</p>
+        </p>
+      </header>
+      <button id="signin_button" class="button" type="button" onclick="actOnLogin()"><span>Sign in</span></button>
+      <p class="no-account">Don't have an account yet? <a class="create-one-link" onclick="actOnCreateAccount()">Create one!</a></p>
+    </div>
   </main>
+  <footer>
+    <div class="footer-logos-div">
+      <img class="footer-logo" src="assets/logo-packed.svg" alt="logo-packed" width="130" height="70">
+      <img class="footer-logo" src="assets/logo-osoc.svg" alt="logo-osoc" width="70" height="80">
+    </div>
+  </footer>
 </body>
 <script>
   const electron = require('electron')

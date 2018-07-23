@@ -11,11 +11,14 @@ const fs = require("fs");
 
 import { CSVConf } from "./../../culturize.conf"
 
+type OnAcceptRow = (row: CSVRow) => void;
+type OnRejectRow = (row: CSVRow) => void;
+
 // This class contains the relevant data of a CSV Row.
 export class CSVRow {
 
     // Creates a Array of rows from the contents of a CSVFile located at filepath
-    public static createArrayFromCSV(filepath: string): Promise<CSVRow[]> {
+    public static createArrayFromCSV(filepath: string, rowAccept: OnAcceptRow, rowReject: OnRejectRow): Promise<CSVRow[]> {
         return new Promise<CSVRow[]>((resolve, reject) => {
             const buffer: string = fs.readFileSync(filepath, "utf8");
             const array: CSVRow[] = new Array<CSVRow>();
@@ -42,13 +45,16 @@ export class CSVRow {
                         let validity = row.isValid()
                         if(validity != null)
                         {
-                            console.log('Rejected invalid row, reason: ' + validity)
+                            console.log('The CSV file contains invalid data:' + validity)
                             reject(validity)
                             return
                         }
                         // We're good, push
+                        rowAccept(row);
                         array.push(row);
                     }
+                    else 
+                        rowReject(row);
                 }
             });
 
@@ -233,9 +239,20 @@ export class HTAccessCreator {
 // It returns the content of the .htaccess file
 export function convertCSVtoHTACCESS(filepath: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        CSVRow.createArrayFromCSV(filepath)
-            .then((value: CSVRow[]) => {
+        // Counters
+        let numAccepted: number = 0;
+        let numRejected: number = 0;
+        CSVRow.createArrayFromCSV(filepath, 
+        // Acceptation
+        (row: CSVRow) => {
+            numAccepted++;
+        }, 
+        // Rejection
+        (row: CSVRow) => {
+            numRejected ++;
+        }).then((value: CSVRow[]) => {
                 const creator = new HTAccessCreator(value);
+                console.log(`Accepted ${numAccepted} rows, rejected ${numRejected} rows.`);
                 resolve(creator.makeHTAccessFile());
             })
             .catch((error: string) => {

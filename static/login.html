@@ -35,6 +35,7 @@
   const ipc = electron.ipcRenderer
   const loginBtn = document.getElementById('signin_button')
   const loginFeedback = document.getElementById('login-error-feedback')
+  loginFeedback.style.visibility = 'hidden'
 
   function actOnLogin()
   {

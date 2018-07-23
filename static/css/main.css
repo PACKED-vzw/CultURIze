@@ -8,28 +8,59 @@ html {
 }
 
 body{
-  background-image: url("../assets/bg.svg");
+
+  background-image: url("../assets/bg.png");
   background-size: cover;
   background-repeat: no-repeat;
 }
 
-.kader{
-  background-color: #F3F4F3;
-  width: 85rem;
-  height: 60rem;
-  margin: 0 auto;
-  margin-top: 10rem;
-  border-radius: 6rem;
-  padding: 8rem;
-  box-shadow: 0px 0px 130px #8E8F92;
-
+.main-div{
+  position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
-.field{
+.kader{
+  margin-top: 7rem;
+  background-color: #F3F4F3;
+  width: 80rem;
+  height: 55rem;
+  display: flex;
+  justify-content: flex-start;
+  /* margin: 0 auto; */
+
+  border-radius: 6rem;
+  flex-direction: column;
+
+  padding: 8rem;
+  box-shadow: 0px 0px 130px #8E8F92;
+}
+
+.loadbar{
+  margin-top: 3rem;
+  background-color: #F3F4F3;
+  height: 8rem;
+  border-radius: 3.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0px 0px 130px #8E8F92;
+}
+
+.formrow{
   margin-bottom: 2.8rem;
   display: flex;
   flex-direction: row;
   align-items: center;
+  display: flex;
+  flex-direction: row;
+}
+
+form{
+  width: 70rem;
+  height: 130rem;
 }
 
 .p-form{
@@ -46,10 +77,6 @@ body{
   height: 2.5rem;
   width: 20rem;
   outline: none;
-}
-
-.input-form.large{
-  width: 60rem !important;
 }
 
 .input-submit{
@@ -140,12 +167,94 @@ button#extra_button {
   color:#9CA1A4;
   font-family: 'Karla', sans-serif;
   transition: background-color 0.5s ease;
+  outline: none;
 }
 
 .info:hover{
   background-color: #DDE0EB;
+
 }
 
-.invisible{
-  visibility:hidden;
+.profile-div{
+  opacity: 0.9;
+  height: 8rem;
+  background-color: #F2F4F2;
+}
+
+.pf-pic{
+  border-radius: 100rem;
+}
+
+.profile{
+  width: 96rem;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pf-logout{
+  font-family: 'Karla', sans-serif;
+  color:#9CA1A4;
+  font-size: 1.4rem;
+  text-decoration: none;
+  border-bottom: 0.2rem solid #F2F7F7;
+  padding-bottom: 0.2rem;
+
+}
+
+.pf-logout:hover{
+  border-bottom: 0.2rem solid #15B28E;
+
+}
+
+.profile-info{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 6rem;
+  width: 15rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.pf-name{
+  font-family: 'Karla', sans-serif;
+  color:#727D85;
+  font-size: 2rem;
+  font-weight:bolder;
+  text-align: left !important;
+  margin-left: 0 !important;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+#feedback{
+  font-size:2.33rem;
+  font-family: 'Karla', sans-serif;
+  font-weight:bolder;
 }

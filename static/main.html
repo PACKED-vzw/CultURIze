@@ -1,160 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="stylesheet" href="css/reset.css">
   <link rel="stylesheet" href="css/main.css">
-  <title>Culturize</title>
+  <title>Culturize App</title>
 </head>
-
 <body>
-  <div class="kader">
-    <form onsubmit="actOnSubmit();return false">
-      <div class="field">
-        <span class="p-form">CSV File: </span> <input class="input-form" type="text" id="csvpath" required>
-        <button class="input-submit" type="button" name="button" onclick="actOnOpenCSV()">
-          <span class="submit-p">open</span>
+  <div class="profile-div">
+    <div class="profile">
+      <div class="profile-info">
+        <img class="pf-pic" id="p-avatar" width="60">
+        <p class="pf-name" id="p-username"></p>
+      </div>
+      <a class="pf-logout" id"logout" onclick="actOnLogout()">Log-out</a>
+    </div>
+  </div>
+  <div class="main-div">
+    <form class="kader" onsubmit="actOnSubmit(); return false">
+      <div class="formrow">
+        <span class="p-form">CSV file path: </span> 
+        <input class="input-form" type="text" id="csvpath" required>
+        <button class="input-submit" type="button" onclick="actOnOpenCSV()">
+          <span class="submit-p">Open</span>
         </button>
-        <button title="This is the CSV file that is going to be translated to .htaccess" class="info" type="button" name="button" disabled>
+        <button class="info" type="button">
           <span class="info-p">?</span>
         </button>
       </div>
 
-      <div class="field">
-        <span class="p-form">Subdirectory ? </span> <input class="input-form" type="text" id="subdir">
-        <button title="This is the subdirectory where we'll place the .htaccess file" class="info" type="button" name="button" disabled>
-          <span class="info-p">?</span>
-        </button>
-      </div>
-      
-      <div class="field">
-        <span class="p-form">Send to: </span> <input class="input-form" type="url" id="github" required>
-        <button title="This is the GitHub repo where we'll make a pull request (or push if you're the owner)" class="info" type="button" name="button" disabled>
-          <span class="info-p">?</span>
-        </button>     
+      <div class="formrow">
+        <span class="p-form">Subdirectory: </span>
+        <input class="input-form" type="text" id="subdir">
+        <button class="info" type="button" ><span class="info-p">?</span></button>
       </div>
 
-      <div id="opts_more" class="invisible">
-        <div class="field">
-          <span class="p-form">Branch: </span> <input class="input-form" type="text" id="branch">
-        </div>
-
-        <div class="field">
-          <span class="p-form">Commit message: </span> <input class="input-form large" type="text" id="commit_msg">
-        </div>
-
-        <div class="field">
-          <span class="p-form">Pull request title: </span> <input class="input-form large" type="text" id="pr_title">
-        </div>
-
-        <div class="field">
-          <span class="p-form">Pull request body: </span> <input class="input-form large" type="text" id="pr_body">
-        </div>
+      <div class="formrow">
+        <span class="p-form">Push the changes to: </span>
+        <input class="input-form" type="url" id="github" required>
+        <button class="info" type="button" ><span class="info-p">?</span></button>
       </div>
 
+      <div id="opts_more">
+        <div class="formrow">
+          <span class="p-form">Branch: </span>
+          <input class="input-form" type="text" id="branch" required>
+          <button class="info" type="button" ><span class="info-p">?</span></button>
+        </div>
+
+        <div class="formrow">
+          <span class="p-form">Commit message: </span>
+          <input class="input-form" id="commit_msg" type="text" required>
+          <button class="info" type="button" ><span class="info-p">?</span></button>
+        </div>
+
+        <div class="formrow">
+          <span class="p-form">Pull request title: </span>
+          <input class="input-form" type="text" id="pr_title" required>
+          <button class="info" type="button" ><span class="info-p">?</span></button>
+        </div>
+
+        <div class="formrow">
+          <span class="p-form">Pull request body: </span>
+          <input class="input-form" type="text" id="pr_body" required>
+          <button class="info tooltip" type="button" ><span class="info-p">?</span></button>
+        </div>
+      </div>
       <div class="buttons">
-        <button id="publish_button" class="button" type="submit" name="button">
+        <button id="publish_button" class="button" type="submit">
           <span>Publish</span>
         </button>
-        <button id="extra_button" class="extra_button" type="button" name="button" onclick="actOnShowMore()">
+        <button id="extra_button" class="extra_button" type="button" onclick="actOnShowMore()">
           <span class="hidden">+</span>
         </button>
       </div>
-
-      <div id="feedback"></div>
     </form>
+    <div class="loadbar">
+        <div id="feedback">
+          <!-- 
+            This is filled by the javascript code to display the 
+            status of the execution
+          -->
+        </div>
+    </div>
   </div>
 </body>
 <script>
-  const MainMenu = require('./../dist/renderer/Main/MainMenu')
+    const MainMenu = require('./../dist/renderer/Main/MainMenu')
+  
+    var electron = require('electron')
+    const ipc = electron.ipcRenderer
+  
+    // Basic fields
+    const csvPathField    = document.getElementById('csvpath')
+    const subdirField     = document.getElementById('subdir')
+    const githubUrlField  = document.getElementById('github')
+  
+    // Extra fields
+    const branchField     = document.getElementById('branch')
+    const commitMsgField  = document.getElementById('commit_msg')
+    const prTitleField    = document.getElementById('pr_title')
+    const prBodyField     = document.getElementById('pr_body')
+  
+    // Divs
+    const feedbackDiv     = document.getElementById('feedback')
+    const extraOptionsDiv = document.getElementById('opts_more')
+    extraOptionsDiv.style.visibility = 'hidden'
+  
+    // Buttons
+    const submitButton    = document.getElementById('publish_button')
+    const showMoreButton  = document.getElementById('extra_button')
+  
+    // Profile
+    const userAvatar    = document.getElementById('p-avatar')
+    const userName  = document.getElementById('p-username')
 
-  var electron = require('electron')
-  const ipc = electron.ipcRenderer
-
-  // Basic fields
-  const csvPathField    = document.getElementById('csvpath')
-  const subdirField     = document.getElementById('subdir')
-  const githubUrlField  = document.getElementById('github')
-
-  // Extra fields
-  const branchField     = document.getElementById('branch')
-  const commitMsgField  = document.getElementById('commit_msg')
-  const prTitleField    = document.getElementById('pr_title')
-  const prBodyField     = document.getElementById('pr_body')
-
-  // Divs
-  const feedbackDiv     = document.getElementById('feedback')
-  const extraOptionsDiv = document.getElementById('opts_more')
-
-  // Buttons
-  const submitButton    = document.getElementById('publish_button')
-  const showMoreButton  = document.getElementById('extra_button')
-
-  let optionsAreRevealed = false
-
-  // Fill in the fields with the default values
-  const PublishFormDefaults = require('./../dist/culturize.conf.js').PublishFormDefaults
-
-  let user = ipc.sendSync('get-user-object')
-  if(!user) // If the user is null, redirect to the login page
-    ipc.send("request-logout", "Couldn't retrieve the user information.")
-
-  branchField.value     = PublishFormDefaults.branch
-  commitMsgField.value  = PublishFormDefaults.commitMessage
-  prTitleField.value    = PublishFormDefaults.pullrequestTitle
-  prBodyField.value     = PublishFormDefaults.pullrequestBody
-
-  function actOnOpenCSV()
-  {
-    MainMenu.lookForFile((path,msg) => {
-      console.log(path + ',' + msg)
-      if(path)
-        csvPathField.value = path
-      else 
-        feedbackDiv.innerHTML = msg
-    })
-  }
-
-  function actOnSubmit()
-  {
-    submitButton.setAttribute('disabled','disabled')
-    MainMenu.publish(
-      csvPathField.value,
-      subdirField.value, 
-      githubUrlField.value,
-      branch.value, 
-      commitMsgField.value,
-      prTitleField.value,
-      prBodyField.value
-    )
-  }
-
-  function actOnShowMore()
-  {
-    if(optionsAreRevealed)
-    {
-      // Hide options
-      extraOptionsDiv.classList.add('invisible')
-      optionsAreRevealed = false 
-    }
+    let optionsAreRevealed = false
+  
+    // Fill in the fields with the default values
+    const PublishFormDefaults = require('./../dist/culturize.conf.js').PublishFormDefaults
+  
+    let user = ipc.sendSync('get-user-object')
+    if(!user) // If the user is null, redirect to the login page
+      ipc.send("request-logout", "Couldn't retrieve the user information.")
     else 
     {
-      // Reveal options
-      extraOptionsDiv.classList.remove('invisible')
-      optionsAreRevealed = true 
+      userAvatar.setAttribute("src",user.avatar_url)
+      userName.innerHTML = user.userName
     }
-  }
-
-  ipc.on('publish-done', (event,result) => {      
-    if(result.successful == true)
-      feedbackDiv.innerHTML = 'Success!'
-    else 
-      feedbackDiv.innerHTML = result.error
     
-    submitButton.removeAttribute('disabled')
-  })
-</script>
+
+    branchField.value     = PublishFormDefaults.branch
+    commitMsgField.value  = PublishFormDefaults.commitMessage
+    prTitleField.value    = PublishFormDefaults.pullrequestTitle
+    prBodyField.value     = PublishFormDefaults.pullrequestBody
+  
+    function actOnOpenCSV()
+    {
+      MainMenu.lookForFile((path,msg) => {
+        console.log(path + ',' + msg)
+        if(path)
+          csvPathField.value = path
+        else 
+          feedbackDiv.innerHTML = msg
+      })
+    }
+
+    function actOnLogout()
+    {
+      ipc.send('logout-user')
+    }
+  
+    function actOnSubmit()
+    {
+      submitButton.setAttribute('disabled','disabled')
+      MainMenu.publish(
+        csvPathField.value,
+        subdirField.value, 
+        githubUrlField.value,
+        branch.value, 
+        commitMsgField.value,
+        prTitleField.value,
+        prBodyField.value
+      )
+    }
+  
+    function actOnShowMore()
+    {
+      if(optionsAreRevealed)
+      {
+        // Hide options
+        extraOptionsDiv.style.visibility = 'hidden'
+        optionsAreRevealed = false 
+      }
+      else 
+      {
+        // Reveal options
+        extraOptionsDiv.style.visibility = 'visible'
+        optionsAreRevealed = true 
+      }
+    }
+  
+    ipc.on('publish-done', (event,result) => {      
+      if(result.successful == true)
+        feedbackDiv.innerHTML = 'Success!'
+      else 
+        feedbackDiv.innerHTML = result.error
+      
+      submitButton.removeAttribute('disabled')
+    })
+
+    ipc.on('update-publish-step', (event,step) => {
+      feedbackDiv.innerHTML = step
+    })
+  </script>
 </html>

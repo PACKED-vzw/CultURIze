@@ -2,10 +2,25 @@
 
 // This class contains the default values for the fields
 // in the main menu
-export class fieldDefaults
+export class PublishFormDefaults
 {
-    // Basic fields
+    // Subdirs:
+    // The final subdir where the files are going to be
+    // saved is made of forcedSubdir + subDir. 
+    // Leaving it empty will make the app push/save everything to the root
+    // of the repo.
+    // The ForcedSubdir is also invisible to the user, and is added
+    // at the publishing stage by the publish() function in Publishing.ts.
+
+    // If you decide to add a default value for subDir, don't forget
+    // to end it with "/".
+    // Example values: foo/, foo/bar/
+    // Always test changes made to the forcedSubdir, because typos can easily
+    // create errors for the end user.
     static subdir = "";
+    static forcedSubdir = ""; 
+
+    // Default value for the repo field.
     static repo = "";
 
     // "Advanced" fields

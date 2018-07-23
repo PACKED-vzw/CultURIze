@@ -50,6 +50,7 @@ export async function publish(request: PublishRequest) {
         // Convert the file before doing anything with the GitHub api,
         // so if this steps fail, we can stop the process without
         // touching the remote repos.
+        notifyStep("Converting to .htaccess.");
         let content = await convertCSVtoHTACCESS(request.csvPath);
 
         // Parse the url

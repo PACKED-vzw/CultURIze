@@ -6,7 +6,7 @@ import { LoginAssistant } from "./main/Api/Auth";
 import { publish } from "./main/Publishing/Publishing";
 import { getUserInfo } from "./main/Api/User";
 import { User } from "./common/Objects/UserObject";
-
+const octokit = require("@octokit/rest")();
 export let mainWindow: BrowserWindow;
 
 // The current authenticated user. If this is null
@@ -57,44 +57,76 @@ ipcMain.on("request-login", (event: Event, arg: any) => {
     });
 });
 
-ipcMain.on("request-logout", (event: Event, error: string) => {
-    if(error){
-        dialog.showErrorBox("Error",error)
+// Handles an error related to the authentication of the user,
+// and redirects him to the login page.
+ipcMain.on("auth-error", (event: Event, error: string) => {
+    console.error("Authentication Error!");
+    console.error(error);
+    if(!error)
+        error = "Sorry, something went wrong! (Unknown reason)";
+    authError(error);
+})
+
+// Handles a login error, displaying a error box
+// if a message is available. This will bring the user
+// back to the login page.
+export function authError(error: string) {
+    console.error("Login/Auth Error.");
+    if(error != null){
+        console.error(error);
+        dialog.showErrorBox("Auth Error", error);
     }
+    loadLoginpage();
+}
+
+// Handles a "logout" button press, clearing the cookies to logout
+// the user for good.
+ipcMain.on("logout-user", () => {
+    // Clear the cookies
+    mainWindow.webContents.session.clearStorageData(null, () => {});
     loadLoginpage();
 })
 
-// Handles the login process
+// Handles the login process, switching the current view to the main menu and
+// setting the current user.
 async function handleLogin(token: string) {
     try {
-        console.log("Logging in: Retrieving user information")
-        currentUser = await getUserInfo(token)
-
-        // Redirect
-        console.log("Opening main page")
+        console.log("Logging in: Retrieving user information.");
+        currentUser = await getUserInfo(token);
+        console.log("Redirecting...");
         loadMainMenu();
-    } catch(err) {
-        dialog.showErrorBox("Something went wrong"
-        , "Something went wrong and we couldn't log you in. (" + <string>err + ")");
-        console.error(err)
+    } catch(error) {
+        console.error(error);
+        authError("Something went wrong and we couldn't log you in.");
     }
 }
 
 // Handle publishing requests
 ipcMain.on("request-publishing", (event: Event, request: PublishRequest) => {
-    // If the current logged in user is valid, log it in
-    if ((currentUser != null) && (currentUser.token !== "")) {
+    // If the current logged in user is valid, proceed.
+    if (isUserValid(currentUser)) {
+        console.log("Current user is valid, calling publish().");
         // Complete the request with the user
         request.user = currentUser;
-        console.log(currentUser)
         // Proceed
         publish(request);
     } else {
-        dialog.showErrorBox("Forbidden action"
-        , "You can't publish a file without being authenticated.");
-        loadLoginpage()
+        console.error("Aborting publishing process because the current user is invalid.");
+        // Else, the user is not valid, request him to login again
+        authError("You can't publish a file without being authenticated.");
     }
 });
+
+// Checks if the current user is valid.
+function isUserValid(user: User) : boolean {
+    if(user == null)
+        return false; 
+    
+    if((user.userName == null) || (user.avatar_url == null) || (user.token == null))
+        return false;
+
+    return (user.avatar_url !== "") && (user.userName != "") && (user.token !== ""); 
+}
 
 // app-specific events
 app.on("ready", createWindow);
@@ -120,7 +152,7 @@ app.on("activate", () => {
 // of the user object. We always send a copy without
 // the token.
 ipcMain.on("get-user-object", (event: any) => {
-    console.log('A Window requested a copy of the user object')
+    console.log('A Window requested a copy of the user object');
     event.returnValue = currentUser.withoutToken();
 })
 

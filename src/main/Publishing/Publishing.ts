@@ -27,16 +27,25 @@ import { mainWindow } from "./../../main";
 import { ForkManager } from "./../Api/ForkManager";
 import { convertCSVtoHTACCESS } from "./../Converter/Converter";
 import { GitRepoManager } from "./../Git/Git";
-import { PublishFormDefaults } from "./../../culturize.conf"
+import { PublishOptions } from "./../../culturize.conf"
 import fs = require('fs');
 const isGithubUrl = require("is-github-url");
 const octokit = require("@octokit/rest")();
 const GitUrlParse = require("git-url-parse");
 
+
+const dirRegex = /^((\w)+)(((\/)(\w+))+)?$/;
+
 // Handle a publishing request
 export async function publish(request: PublishRequest) {
-    // Add the ForcedSubdir to the request
-    request.subdir = PublishFormDefaults.forcedSubdir + request.subdir;
+    let baseSubdir : string = PublishOptions.baseSubdir ? PublishOptions.baseSubdir : "";
+    if(baseSubdir !== "")
+    {
+        if(dirRegex.test(baseSubdir))
+            request.subdir = baseSubdir + '/' + request.subdir;
+        else 
+            console.error("Ignored the base subdirectory \"" + baseSubdir + "\" because it is not valid");
+    }
     notifyStep("Preparing");
     try {
         console.log('Request Data: ' + JSON.stringify(request))
@@ -197,7 +206,7 @@ function checkRequestInput(request: PublishRequest): Promise<void> {
 
         // Check if the subdir is a valid path.
         const subdir = request.subdir
-        if ((subdir.length > 0) && (!/^((\w)+)(((\/)(\w+))+)?$/.test(subdir))) {
+        if ((subdir.length > 0) && (!dirRegex.test(subdir))) {
             reject('"' + subdir + '" is not a valid path');
             return
         } 

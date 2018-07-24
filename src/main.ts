@@ -1,5 +1,7 @@
-// This file is then entry point of the app and handles
-// most ipc event coming from the renderer process.
+/** 
+ * @file This file contains the entry point of the app, and handles most ipc events sent 
+ * the main process.
+*/
 import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import { PublishRequest } from "./common/Objects/PublishObjects";
 import { LoginAssistant } from "./main/Api/Auth";
@@ -7,14 +9,24 @@ import { publish } from "./main/Publishing/Publishing";
 import { getUserInfo } from "./main/Api/User";
 import { User } from "./common/Objects/UserObject";
 const octokit = require("@octokit/rest")();
+
+/**
+ * This is the main window of the program. 
+ * It is exported so other classes can access it to
+ * send events, attach child windows to it, etc.
+ */
 export let mainWindow: BrowserWindow;
 
-// The current authenticated user. If this is null
-// the user is considered not authenticated.
+/**
+ * The currently logged-in user.
+ * It is null if the user is not connected.
+ */
 let currentUser: User = null;
 
-// This function is called by the app when it is ready
-// to create the window.
+/** 
+ * This function is called when the app is ready, and is tasked with 
+ * creating the main window.
+ */
 function createWindow() {
     mainWindow = new BrowserWindow({
         height: 800,
@@ -32,44 +44,50 @@ function createWindow() {
 
 }
 
-// Loads the login page
+/**
+ * This function set the current active page of the mainwindow
+ * to the login page. (/static/login.html)
+ */
 function loadLoginpage() {
     mainWindow.loadFile(__dirname + "/../static/login.html");
 }
 
-// Loads the main menu
+/**
+ * This function set the current active page of the mainwindow
+ * to the main menu (/static/main.html)
+ */
 function loadMainMenu() {
     mainWindow.loadFile(__dirname + "/../static/main.html");
 }
 
-// Handle login requests
-ipcMain.on("request-login", (event: Event, arg: any) => {
+/**
+ * Handles a request to login the user from the Renderer process.
+ * This event is usually fired by the renderer when the user clicks
+ * on the "login" button.
+ */
+ipcMain.on("request-login", () => {
     console.log("Requested a login!");
     const assist = new LoginAssistant(mainWindow);
     assist.requestLogin((token, error) => {
-        console.log("Token: " + token);
-        console.log("Error: " + error);
+        console.log("Token " + (token ? "not null" : "null") + ", Error " + (error ? "not null" : "null"));
         if (token) {
-            handleLogin(token)
+            finishLogin(token)
         } else {
             mainWindow.webContents.send("login-failure", error);
         }
     });
 });
 
-// Handles an error related to the authentication of the user,
-// and redirects him to the login page.
-ipcMain.on("auth-error", (event: Event, error: string) => {
-    console.error("Authentication Error!");
-    console.error(error);
-    if(!error)
-        error = "Sorry, something went wrong! (Unknown reason)";
-    authError(error);
-})
-
-// Handles a login error, displaying a error box
-// if a message is available. This will bring the user
-// back to the login page.
+/**
+ * Handles a authentication-related error, and displays a "error" box to the user
+ * giving him some information about what happened. This is called when the 
+ * user tries to do something without being authenticated 
+ * (which should never happen, unless there's a bug in the app that 
+ * allows the user to access main.html without being logged in)
+ * or if the GitHub API refuses to give us user information (again, because of 
+ * a bug, or if the API is down)
+ * @param {string} error The error message to be displayed to the user
+ */
 export function authError(error: string) {
     console.error("Login/Auth Error.");
     if(error != null){
@@ -79,17 +97,28 @@ export function authError(error: string) {
     loadLoginpage();
 }
 
-// Handles a "logout" button press, clearing the cookies to logout
-// the user for good.
+/**
+ * Handles a logout event, which is usually fired by the renderer process
+ * on a "logout" button press.
+ * This will clear the cookies of the Electron app, logging the user
+ * out of GitHub on our app for good. (Next time he'll have to re-enter 
+ * his credentials)
+ */
 ipcMain.on("logout-user", () => {
     // Clear the cookies
     mainWindow.webContents.session.clearStorageData(null, () => {});
     loadLoginpage();
 })
 
-// Handles the login process, switching the current view to the main menu and
-// setting the current user.
-async function handleLogin(token: string) {
+/**
+ * This function completes the login process by retrieving the user's
+ * information and showing the main-menu page (see loadMainMenu}. If the
+ * user information cannot be retrieved, authError is called, and the error
+ * is logged to the console using console.error()
+ * @async 
+ * @param {string} token The access token returned by the GitHub API 
+ */
+async function finishLogin(token: string) {
     try {
         console.log("Logging in: Retrieving user information.");
         currentUser = await getUserInfo(token);
@@ -101,10 +130,18 @@ async function handleLogin(token: string) {
     }
 }
 
-// Handle publishing requests
+/**
+ * Handles the publishing request event, fired by the renderer process when "publish" is 
+ * pressed. This will check that the current user is valid before proceeding.
+ * If the user is valid, it'll complete the request with the user's information
+ * and call publish() from src/main/Publishing/Publishing.ts
+ * to handle the publishing process.
+ * If the user is not valid, authError is called and a error is logged to the console
+ * using console.error()
+ */
 ipcMain.on("request-publishing", (event: Event, request: PublishRequest) => {
     // If the current logged in user is valid, proceed.
-    if (isUserValid(currentUser)) {
+    if (isCurrentUserValid()) {
         console.log("Current user is valid, calling publish().");
         // Complete the request with the user
         request.user = currentUser;
@@ -117,40 +154,55 @@ ipcMain.on("request-publishing", (event: Event, request: PublishRequest) => {
     }
 });
 
-// Checks if the current user is valid.
-function isUserValid(user: User) : boolean {
-    if(user == null)
+/**
+ * This checks that "currentUser" is valid (not null and with all fields set).
+ * NOTE: This will not check that the token works, this will only check
+ * that it's a valid string.
+ * @returns {boolean} True if the current user is valid, false otherwise.
+ */
+function isCurrentUserValid() : boolean {
+    if(currentUser == null)
         return false; 
     
-    if((user.userName == null) || (user.avatar_url == null) || (user.token == null))
+    if((currentUser.userName == null) || (currentUser.avatar_url == null) || (currentUser.token == null))
         return false;
 
-    return (user.avatar_url !== "") && (user.userName != "") && (user.token !== ""); 
+    return (currentUser.avatar_url !== "") && (currentUser.userName != "") && (currentUser.token !== ""); 
 }
 
-// app-specific events
+/**
+ * Forwards the handling of the "ready" event to the "createWindow" function
+ */
 app.on("ready", createWindow);
 
+/**
+ * Handles the "all windows closed" event.
+ * This is will quit the app on most platform, except on
+ * OSX ("darwin") where it won't, because on osx it's common
+ * to leave the app active until the user quits explicitly with Cmd + Q.
+ */
 app.on("window-all-closed", () => {
-    // On OS X it is common for applications and their menu bar
-    // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== "darwin") {
         app.quit();
     }
 });
 
+/**
+ * Handles the "active" event, which will re-create the main window
+ * if it's null. This is used on OSX when the dock icon is clicked.
+ */
 app.on("activate", () => {
-    // On OS X it"s common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
     if (mainWindow === null) {
         createWindow();
     }
 });
 
-
-// This is called by webpages when they want a copy
-// of the user object. We always send a copy without
-// the token.
+/**
+ * Handles the "get-user-object" event, which is usually sent by webpages
+ * when they want a copy of the user object. We always send a copy
+ * WITHOUT the token, for security reasons and because webpage will never, ever need
+ * it.
+ */
 ipcMain.on("get-user-object", (event: any) => {
     console.log('A Window requested a copy of the user object');
     event.returnValue = currentUser.withoutToken();

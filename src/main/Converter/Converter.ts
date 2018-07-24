@@ -119,17 +119,27 @@ export class CSVRow {
             let redirs = new Array<string>()
 
             for(let element of array)
-                redirs.push(element.docType + '/' + element.pid)
+            {
+                let tmp: string = element.docType + '/' + element.pid;
+
+                // If the redirections are going to be case insensitive,
+                // compare all the redirections in uppercase to avoid
+                // having false negatives.
+                if(HTAccessConf.caseInsensitiveRedirs)
+                    tmp = tmp.toUpperCase();
+
+                redirs.push(tmp);
+            }
 
             // Now, sort the array
-            redirs.sort()
+            redirs.sort();
 
             // Check if there's a place where the element before === the element after
-            let duplicates = new Array<string>()
-            let redirs_length = redirs.length
+            let duplicates = new Array<string>();
+            let redirs_length = redirs.length;
             for(let k = 0; k < redirs_length - 1; k++) {
                 if(redirs[k] == redirs[k+1]) {
-                    duplicates.push(redirs[k])
+                    duplicates.push(redirs[k]);
                 }
             }
 
@@ -140,15 +150,15 @@ export class CSVRow {
                 let diagStr : string = "Duplicate redirections found: "
                 for(let duplicate of duplicates)
                 {
-                    console.error("Duplicate redirection of \"" + duplicate + "\"")
-                    diagStr += duplicate + ", "
+                    console.error("Duplicate redirection of \"" + duplicate + "\"");
+                    diagStr += duplicate + ", ";
                 }
-                reject(diagStr)
+                reject(diagStr);
                 return;
             }
 
             // If we passed every check, we are good!
-            resolve()
+            resolve();
         })
     }
 
@@ -162,7 +172,7 @@ export class CSVRow {
             return /^([a-z]|[A-Z]|[0-9]|-|_)+$/.test(text)
         }
 
-        if(this.docType)
+        if(this.docType !== "")
         {
             if(!fn(this.docType)) 
                 return "The document type \"" + this.docType + "\" contains invalid characters"

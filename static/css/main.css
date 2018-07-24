@@ -137,9 +137,13 @@ form{
   transform:scale(0.75);
 }
 
-.button:hover{
+.button:enabled:hover{
   background-color: #15B28E;
   transform:scale(1.05);
+}
+
+.button:disabled{
+  background-color: rgb(11, 90, 72);
 }
 
 button#publish_button {

@@ -9,13 +9,16 @@
 const csv_parser = require("csv-parse");
 const fs = require("fs");
 
-import * as Conf from "./CSVConfig";
+import { CSVConf, HTAccessConf } from "./../../culturize.conf"
+
+type OnAcceptRow = (row: CSVRow) => void;
+type OnRejectRow = (row: CSVRow) => void;
 
 // This class contains the relevant data of a CSV Row.
 export class CSVRow {
 
     // Creates a Array of rows from the contents of a CSVFile located at filepath
-    public static createArrayFromCSV(filepath: string): Promise<CSVRow[]> {
+    public static createArrayFromCSV(filepath: string, rowAccept: OnAcceptRow, rowReject: OnRejectRow): Promise<CSVRow[]> {
         return new Promise<CSVRow[]>((resolve, reject) => {
             const buffer: string = fs.readFileSync(filepath, "utf8");
             const array: CSVRow[] = new Array<CSVRow>();
@@ -40,15 +43,23 @@ export class CSVRow {
                     if (row != null) {
                         // If it isn't null, check the 'legality'/validity of the row
                         let validity = row.isValid()
-                        if(validity != null)
+                        if((validity != null))
                         {
-                            console.log('Rejected invalid row, reason: ' + validity)
-                            reject(validity)
-                            return
+                            if(CSVConf.IGNORE_ON_INVALID_DATA)
+                                rowReject(row);
+                            else 
+                            {
+                                console.log('The CSV file contains invalid data:' + validity)
+                                reject(validity)
+                                return
+                            }
                         }
                         // We're good, push
+                        rowAccept(row);
                         array.push(row);
                     }
+                    else 
+                        rowReject(row);
                 }
             });
 
@@ -86,9 +97,9 @@ export class CSVRow {
     public static createRow(row: any): CSVRow {
         if (this.satisfiesMinimumRequirements(row) && this.isEnabled(row)) {
             return new CSVRow(
-                row[Conf.COL_PID],
-                row[Conf.COL_DOCTYPE],
-                row[Conf.COL_URL],
+                row[CSVConf.COL_PID],
+                row[CSVConf.COL_DOCTYPE],
+                row[CSVConf.COL_URL],
             );
         }
         return null;
@@ -167,13 +178,13 @@ export class CSVRow {
             const data = row[key];
             return (data != null) && (data !== "");
         };
-        return isValid(Conf.COL_PID) && isValid(Conf.COL_URL) && isValid(Conf.COL_DOCTYPE);
+        return isValid(CSVConf.COL_PID) && isValid(CSVConf.COL_URL) && (isValid(CSVConf.COL_DOCTYPE) || CSVConf.ALLOW_NO_DOCTYPE);
     }
 
     // Checks if a row should be enabled. Rows are enabled by default.
     // A Row is only disabled if the Conf.COL_ENABLED field is present and set to 0
     private static isEnabled(row: any): boolean {
-        const value: string = row[Conf.COL_ENABLED];
+        const value: string = row[CSVConf.COL_ENABLED];
         if ((value != null) && (value === "0")) {
             return false;
         }
@@ -186,7 +197,10 @@ export class CSVRow {
 
     private constructor(pid: string, docType: string, url: string) {
         this.pid     = pid.trim();
-        this.docType = docType.trim();
+        if(docType != null)
+            this.docType = docType.trim();
+        else 
+            this.docType = ""
         this.url     = url.trim().replace("%", "\\%");
     }
 }
@@ -224,7 +238,21 @@ export class HTAccessCreator {
             return "";
         }
 
-        return `RewriteRule ^${row.docType}/${row.pid}$ ${row.url} [R=${code},L]`;
+        // Create options
+        let options : string = "R=" + HTAccessConf.redirectionCode;
+        if(HTAccessConf.caseInsensitiveRedirs)
+            options += ",NC";
+        if(HTAccessConf.noEscape)
+            options += ",NE";
+        options += ",L";
+        
+        // Create redirection 
+        let redir : string = "";
+        if(row.docType != "")
+            redir = row.docType + '/' + row.pid;
+        else 
+            redir = row.pid;
+        return `RewriteRule ^${redir}$ ${row.url} [${options}]`;
     }
 }
 
@@ -233,9 +261,20 @@ export class HTAccessCreator {
 // It returns the content of the .htaccess file
 export function convertCSVtoHTACCESS(filepath: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        CSVRow.createArrayFromCSV(filepath)
-            .then((value: CSVRow[]) => {
+        // Counters
+        let numAccepted: number = 0;
+        let numRejected: number = 0;
+        CSVRow.createArrayFromCSV(filepath, 
+        // Acceptation
+        (row: CSVRow) => {
+            numAccepted++;
+        }, 
+        // Rejection
+        (row: CSVRow) => {
+            numRejected ++;
+        }).then((value: CSVRow[]) => {
                 const creator = new HTAccessCreator(value);
+                console.log(`Accepted ${numAccepted} rows, rejected ${numRejected} rows.`);
                 resolve(creator.makeHTAccessFile());
             })
             .catch((error: string) => {

@@ -1,7 +1,7 @@
 {
-  "name": "resolver",
-  "version": "0.1.0",
-  "description": "The Resolver Project",
+  "name": "culturizeapp",
+  "version": "1.0.0",
+  "description": "The Culturize Desktop Application",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",

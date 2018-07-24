@@ -17,26 +17,28 @@ export class GitRepoManager {
     ownerName: string
     repoDir: string
     token: string
+    branch: string;
 
-    constructor(repoURL: string, token: string, workingDir: string = "") {
+    constructor(repoURL: string, branch: string, token: string, workingDir: string = "") {
         this.repoURL = repoURL;
         this.token = token;
+        this.branch = branch;
+
         if (workingDir == "") {
             this.workingDir = app.getPath("userData") + "\\repo";
         } else {
             this.workingDir = workingDir;
         }
-
-        // RepoName
         const parsedURL = GitUrlParse(this.repoURL);
         this.repoName = parsedURL.name;
         this.ownerName = parsedURL.owner;
         this.repoDir = this.workingDir + "\\" + this.repoName;
 
-        this.createFoldersIfNeeded(this.workingDir);
+        this.createFoldersIfNeeded(this.repoDir);
 
-        // console.log('GitRepoManager Initialisation complete.')
-        // console.log(this)
+        // Setup git instance
+        console.log('GitRepoManager Initialisation complete.')
+        //console.log(this)
     }
 
     // This will clone the repo if we don't have a local copy yet
@@ -48,30 +50,45 @@ export class GitRepoManager {
             .then((result) => {
                 if (result) {
                     console.log("Local copy detected, pulling changes");
-                    // Note, if we start to allow different branches,
-                    // we'll need to pull/checkout the correct branch
-                    // through simpleGit
-                    simpleGit(this.repoDir).pull((err: any) => {
-                        if (err == null) {
-                            console.log("Pull successful");
-                            resolve();
-                        } else {
-                            console.error(err);
-                            reject("Error while pulling");
-                        }
-                    });
+                    simpleGit(this.repoDir)
+                    .checkout(this.branch)
+                        .reset([ "--hard" ], (err:any) => {
+                            if(err)
+                                reject("Failed to reset local copy of the repo.");
+                        }).pull((err: any) => {
+                            if (err == null) {
+                                console.log("Pull successful");
+                                resolve();
+                            } else {
+                                console.error(err);
+                                reject("Error while pulling");
+                            }
+                        });
                 } else {
                     // We don't have a local copy, clone.
                     console.log("No local copy detected - Cloning");
-                    simpleGit(this.workingDir).clone(this.repoURL, undefined, (err: any) => {
+                    simpleGit(this.workingDir)
+                    .clone(this.repoURL, undefined, (err: any) => {
                         if (err == null) {
                             console.log("Cloning success");
-                            resolve();
+                            simpleGit(this.repoDir).checkout(this.branch,(err:any) => {
+                                if(err == null)
+                                {
+                                    console.log("Checkout Success");
+                                    resolve();
+                                }
+                                else 
+                                {
+                                    console.error("Failed to checkout branch");
+                                    console.error(err);
+                                    reject();
+                                }
+                            });
                         } else {
                             console.error(err);
                             reject('Failed to clone "' + this.repoURL + '"');
                         }
-                    });
+                    }); // Checkout to the correct branch
                 }
             })
             .catch((error) => {
@@ -92,13 +109,14 @@ export class GitRepoManager {
     }
 
     // This will call Git Commit/Push to send every change to the remote.
-    public pushChanges(commitMessage: string, branch = "master"): Promise<void> {
+    public pushChanges(commitMessage: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const url = this.makeGitHTTPSUrl();
-            simpleGit(this.repoDir)
+            try{
+                simpleGit(this.repoDir)
                 .add("./*")
                 .commit(commitMessage)
-                .push(url, branch, (err: any) => {
+                .push(url, this.branch, (err: any) => {
                     if (err != null) {
                         console.error(err);
                         reject("Failed to push changes");
@@ -106,6 +124,13 @@ export class GitRepoManager {
                         resolve();
                     }
                 });
+            }
+            catch(err)
+            {
+                console.error("Exception Caught");
+                console.error(err);
+                reject("Failed to push changes");
+            }
         });
     }
 

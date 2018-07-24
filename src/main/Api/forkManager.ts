@@ -1,3 +1,5 @@
+import { stringify } from "querystring";
+
 const octokit = require("@octokit/rest")();
 const GitUrlParse = require("git-url-parse");
 

@@ -37,10 +37,11 @@ const GitUrlParse = require("git-url-parse");
 export async function publish(request: PublishRequest) {
     // Add the ForcedSubdir to the request
     request.subdir = PublishFormDefaults.forcedSubdir + request.subdir;
+    notifyStep("Preparing");
     try {
         console.log('Request Data: ' + JSON.stringify(request))
         // Check the request for incorrect input
-        notifyStep("Checking input.");
+        notifyStep("Checking input");
         await checkRequestInput(request);
 
         // Get user
@@ -50,8 +51,10 @@ export async function publish(request: PublishRequest) {
         // Convert the file before doing anything with the GitHub api,
         // so if this steps fail, we can stop the process without
         // touching the remote repos.
-        notifyStep("Converting to .htaccess.");
-        let content = await convertCSVtoHTACCESS(request.csvPath);
+        notifyStep("Converting file");
+        let response = await convertCSVtoHTACCESS(request.csvPath);
+        console.log("Conversion result: " + response.file.length + " characters in the .htaccess, generated from " 
+        + response.numLinesAccepted + " rows (" + response.numLinesRejected + ")");
 
         // Parse the url
         notifyStep("Parsing URL");
@@ -60,7 +63,8 @@ export async function publish(request: PublishRequest) {
         const destName = parsedURL.name;
         const prettyName = destOwner + "/" + destName;
 
-        let isOwnerOfRepo = (destOwner === user.userName)
+        // Case-insensitive comparison
+        let isOwnerOfRepo = (destOwner.toUpperCase() === user.userName.toUpperCase())
 
         // The URL of the repo that we're going to clone/manage.
         let repoURL : string
@@ -92,7 +96,7 @@ export async function publish(request: PublishRequest) {
 
         // Save the file
         notifyStep("Saving the .htaccess to the desired location");
-        manager.saveStringToFile(content, ".htaccess", request.subdir);
+        manager.saveStringToFile(response.file, ".htaccess", request.subdir);
 
         // Push the changes
         notifyStep("Pushing changes");
@@ -111,7 +115,7 @@ export async function publish(request: PublishRequest) {
         notifyStep('Done !')
 
         sendRequestResult(
-            new PublishRequestResult(true),
+            new PublishRequestResult(true, null, response.numLinesAccepted, response.numLinesRejected),
         );
     } catch (error) {
         console.error(<string>error)

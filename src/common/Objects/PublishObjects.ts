@@ -38,9 +38,13 @@ export class PublishRequest {
 export class PublishRequestResult {
     successful: boolean;
     error: string;
+    numLinesAccepted: number;
+    numLinesRejected: number;
 
-    constructor(successful: boolean, error: string = null) {
+    constructor(successful: boolean, error: string = null, numLinesAccepted: number = 0, numLinesRejected: number = 0) {
         this.successful = successful;
         this.error = error;
+        this.numLinesAccepted = numLinesAccepted;
+        this.numLinesRejected = numLinesRejected;
     }
 }

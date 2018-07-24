@@ -16,7 +16,6 @@ type OnRejectRow = (row: CSVRow) => void;
 
 // This class contains the relevant data of a CSV Row.
 export class CSVRow {
-
     // Creates a Array of rows from the contents of a CSVFile located at filepath
     public static createArrayFromCSV(filepath: string, rowAccept: OnAcceptRow, rowReject: OnRejectRow): Promise<CSVRow[]> {
         return new Promise<CSVRow[]>((resolve, reject) => {
@@ -27,7 +26,6 @@ export class CSVRow {
             if (buffer) {
                 str = buffer.toString();
             }
-
 
             if (str.length === 0) {
                 reject("The file is empty");
@@ -43,7 +41,7 @@ export class CSVRow {
                     if (row != null) {
                         // If it isn't null, check the 'legality'/validity of the row
                         let validity = row.isValid()
-                        if((validity != null))
+                        if(validity != null)
                         {
                             if(CSVConf.IGNORE_ON_INVALID_DATA)
                                 rowReject(row);
@@ -51,12 +49,15 @@ export class CSVRow {
                             {
                                 console.log('The CSV file contains invalid data:' + validity)
                                 reject(validity)
-                                return
+                                break;
                             }
                         }
-                        // We're good, push
-                        rowAccept(row);
-                        array.push(row);
+                        else
+                        {
+                            // We're good, push
+                            rowAccept(row);
+                            array.push(row);
+                        }
                     }
                     else 
                         rowReject(row);
@@ -70,7 +71,11 @@ export class CSVRow {
 
             parser.on("finish", () => {
                 if(array.length === 0)
-                    reject('No valid row found in the CSV File.')
+                {
+                    console.error("Empty array");
+                    reject("No valid row found in the CSV File.");
+                    return;
+                }
                 else
                 {
                     CSVRow.checkArrayForDuplicates(array)
@@ -150,15 +155,20 @@ export class CSVRow {
     // Checks the validity of this row
         // The strings for the PID and document type can
         // only contain 'a-z' 'A-Z' '0-9' '-' and '_'
-    // Returns a null string on success, on failure,
+    // Returns null on success, on failure,
     // returns a string containing the error message
     private isValid() : string {
         let fn = (text: string) : boolean => {
             return /^([a-z]|[A-Z]|[0-9]|-|_)+$/.test(text)
         }
 
-        if(!fn(this.docType))
-            return "The document type \"" + this.docType + "\" contains invalid characters"
+        if(this.docType)
+        {
+            if(!fn(this.docType)) 
+                return "The document type \"" + this.docType + "\" contains invalid characters"
+        }
+        else if(!CSVConf.ALLOW_NO_DOCTYPE) 
+            return "No document type in row";
         
         if(!fn(this.pid))
             return "The PID \"" + this.pid + "\" contains invalid characters"
@@ -170,9 +180,9 @@ export class CSVRow {
     // This function checks if a row of data satisfies the minimum requirements to be valid.
     // For this function to return true, the row must provide non null/empty
     // values for the following columns:
-        // Conf.COL_URL
-        // Conf.COL_PID
-        // Conf.COL_DOCTYPE
+        // CSVConf.COL_URL
+        // CSVConf.COL_PID
+        // CSVConf.COL_DOCTYPE
     private static satisfiesMinimumRequirements(row: any): boolean {
         const isValid = (key: string): boolean => {
             const data = row[key];
@@ -196,7 +206,7 @@ export class CSVRow {
     url: string;
 
     private constructor(pid: string, docType: string, url: string) {
-        this.pid     = pid.trim();
+        this.pid = pid.trim();
         if(docType != null)
             this.docType = docType.trim();
         else 
@@ -256,17 +266,32 @@ export class HTAccessCreator {
     }
 }
 
+// Encapsulates the (positive) result of a HTAccessConversion.
+export class HTAccessConversionResult {
+    // The file content
+    file: string;
+
+    // Stats
+    numLinesRejected: number;
+    numLinesAccepted: number;
+
+    constructor(file: string, rejected: number, accepted: number) {
+        this.file = file;
+        this.numLinesAccepted = accepted;
+        this.numLinesRejected = rejected;
+    }
+}
 // This function performs all the required steps
 // to transform a .csv to a .htaccess file
 // It returns the content of the .htaccess file
-export function convertCSVtoHTACCESS(filepath: string): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
+export function convertCSVtoHTACCESS(filepath: string): Promise<HTAccessConversionResult> {
+    return new Promise<HTAccessConversionResult>((resolve, reject) => {
         // Counters
         let numAccepted: number = 0;
         let numRejected: number = 0;
         CSVRow.createArrayFromCSV(filepath, 
         // Acceptation
-        (row: CSVRow) => {
+        () => {
             numAccepted++;
         }, 
         // Rejection
@@ -274,11 +299,9 @@ export function convertCSVtoHTACCESS(filepath: string): Promise<string> {
             numRejected ++;
         }).then((value: CSVRow[]) => {
                 const creator = new HTAccessCreator(value);
-                console.log(`Accepted ${numAccepted} rows, rejected ${numRejected} rows.`);
-                resolve(creator.makeHTAccessFile());
+                resolve(new HTAccessConversionResult(creator.makeHTAccessFile(),numRejected,numAccepted));
             })
             .catch((error: string) => {
-                console.error(error);
                 reject(error);
             });
     });

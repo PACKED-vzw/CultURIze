@@ -15,7 +15,7 @@
         <img class="pf-pic" id="p-avatar" width="60">
         <p class="pf-name" id="p-username"></p>
       </div>
-      <a class="pf-logout" id"logout" onclick="actOnLogout()">Log-out</a>
+      <a class="pf-logout" id="logout">Log-out</a>
     </div>
   </div>
   <div class="main-div">
@@ -68,16 +68,17 @@
           <button class="info tooltip" type="button" ><span class="info-p">?</span></button>
         </div>
       </div>
+
       <div class="buttons">
         <button id="publish_button" class="button" type="submit">
           <span>Publish</span>
         </button>
-        <button id="extra_button" class="extra_button" type="button" onclick="actOnShowMore()">
+        <button id="extra_button" class="button extra" type="button" onclick="actOnShowMore()">
           <span class="hidden">+</span>
         </button>
       </div>
     </form>
-    <div class="loadbar">
+    <div id="feedback-div">
         <div id="feedback">
           <!-- 
             This is filled by the javascript code to display the 
@@ -105,14 +106,18 @@
     const prBodyField     = document.getElementById('pr_body')
   
     // Divs
-    const feedbackDiv     = document.getElementById('feedback')
+    const feedback     = document.getElementById('feedback')
+    const feedbackDiv  = document.getElementById('feedback-div')
     const extraOptionsDiv = document.getElementById('opts_more')
     extraOptionsDiv.style.visibility = 'hidden'
+    feedbackDiv.style.visibility = 'hidden'
   
     // Buttons
     const submitButton    = document.getElementById('publish_button')
     const showMoreButton  = document.getElementById('extra_button')
-  
+    const logoutButton  = document.getElementById('logout')
+    enableLogout();
+
     // Profile
     const userAvatar    = document.getElementById('p-avatar')
     const userName  = document.getElementById('p-username')
@@ -131,6 +136,15 @@
       userName.innerHTML = user.userName
     }
     
+    function disableLogout()
+    {
+      logoutButton.onclick = null
+    }
+
+    function enableLogout()
+    {
+      logoutButton.onclick = actOnLogout;
+    }
 
     branchField.value     = PublishFormDefaults.branch
     commitMsgField.value  = PublishFormDefaults.commitMessage
@@ -144,7 +158,7 @@
         if(path)
           csvPathField.value = path
         else 
-          feedbackDiv.innerHTML = msg
+          showFeedback(msg)
       })
     }
 
@@ -152,10 +166,18 @@
     {
       ipc.send('logout-user')
     }
+
+    function showFeedback(str) 
+    {
+      if(feedbackDiv.style.visibility === 'hidden')
+        feedbackDiv.style.visibility = 'visible'
+      feedback.innerHTML = str
+    }
   
     function actOnSubmit()
     {
       submitButton.setAttribute('disabled','disabled')
+      disableLogout();
       MainMenu.publish(
         csvPathField.value,
         subdirField.value, 
@@ -183,17 +205,18 @@
       }
     }
   
-    ipc.on('publish-done', (event,result) => {      
+    ipc.on('publish-done', (event,result) => {  
       if(result.successful == true)
-        feedbackDiv.innerHTML = 'Success!'
+        showFeedback('Success! (' + result.numLinesAccepted + ' rows used, ' + result.numLinesRejected + ' rejected)')
       else 
-        feedbackDiv.innerHTML = result.error
+        showFeedback(result.error)
       
+      enableLogout();
       submitButton.removeAttribute('disabled')
     })
 
     ipc.on('update-publish-step', (event,step) => {
-      feedbackDiv.innerHTML = step
+      showFeedback(step)
     })
   </script>
 </html>

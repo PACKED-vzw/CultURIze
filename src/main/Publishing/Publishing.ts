@@ -1,9 +1,9 @@
-// This file is responsible for orchestrating
-// the whole 'publishing' process.
-// Note: this class doesn't check the user data, this
-// is done by the main process with the function "isUserValid", which
-// is called prior to calling publish.
-// Explanation
+
+/**
+ * @file This file is responsible for orchestrating
+ * the whole publishing process. Note: this class doesn't check
+ * the user object. This is done by the main, prior to calling publish.
+ */
 /*
     0.  'request-publishing' IPC Event is fired, and caught in the main.ts file.
          The function that handles this event then calls 'publish', which is defined below.
@@ -33,11 +33,22 @@ const isGithubUrl = require("is-github-url");
 const octokit = require("@octokit/rest")();
 const GitUrlParse = require("git-url-parse");
 
-
+/**
+ * This is the regular expression used to check the 
+ * validity of the subdirectory given by the user
+ * (and the baseSubdir of PublishOptions)
+ */
 const dirRegex = /^((\w)+)(((\/)(\w+))+)?$/;
 
-// Handle a publishing request
+/**
+ * This function is the entry point of the publishing process. 
+ * It will execute the request!
+ * @async
+ * @param {PublishRequest} request The request that will be processed
+ */
 export async function publish(request: PublishRequest) {
+    notifyStep("Preparing");
+    // Prepare the Subdirectory by inserting the baseSubdir if applicable.
     let baseSubdir : string = PublishOptions.baseSubdir ? PublishOptions.baseSubdir : "";
     if(baseSubdir !== "")
     {
@@ -46,7 +57,6 @@ export async function publish(request: PublishRequest) {
         else 
             console.error("Ignored the base subdirectory \"" + baseSubdir + "\" because it is not valid");
     }
-    notifyStep("Preparing");
     try {
         console.log('Request Data: ' + JSON.stringify(request))
         // Check the request for incorrect input
@@ -134,20 +144,36 @@ export async function publish(request: PublishRequest) {
     }
 }
 
+/**
+ * Notifies the user that a certain step is occuring. This
+ * will fire a "update-publish-step" event, and also log
+ * the step to the console.
+ * @param {string} stepDesc Description of the step that'll be displayed to the user
+ */
 function notifyStep(stepDesc: string) {
     console.log(stepDesc);
     mainWindow.webContents.send("update-publish-step", stepDesc);
 }
 
-// Sends an IPC event to the renderer process
-// to notify it that we are done.
+/**
+ * Notifies the renderer process that we are done processing the request.
+ * @param {PublishRequestResult} result The result of the request
+ */
 function sendRequestResult(result: PublishRequestResult) {
     mainWindow.webContents.send("publish-done", result);
 }
 
-// Prepares an instance of the GitRepoManager class.
-// The promise resolves once the cloning/pulling process of the
-// local copy of the repo is done. Rejected (with the error message) on error.
+/**
+ * Prepares an instance of the GitRepoManager class, calling "updateLocalCopy"
+ * to clone/pull/reset the repo on the local machine
+ * 
+ * Note: the username is extracted from the URL by the GitRepoManager
+ * 
+ * Note: the currently logged in user must have write access to that repo to use push.
+ * @param {string} repoURL The URL of the repo that'll be cloned
+ * @param {string} branch  The branch of the repo that'll be checked out
+ * @param {string} token   The user token (used to push/pull). 
+ */
 function prepareGitRepoManager(repoURL: string, branch: string, token: string): Promise<GitRepoManager> {
     return new Promise<GitRepoManager>((resolve, reject) => {
         const grm = new GitRepoManager(repoURL, branch, token);
@@ -163,16 +189,31 @@ function prepareGitRepoManager(repoURL: string, branch: string, token: string): 
     });
 }
 
-// This function is called to generate a string (e.g. body/title of a pull request)
+/**
+ * This is a function called by "createPullRequest" to generate a 
+ * title/body for the PullRequest
+ */
 type StringProvider = () => string;
 
-// Creates the pull request from the fork to the goal repo
+/**
+ * Makes a pull request to "github.com/owner/repo" to implement
+ * the changes in "github.com/user/repo"
+ * @param {string} token     The token
+ * @param {string} owner     The owner of the repo where we want to make the PR
+ * @param {string} repo      The name of the repo where we want to make the PR
+ * @param {string} user      The name of the current user
+ * @param {string} branch    The name of the branche
+ * @param {StringProvider} titleProvider The function that will generate a title for the PR
+ * @param {StringProvider} bodyProvider  The function that will generate a body for the PR
+ */
 function createPullRequest (token: string, owner: string, repo: string, user: string, branch: string,
     titleProvider: StringProvider, bodyProvider: StringProvider): Promise<void> {
+    // Authenticate with octokit
     octokit.authenticate({
         type: "oauth",
         token: token
     });
+    // Send the pull request (asynchronous)
     return new Promise<void>((resolve, reject) => {
         octokit.pullRequests.create({
             owner,
@@ -192,8 +233,10 @@ function createPullRequest (token: string, owner: string, repo: string, user: st
     });
 }
 
-// Checks the request for invalid information. For use
-// within the publish function
+/**
+ * Checks a request for incorrect/invalid/illegal inputs.
+ * @param {PublishRequest} request The request that will be checked
+ */
 function checkRequestInput(request: PublishRequest): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         const repoUrl = request.repoUrl

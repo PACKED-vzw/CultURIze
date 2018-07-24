@@ -1,18 +1,27 @@
-// This file contains the functions & variables
-// used by the main menu page.
-
+/**
+ * @file This file contains function used by the main.html
+ */
 import { ipcRenderer, remote } from "electron";
 import { PublishRequest } from "./../../common/Objects/PublishObjects";
 const dialog = remote.dialog;
 
+/**
+ * The type of the callback that's called when the user is done
+ * looking for a file (dialog box is closed)
+ * 
+ * The first arg is the path to the file (maybe null)
+ * 
+ * The second arg is the error message, if applicable (maybe null)
+ */
 type FileFoundCallback = (filepath: string, errorMsg: string) => void;
 
-// Opens the prompt for the user to look for a file
-// The prompt window will be attached to the current window, which should
-// be the main window.
-// The callback's first arg will be null on error, and the error message
-// will be contained in the second arg.
-export function lookForFile(callback: FileFoundCallback) {
+/**
+ * This function will open the "Search for file" window.
+ * It is asynchronous, and the callback is called when the operation is done.
+ * @async
+ * @param {FileFoundCallback} callback The callback called when the dialog window is closed (the user is done)
+ */
+export async function lookForFile(callback: FileFoundCallback) {
     const currentWindow = remote.getCurrentWindow();
     dialog.showOpenDialog(
         currentWindow,
@@ -40,9 +49,17 @@ export function lookForFile(callback: FileFoundCallback) {
     );
 }
 
-// This function is called to initiate a publish process. It fires an IPC event,
-// and returns immediatly. You can handle the result of the publish request by
-// handling the finished-publishing event.
+/**
+ * Initiates the publishing process. Usually called by the javascript
+ * code in main.html
+ * @param {string} filepath The CSV file to be converted
+ * @param {string} subdir   Subdirectory (optional)
+ * @param {string} repoUrl  GitHub repo URL
+ * @param {string} branch   GitHub branch to use
+ * @param {string} commitMsg GitHub commit message
+ * @param {string} prTitle  GitHub Pull Request title
+ * @param {string} prBody   GitHub Pull Request body.
+ */
 export function publish(filepath: string, subdir: string, repoUrl: string, branch: string, commitMsg: string, prTitle: string, prBody: string) {
    ipcRenderer.send("request-publishing", new PublishRequest(filepath, subdir, repoUrl, branch, commitMsg, prTitle, prBody ));
 }

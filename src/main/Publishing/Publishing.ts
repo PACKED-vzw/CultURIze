@@ -65,7 +65,6 @@ export async function publish(request: PublishRequest) {
 
         // Get user
         const user = request.user;
-        console.log(request);
     
         // Convert the file before doing anything with the GitHub api,
         // so if this steps fail, we can stop the process without

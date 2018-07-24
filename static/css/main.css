@@ -37,7 +37,7 @@ body{
   box-shadow: 0px 0px 130px #8E8F92;
 }
 
-.loadbar{
+#feedback-div{
   margin-top: 3rem;
   background-color: #F3F4F3;
   height: 8rem;
@@ -46,16 +46,14 @@ body{
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  box-shadow: 0px 0px 130px #8E8F92;
+  box-shadow: 0px 0px 50px rgba(142, 143, 146, 0.5);
 }
 
 .formrow{
-  margin-bottom: 2.8rem;
+  padding:1rem;
   display: flex;
   flex-direction: row;
   align-items: center;
-  display: flex;
-  flex-direction: row;
 }
 
 form{
@@ -68,6 +66,11 @@ form{
   font-family: 'Karla', sans-serif;
   font-size: 1.6rem;
   margin-right: 2rem;
+}
+
+#opts_more{
+  margin:0;
+  padding:0;
 }
 
 .input-form{
@@ -106,33 +109,37 @@ form{
   position: relative;
   color:white;
   font-size: 1.8rem;
-  width: 15rem;
   height: 3rem;
   background-color: #1CD2A7;
   border-radius: 8rem;
   padding: 3rem;
   outline: none;
-  transition: background-color 0.5s ease;
+  transition: all 0.5s ease;
   border: none;
+}
+
+.button.extra{
+  transform:scale(0.75);
+  height:5rem;
+  width:5rem;
+  font-size:5rem;
+  background-color: rgb(39, 163, 134);
+}
+
+.button.extra:enabled:hover{
+  background-color: rgb(81, 180, 157);
+  transform:scale(0.85);
+}
+
+.button.extra:enabled:active{
+  background-color: rgb(81, 180, 157);
+  transition: all 0.15s ease;
+  transform:scale(0.75);
 }
 
 .button:hover{
   background-color: #15B28E;
-}
-
-.extra_button{
-  background-color: #1CD2A7;
-  border-radius: 30rem;
-  color: white;
-  font-size: 3rem;
-  width: 5rem;
-  height: 5rem;
-  border: none;
-  transition: background-color 0.5s ease;
-}
-
-.extra_button:hover{
-  background-color: #15B28E;
+  transform:scale(1.05);
 }
 
 button#publish_button {
@@ -155,6 +162,7 @@ button#extra_button {
   flex-direction: row;
   justify-content: space-between;
   margin-top: 6rem;
+  bottom: 0 !important;
 }
 
 .info{
@@ -226,27 +234,6 @@ button#extra_button {
   font-weight:bolder;
   text-align: left !important;
   margin-left: 0 !important;
-}
-
-.tooltip {
-    position: relative;
-    display: inline-block;
-    border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
-}
-
-/* Tooltip text */
-.tooltip .tooltiptext {
-    visibility: hidden;
-    width: 120px;
-    background-color: black;
-    color: #fff;
-    text-align: center;
-    padding: 5px 0;
-    border-radius: 6px;
-
-    /* Position the tooltip text - see examples below! */
-    position: absolute;
-    z-index: 1;
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */

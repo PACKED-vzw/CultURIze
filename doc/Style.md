@@ -6,6 +6,7 @@ This file describes the style of the code used in the project
     * Use Typescript features whenever possible (avoid javascript-like imports, etc
     * Never use var, always use let or const
     * Indent is 4 spaces
+    * Use "" for string literals, '' for char literals.
 * Javascript
     * 2 Spaces indent, like the HTML
     * No semicolons

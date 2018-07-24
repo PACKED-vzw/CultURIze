@@ -37,10 +37,11 @@ const GitUrlParse = require("git-url-parse");
 export async function publish(request: PublishRequest) {
     // Add the ForcedSubdir to the request
     request.subdir = PublishFormDefaults.forcedSubdir + request.subdir;
+    notifyStep("Preparing");
     try {
         console.log('Request Data: ' + JSON.stringify(request))
         // Check the request for incorrect input
-        notifyStep("Checking input.");
+        notifyStep("Checking input");
         await checkRequestInput(request);
 
         // Get user
@@ -50,7 +51,7 @@ export async function publish(request: PublishRequest) {
         // Convert the file before doing anything with the GitHub api,
         // so if this steps fail, we can stop the process without
         // touching the remote repos.
-        notifyStep("Converting to .htaccess.");
+        notifyStep("Converting file");
         let content = await convertCSVtoHTACCESS(request.csvPath);
 
         // Parse the url
@@ -60,7 +61,8 @@ export async function publish(request: PublishRequest) {
         const destName = parsedURL.name;
         const prettyName = destOwner + "/" + destName;
 
-        let isOwnerOfRepo = (destOwner === user.userName)
+        // Case-insensitive comparison
+        let isOwnerOfRepo = (destOwner.toUpperCase() === user.userName.toUpperCase())
 
         // The URL of the repo that we're going to clone/manage.
         let repoURL : string

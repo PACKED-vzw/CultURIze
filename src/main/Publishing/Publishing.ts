@@ -52,7 +52,9 @@ export async function publish(request: PublishRequest) {
         // so if this steps fail, we can stop the process without
         // touching the remote repos.
         notifyStep("Converting file");
-        let content = await convertCSVtoHTACCESS(request.csvPath);
+        let response = await convertCSVtoHTACCESS(request.csvPath);
+        console.log("Conversion result: " + response.file.length + " characters in the .htaccess, generated from " 
+        + response.numLinesAccepted + " rows (" + response.numLinesRejected + ")");
 
         // Parse the url
         notifyStep("Parsing URL");
@@ -94,7 +96,7 @@ export async function publish(request: PublishRequest) {
 
         // Save the file
         notifyStep("Saving the .htaccess to the desired location");
-        manager.saveStringToFile(content, ".htaccess", request.subdir);
+        manager.saveStringToFile(response.file, ".htaccess", request.subdir);
 
         // Push the changes
         notifyStep("Pushing changes");
@@ -113,7 +115,7 @@ export async function publish(request: PublishRequest) {
         notifyStep('Done !')
 
         sendRequestResult(
-            new PublishRequestResult(true),
+            new PublishRequestResult(true, null, response.numLinesAccepted, response.numLinesRejected),
         );
     } catch (error) {
         console.error(<string>error)

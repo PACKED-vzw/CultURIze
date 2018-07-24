@@ -207,7 +207,7 @@
   
     ipc.on('publish-done', (event,result) => {  
       if(result.successful == true)
-        showFeedback('Success!')
+        showFeedback('Success! (' + result.numLinesAccepted + ' rows used, ' + result.numLinesRejected + ' rejected)')
       else 
         showFeedback(result.error)
       

@@ -16,7 +16,6 @@ type OnRejectRow = (row: CSVRow) => void;
 
 // This class contains the relevant data of a CSV Row.
 export class CSVRow {
-
     // Creates a Array of rows from the contents of a CSVFile located at filepath
     public static createArrayFromCSV(filepath: string, rowAccept: OnAcceptRow, rowReject: OnRejectRow): Promise<CSVRow[]> {
         return new Promise<CSVRow[]>((resolve, reject) => {
@@ -27,7 +26,6 @@ export class CSVRow {
             if (buffer) {
                 str = buffer.toString();
             }
-
 
             if (str.length === 0) {
                 reject("The file is empty");
@@ -268,11 +266,26 @@ export class HTAccessCreator {
     }
 }
 
+// Encapsulates the (positive) result of a HTAccessConversion.
+export class HTAccessConversionResult {
+    // The file content
+    file: string;
+
+    // Stats
+    numLinesRejected: number;
+    numLinesAccepted: number;
+
+    constructor(file: string, rejected: number, accepted: number) {
+        this.file = file;
+        this.numLinesAccepted = accepted;
+        this.numLinesRejected = rejected;
+    }
+}
 // This function performs all the required steps
 // to transform a .csv to a .htaccess file
 // It returns the content of the .htaccess file
-export function convertCSVtoHTACCESS(filepath: string): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
+export function convertCSVtoHTACCESS(filepath: string): Promise<HTAccessConversionResult> {
+    return new Promise<HTAccessConversionResult>((resolve, reject) => {
         // Counters
         let numAccepted: number = 0;
         let numRejected: number = 0;
@@ -286,11 +299,9 @@ export function convertCSVtoHTACCESS(filepath: string): Promise<string> {
             numRejected ++;
         }).then((value: CSVRow[]) => {
                 const creator = new HTAccessCreator(value);
-                console.log(`Accepted ${numAccepted} rows, rejected ${numRejected} rows.`);
-                resolve(creator.makeHTAccessFile());
+                resolve(new HTAccessConversionResult(creator.makeHTAccessFile(),numRejected,numAccepted));
             })
             .catch((error: string) => {
-                console.log("Error: " + error + ", [Accepted: " + numAccepted + ", Rejected: " + numRejected + ']');
                 reject(error);
             });
     });

@@ -12,12 +12,13 @@ This is divided in several categories :
 ### UI/UX
 
 * The UI is a bit rough and does not adapt very well to small screen sizes/resolutions.
+* Increase the width of the input forms of the main.html commit message/pr title/pr message fields.
 
 ### Features
 
 * Clear cache:
   * The app could use a "clear cache" button. It would be available in both the login screen and the main menu, 
-  and would delete the cookies and the /repo folder in the app's appdata folder.
+    and would delete the cookies and the /repo folder in the app's appdata folder. This could be useful to "hard reset" the app.
 * Make the user unable to close the app when publishing, so he doesn't close it accidentally in the middle of the conversion.
 
 ### Bugs

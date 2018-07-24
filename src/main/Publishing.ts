@@ -135,8 +135,10 @@ function createPullRequest (token: string, owner: string, repo: string, user: st
             base  : branch,
         }, (error: any , result: any) => {
             if (error != null) {
-                console.error(error);
-                reject("Failed to create the Pull Request.");
+                //console.error(error);
+                let str: string = error.message;                
+                let errors = JSON.parse(str).errors;
+                reject(errors[0].message);
             } else {
                 resolve();
             }

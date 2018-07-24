@@ -15,7 +15,7 @@
         <img class="pf-pic" id="p-avatar" width="60">
         <p class="pf-name" id="p-username"></p>
       </div>
-      <a class="pf-logout" id"logout" onclick="actOnLogout()">Log-out</a>
+      <a class="pf-logout" id="logout">Log-out</a>
     </div>
   </div>
   <div class="main-div">
@@ -115,7 +115,9 @@
     // Buttons
     const submitButton    = document.getElementById('publish_button')
     const showMoreButton  = document.getElementById('extra_button')
-  
+    const logoutButton  = document.getElementById('logout')
+    enableLogout();
+
     // Profile
     const userAvatar    = document.getElementById('p-avatar')
     const userName  = document.getElementById('p-username')
@@ -134,6 +136,15 @@
       userName.innerHTML = user.userName
     }
     
+    function disableLogout()
+    {
+      logoutButton.onclick = null
+    }
+
+    function enableLogout()
+    {
+      logoutButton.onclick = actOnLogout;
+    }
 
     branchField.value     = PublishFormDefaults.branch
     commitMsgField.value  = PublishFormDefaults.commitMessage
@@ -166,6 +177,7 @@
     function actOnSubmit()
     {
       submitButton.setAttribute('disabled','disabled')
+      disableLogout();
       MainMenu.publish(
         csvPathField.value,
         subdirField.value, 
@@ -199,6 +211,7 @@
       else 
         showFeedback(result.error)
       
+      enableLogout();
       submitButton.removeAttribute('disabled')
     })
 

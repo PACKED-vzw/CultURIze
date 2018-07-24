@@ -43,7 +43,7 @@ export class CSVRow {
                     if (row != null) {
                         // If it isn't null, check the 'legality'/validity of the row
                         let validity = row.isValid()
-                        if((validity != null))
+                        if(validity != null)
                         {
                             if(CSVConf.IGNORE_ON_INVALID_DATA)
                                 rowReject(row);
@@ -51,12 +51,15 @@ export class CSVRow {
                             {
                                 console.log('The CSV file contains invalid data:' + validity)
                                 reject(validity)
-                                return
+                                break;
                             }
                         }
-                        // We're good, push
-                        rowAccept(row);
-                        array.push(row);
+                        else
+                        {
+                            // We're good, push
+                            rowAccept(row);
+                            array.push(row);
+                        }
                     }
                     else 
                         rowReject(row);
@@ -70,7 +73,11 @@ export class CSVRow {
 
             parser.on("finish", () => {
                 if(array.length === 0)
-                    reject('No valid row found in the CSV File.')
+                {
+                    console.error("Empty array");
+                    reject("No valid row found in the CSV File.");
+                    return;
+                }
                 else
                 {
                     CSVRow.checkArrayForDuplicates(array)
@@ -150,15 +157,20 @@ export class CSVRow {
     // Checks the validity of this row
         // The strings for the PID and document type can
         // only contain 'a-z' 'A-Z' '0-9' '-' and '_'
-    // Returns a null string on success, on failure,
+    // Returns null on success, on failure,
     // returns a string containing the error message
     private isValid() : string {
         let fn = (text: string) : boolean => {
             return /^([a-z]|[A-Z]|[0-9]|-|_)+$/.test(text)
         }
 
-        if(!fn(this.docType))
-            return "The document type \"" + this.docType + "\" contains invalid characters"
+        if(this.docType)
+        {
+            if(!fn(this.docType)) 
+                return "The document type \"" + this.docType + "\" contains invalid characters"
+        }
+        else if(!CSVConf.ALLOW_NO_DOCTYPE) 
+            return "No document type in row";
         
         if(!fn(this.pid))
             return "The PID \"" + this.pid + "\" contains invalid characters"
@@ -170,9 +182,9 @@ export class CSVRow {
     // This function checks if a row of data satisfies the minimum requirements to be valid.
     // For this function to return true, the row must provide non null/empty
     // values for the following columns:
-        // Conf.COL_URL
-        // Conf.COL_PID
-        // Conf.COL_DOCTYPE
+        // CSVConf.COL_URL
+        // CSVConf.COL_PID
+        // CSVConf.COL_DOCTYPE
     private static satisfiesMinimumRequirements(row: any): boolean {
         const isValid = (key: string): boolean => {
             const data = row[key];
@@ -196,7 +208,7 @@ export class CSVRow {
     url: string;
 
     private constructor(pid: string, docType: string, url: string) {
-        this.pid     = pid.trim();
+        this.pid = pid.trim();
         if(docType != null)
             this.docType = docType.trim();
         else 
@@ -266,7 +278,7 @@ export function convertCSVtoHTACCESS(filepath: string): Promise<string> {
         let numRejected: number = 0;
         CSVRow.createArrayFromCSV(filepath, 
         // Acceptation
-        (row: CSVRow) => {
+        () => {
             numAccepted++;
         }, 
         // Rejection
@@ -278,7 +290,7 @@ export function convertCSVtoHTACCESS(filepath: string): Promise<string> {
                 resolve(creator.makeHTAccessFile());
             })
             .catch((error: string) => {
-                console.error(error);
+                console.log("Error: " + error + ", [Accepted: " + numAccepted + ", Rejected: " + numRejected + ']');
                 reject(error);
             });
     });

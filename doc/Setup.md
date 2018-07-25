@@ -65,13 +65,12 @@ Try to click the login button, after a few seconds, a popup should appear, promp
  
  ### 5: What's next
  #### A: Use an existing solution
- 
-   If your file are small enough (<100 redirections), you can use a existing organisation's GitHub repo such as [W3ID's](https://github.com/perma-id/w3id.org). Just paste this link in the "Push the changes to:" field when using the app and you'll be good to go! But be aware, you won't control what goes in the repo. They will decide if they want to accept your changes or not, and they might refuse!
+   If your file are small enough (<100 redirections), you can use a existing organisation's GitHub repo such as [W3ID's](https://github.com/perma-id/w3id.org). 
+   Just paste this link in the "Push the changes to:" field when using the app and you'll be good to go! But be aware, you won't control what goes in the repo. They will decide if they want to accept your changes or not, and they might refuse!
  
  #### B: Your own solution
- 
- ##### 1. Creating a GitHub repo where users of your app can make Pull Requests using the app
- This is simple as the repo does not require any boilerplate. Just create a new GitHub repo. If you want your repo to be the default one, you can go in the `culturize.conf.ts` file and locate the `repo` variable in `PublishFormDefaults`. Copy-paste the link to your repo between the quotes and now your repo should be the default one that the users will see when opening the app.
- 
- ##### 2. Setup continuous integration between your repo and a server
- You'll probably want to have the changes live as soon as possible once the server is updated. For that, you can setup CI solution such as [CircleCI](https://circleci.com/docs/2.0/). Don't forget [to allow mod_rewrite on your Apache server!](https://www.digitalocean.com/community/tutorials/how-to-rewrite-urls-with-mod_rewrite-for-apache-on-ubuntu-16-04) 
+  ##### 1. Creating a GitHub repo where users of your app can make Pull Requests using the app
+   This is simple as the repo does not require any boilerplate. Just create a new GitHub repo. If you want your repo to be the default one, you can go in the `culturize.conf.ts` file and locate the `repo` variable in `PublishFormDefaults`. Copy-paste the link to your repo between the quotes and now your repo should be the default one that the users will see when opening the app.
+
+  ##### 2. Setup continuous integration between your repo and a server
+   You'll probably want to have the changes live as soon as possible once the server is updated. For that, you can setup CI solution such as [CircleCI](https://circleci.com/docs/2.0/). Don't forget [to allow mod_rewrite on your Apache server!](https://www.digitalocean.com/community/tutorials/how-to-rewrite-urls-with-mod_rewrite-for-apache-on-ubuntu-16-04) 

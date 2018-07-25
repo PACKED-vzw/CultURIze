@@ -1,26 +1,25 @@
 
 /**
  * @file This file is responsible for orchestrating
- * the whole publishing process. Note: this class doesn't check
- * the user object. This is done by the main, prior to calling publish.
+ * the whole publishing process. Note: functions in this file won't check
+ * the user object. This is done by the main.ts file, prior to calling publish.
+ *
+ *  0.  'request-publishing' IPC Event is fired, and caught in the main.ts file.
+ *       The function that handles this event then calls 'publish', which is defined below.
+ *  1.  Publish first checks the Publish Request for invalid or incomplete information.
+ *      If the information is found to be incorrect, an error is emitted.
+ *  2.  We convert the .csv to .htaccess. This is done early, so if this step fails we can abort
+ *      without touching the GitHub repos.    
+ *  3.  The GitHub repo URL is parsed to retrieve the name of the repo and the name of the owner.
+ *  4.  The name of the currently logged-in user is compared to the name of the repo.
+ *      -> If the current user is found to be the owner, skip step 5 & 9.
+ *  5.  We fork the target repo on the user's account.
+ *  6.  We initialize the GitRepoManager instance, which will clone/update the local copy of the
+ *      repo.
+ *  7.  We save the .htaccess to the desired location.
+ *  8.  We push to the remote repo.
+ *  9.  We make a pull request to ask the owner of the target repo to accept the changes.
  */
-/*
-    0.  'request-publishing' IPC Event is fired, and caught in the main.ts file.
-         The function that handles this event then calls 'publish', which is defined below.
-    1.  Publish first checks the Publish Request for invalid or incomplete information.
-        If the information is found to be incorrect, an error is emitted.
-    2.  We convert the .csv to .htaccess. This is done early, so if this step fails we can abort
-        without touching the GitHub repos.    
-    3.  The GitHub repo URL is parsed to retrieve the name of the repo and the name of the owner.
-    4.  The name of the currently logged-in user is compared to the name of the repo.
-        If the current user is found to be the owner, skip step 5 & 9.
-    5.  We fork the target repo on the user's account.
-    6.  We initialize the GitRepoManager instance, which will clone/update the local copy of the
-        repo.
-    7.  We save the .htaccess to the desired location.
-    8.  We push to the remote repo.
-    9.  We make a pull request to ask the owner of the target repo to accept the changes.
-*/
 
 import { PublishRequest, PublishRequestResult } from "./../../common/Objects/PublishObjects";
 import { mainWindow } from "./../../main";
@@ -41,6 +40,20 @@ const GitUrlParse = require("git-url-parse");
 const dirRegex = /^((\w)+)(((\/)(\w+))+)?$/;
 
 /**
+ * This is a small function that can be used with await to "sleep" (wait) 
+ * for a certain time.
+ * 
+ * This is often used by the publish function to wait a bit before
+ * starting a computation-intensive task (such as converting the file) to
+ * allow the renderer process to receive and process the event. 
+ * 
+ * This allows us to notify the user that something is happened, so he doesn't think that the app crashed.
+ * @param {number} ms The number of milliseconds to sleep for
+ */
+const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+
+/**
  * This function is the entry point of the publishing process. 
  * It will execute the request!
  * @async
@@ -58,6 +71,7 @@ export async function publish(request: PublishRequest) {
             console.error("Ignored the base subdirectory \"" + baseSubdir + "\" because it is not valid");
     }
     try {
+
         console.log('Request Data: ' + JSON.stringify(request))
         // Check the request for incorrect input
         notifyStep("Checking input");
@@ -70,6 +84,7 @@ export async function publish(request: PublishRequest) {
         // so if this steps fail, we can stop the process without
         // touching the remote repos.
         notifyStep("Converting file");
+        await sleep(10);
         let response = await convertCSVtoHTACCESS(request.csvPath);
         console.log("Conversion result: " + response.file.length + " characters in the .htaccess, generated from " 
         + response.numLinesAccepted + " rows (" + response.numLinesRejected + ")");

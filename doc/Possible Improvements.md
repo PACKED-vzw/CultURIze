@@ -25,6 +25,8 @@ This is divided in several categories :
     * Example: The user imports a CSV file (10k rows), the CSV file contains 2 row for each "article", 1 with a redirection for a document type "img", and one for a document type "data"
       * Now: 1 Big file (10k rows), saved in the subdirectory
       * After: 2 Smaller files (5k rows), saved in 2 subdirectories: img/ and data/
+* Add an option to update the ClientID/ClientSecret without having to open the app's file. For now, if you remove your GitHub app "auth" and lose your client secret/client id, all copies
+of the app that use theses will be unusable.
 
 ### Bugs
 

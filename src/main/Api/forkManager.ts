@@ -102,7 +102,7 @@ export class ForkManager {
                     const url  = resultobject.url;
                     console.log("Successfully retrieved the reference to the upstream head, attempting merge operation");
                     console.log(`{ sha: ${sha}, type: ${type}, url: ${url} }`);
-                    this.merge(sha, this.token)
+                    this.merge(sha)
                         .then((statuscode: number) => {
                             console.log("Merged successfully (" + statuscode + ")");
                             resolve();

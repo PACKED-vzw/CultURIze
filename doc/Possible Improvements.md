@@ -7,14 +7,13 @@ This is divided in several categories :
   * Features: Missing features
   * Bugs: Bugs that we know
 
-## Problems
 
-### UI/UX
+## Possible UI/UX improvements
 
 * The UI is a bit rough and does not adapt very well to small screen sizes/resolutions.
 * Increase the width of the input forms of the main.html commit message/pr title/pr message fields.
 
-### Features
+## Features
 
 * Clear cache:
   * The app could use a "clear cache" button. It would be available in both the login screen and the main menu, 
@@ -28,7 +27,7 @@ This is divided in several categories :
 * Add an option to update the ClientID/ClientSecret without having to open the app's file. For now, if you remove your GitHub app "auth" and lose your client secret/client id, all copies
 of the app that use theses will be unusable.
 
-### Bugs
+## Bugs
 
 * Blocked UI
   * When processing very large files, the UI is blocked. This is due to how electron works: blocking the main process blocks the renderer process

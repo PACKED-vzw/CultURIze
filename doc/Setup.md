@@ -46,5 +46,15 @@ manage your GitHub repo.
     */
    static clientSecret: string = "";
   ```
+  
+  You WILL need to fill theses values with your API keys. To obtain API Keys, follow the step on this page: [this page](https://github.com/settings/applications/new). 
+  Now, fill the form with the following information:
+   * **Application Name:** CulturizeApp (*Note: you can use a variation of the name, or even use your organization's name. It does not matter*)
+   * **Homepage URL:** If you have a website, use your website's URL, if you don't, use the link to the GitHub repo of the project.
+   * **Application Description:** Again, you're free to type what you want. Usually, you'll want to mention that this is a fork/variation of the Culturize App.
+   * **Authorization callback URL:**
+     This is a bit more important, you'll need to type `https://localhost`. Do not use any other URL.
+     
+  
  
  

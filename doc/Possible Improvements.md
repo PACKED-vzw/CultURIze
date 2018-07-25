@@ -1,6 +1,4 @@
 # Possible Improvements
-
-## Purpose of this document
 This document highlights some problems in the Culturize App that we did not have the time to solve.
 This is divided in several categories : 
   * UI/UX: Related to the general user experience

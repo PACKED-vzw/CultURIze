@@ -77,6 +77,6 @@ Try to click the login button, after a few seconds, a popup should appear, promp
    
 ### 6: Packaging/Distributing the App
  * We don't provide ways of packaging the app (creating installer/executables) by default. To package the app and distribute it, you might be interested in the following resources:
-  * https://electronjs.org/docs/tutorial/application-distribution
-  * https://github.com/unindented/electron-installer-windows
-  * https://github.com/electron-userland/electron-packager
+   * https://electronjs.org/docs/tutorial/application-distribution
+   * https://github.com/unindented/electron-installer-windows
+   * https://github.com/electron-userland/electron-packager

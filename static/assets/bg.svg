@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 22.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 841.9 595.3" style="enable-background:new 0 0 841.9 595.3;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#1CD3A8;}
+	.st1{display:none;}
+	.st2{display:inline;}
+	.st3{fill:#F4F4F4;}
+	.st4{display:none;fill:#F4F4F4;}
+	.st5{display:none;fill:none;stroke:#F4F4F4;stroke-width:8;stroke-miterlimit:10;}
+	.st6{display:none;fill:#1CD3A8;}
+	.st7{display:none;fill:#F4F4F4;stroke:#F4F4F4;stroke-width:4.5466;stroke-linecap:round;stroke-miterlimit:10;}
+	.st8{display:inline;fill:#667E86;}
+	.st9{font-family:'Karla-Regular';}
+	.st10{font-size:15px;}
+	.st11{fill:#667E86;}
+	.st12{display:inline;fill:#FFFFFF;}
+	.st13{display:inline;fill:#1CD3A8;}
+	.st14{display:inline;opacity:0.8;fill:#E9ECEE;}
+	.st15{display:inline;fill:#CFD0D1;}
+	.st16{font-size:18px;}
+</style>
+<g id="Layer_1">
+	<path class="st0" d="M212.7,1.7c0,0,77.2,8.6,144.2,183.7c18.1,47.4,41.6,78.6,66.1,98.9c50.1,41.4,122.8,40.5,173.3-0.5
+		c43.3-35.2,119.5-81.7,170.9-27.9c0,0,42.9,32.6,73.8,60.1V0L212.7,1.7z"/>
+	<path class="st0" d="M0.5,36c0,0,242.5,60.3,267.9,260.5c25.5,200.3,349.6,297.4,349.6,297.4l-620.2-0.7L0.5,36z"/>
+	<g class="st1">
+		
+			<image style="display:inline;overflow:visible;opacity:0.6;" width="3653" height="2647" xlink:href="6706B0F6C4B6887D.png"  transform="matrix(0.24 0 0 0.24 -17.5994 -20.7194)">
+		</image>
+		<g class="st2">
+			<path class="st3" d="M738.3,529.4h-635c-19.7,0-35.6-16-35.6-35.6V100.1c0-19.7,16-35.6,35.6-35.6h635c19.7,0,35.6,16,35.6,35.6
+				v393.7C773.9,513.5,757.9,529.4,738.3,529.4z"/>
+		</g>
+	</g>
+	<line class="st4" x1="701.7" y1="466.5" x2="728.5" y2="466.5"/>
+	<path class="st5" d="M628.4,466.5"/>
+	<circle class="st6" cx="694.8" cy="468.4" r="22.9"/>
+	<line class="st7" x1="680.4" y1="468.4" x2="709.3" y2="468.4"/>
+	<line class="st7" x1="694.8" y1="454" x2="694.8" y2="482.9"/>
+</g>
+<g id="Layer_2" class="st1">
+	<text transform="matrix(1 0 0 1 105.7218 153.3304)" class="st8 st9 st10">Path to csv</text>
+	<text transform="matrix(1 0 0 1 105.722 207.8335)" class="st8 st9 st10">Name of the subdirectory to push to</text>
+	<g class="st2">
+		<text transform="matrix(1 0 0 1 105.7219 263.9763)" class="st11 st9 st10">Push the changes to</text>
+	</g>
+	<path class="st12" d="M430.2,157.4H200.1c-2.8,0-5.1-2.3-5.1-5.1v-12c0-2.8,2.3-5.1,5.1-5.1h230.2c2.8,0,5.1,2.3,5.1,5.1v12
+		C435.4,155.1,433.1,157.4,430.2,157.4z"/>
+	<path class="st12" d="M490.2,270.9H260c-2.8,0-5.1-2.3-5.1-5.1v-12c0-2.8,2.3-5.1,5.1-5.1h230.2c2.8,0,5.1,2.3,5.1,5.1v12
+		C495.3,268.6,493,270.9,490.2,270.9z"/>
+	<path class="st12" d="M597.4,213.8H367.2c-2.8,0-5.1-2.3-5.1-5.1v-12c0-2.8,2.3-5.1,5.1-5.1h230.2c2.8,0,5.1,2.3,5.1,5.1v12
+		C602.5,211.5,600.2,213.8,597.4,213.8z"/>
+	<path class="st13" d="M518.7,156.1H462c-5.8,0-10.4-4.7-10.4-10.4v0c0-5.8,4.7-10.4,10.4-10.4h56.8c5.8,0,10.4,4.7,10.4,10.4v0
+		C529.2,151.4,524.5,156.1,518.7,156.1z"/>
+	<text transform="matrix(1 0 0 1 473.1588 149.0112)" class="st12 st9 st10">open</text>
+	<circle class="st14" cx="551.2" cy="146.8" r="10.7"/>
+	<text transform="matrix(1 0 0 1 547.3768 150.6662)" class="st15 st9 st10">?</text>
+	<circle class="st14" cx="623.7" cy="203.7" r="10.7"/>
+	<text transform="matrix(1 0 0 1 619.8929 207.6079)" class="st15 st9 st10">?</text>
+	<circle class="st14" cx="518.5" cy="259.8" r="10.7"/>
+	<text transform="matrix(1 0 0 1 514.6463 263.6988)" class="st15 st9 st10">?</text>
+	<path class="st13" d="M217.5,491.2h-89c-12.6,0-22.7-10.2-22.7-22.7v0c0-12.6,10.2-22.8,22.7-22.8h89c12.6,0,22.7,10.2,22.7,22.8v0
+		C240.2,481.1,230,491.2,217.5,491.2z"/>
+	<text transform="matrix(1 0 0 1 141.602 472.4008)" class="st12 st9 st16">publish</text>
+</g>
+</svg>

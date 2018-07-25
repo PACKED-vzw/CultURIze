@@ -1,5 +1,4 @@
 node_modules
 dist
-tsconfig.json
-src/main/Api/ApiConf.ts
+src/culturize.conf.ts
 .vscode

@@ -12,7 +12,7 @@ manage your GitHub repo.
 ## How to setup a fork of the Culturize App
 
 ### 0. What you'll need
-  * [Git](https://git-scm.com/)
+  * [Git](https://git-scm.com/) *(Used both to clone the repo, and as a dependency of the Culturize App that isn't downloaded by npm)*
   * [Node.js](https://nodejs.org/en/)
   * 15 minutes of your time
 
@@ -27,6 +27,24 @@ manage your GitHub repo.
   * `git clone` and paste your fork's url.
   * `cd culturizeapp`
   
- 
+### 2. Downloading the dependencies
+ Once you have completed the previous steps, you should have a command prompt open with the current working directory being the `culturizeapp` folder. If that's the case, type `npm install`. This will download everything you need in for the app to work.
   
+### 3. Obtaining API Keys and Configuring the app
+ Naviguate to the `culturizeapp` folder in your file explorer, go to `src` and locate `culturize.conf.example.ts`, duplicate this file and remove the `.example`. You should now have 2 files `culturize.conf.example.ts` and `culturize.conf.ts`. Open `culturize.conf.ts` with your favorite editor and locate theses 2 lines:
+ 
+ ``` 
+  /**
+    * The client ID given by GitHub when you registered the app.
+    * @static 
+    */
+   static clientID: string = "";
+
+   /**
+    * The client secret given by GitHub when you registered the app.
+    * @static 
+    */
+   static clientSecret: string = "";
+  ```
+ 
  

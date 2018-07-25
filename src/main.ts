@@ -32,7 +32,7 @@ function createWindow() {
         height: 800,
         width: 800,
     });
-    //mainWindow.setMenu(null);
+    mainWindow.setMenu(null);
     mainWindow.maximize();
 
     loadLoginpage()

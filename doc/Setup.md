@@ -20,7 +20,13 @@ manage your GitHub repo.
   To fork the repo, click on the "Fork" button in the top right corner.
   ![How-to-fork](https://github-images.s3.amazonaws.com/help/bootcamp/Bootcamp-Fork.png)
   
-  Once it's done, navigate to your fork's page on GitHub and click on the green "Clone or Download" button. Copy the link, you'll need it!
+  Once it's done, navigate to your fork's page on GitHub and click on the green "Clone or Download" button and copy the link.
   
-  Now, open your command prompt, navigate to your working directory and type the following
+  Now, open your command prompt, navigate to your working directory and type the following commands:
+  
+  * `git clone` and paste your fork's url.
+  * `cd culturizeapp`
+  
+ 
+  
  

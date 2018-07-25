@@ -2,13 +2,6 @@
 
 This file contains instruction for whoever wants to setup a fork of this project and distribute it to others.
 
-#### Responsabilities
-
-By distributing a version of this application, you'll be the only one responsible for managing your server and your GitHub repo.
-Losing the server means losing the permanent identifiers. You need to be able to sustain the server for a long period of time, and responsibly
-manage your GitHub repo.
-
-
 ## How to setup a fork of the Culturize App
 
 ### 0. What you'll need
@@ -47,7 +40,7 @@ manage your GitHub repo.
    static clientSecret: string = "";
   ```
   
-  You WILL need to fill theses values with your API keys. To obtain API Keys, follow the step on this page: [this page](https://github.com/settings/applications/new). 
+  You WILL need to fill theses values with your API keys. To obtain API Keys, go to [this page](https://github.com/settings/applications/new). 
   Now, fill the form with the following information:
    * **Application Name:** CulturizeApp (*Note: you can use a variation of the name, or even use your organization's name. It does not matter*)
    * **Homepage URL:** If you have a website, use your website's URL, if you don't, use the link to the GitHub repo of the project.
@@ -55,6 +48,19 @@ manage your GitHub repo.
    * **Authorization callback URL:**
      This is a bit more important, you'll need to type `https://localhost`. Do not use any other URL.
      
+  Once you click "Register Application", you should have your Client ID and Client Secret right in front of you. Copy them and paste them between the quotes in their respective place in the config file. The final result should look like this:
+  ![Keys](https://i.imgur.com/2myN9ok.png)
   
+Now, save the file and close it.
+
+### 4. Checking if everything works
+  Go back to your command prompt and type `npm start`. You should see some commands being run and a few seconds later, you should be greeted with a screen like this:
+  ![loginpage](https://i.imgur.com/U4w0ESB.png)
  
+Try to click the login button, after a few seconds, a popup should appear, prompting you to fill in your credentials. When you're done, click on "Sign-In". The popup should close automatically and you should be redirected to this page:
+
+ ![mainpage](https://i.imgur.com/QgDo800.png)
  
+ If that's the case, congratulation! The hardest part is done! Else, if you get a login error even if your credentials were correct, review what you did in step 3 carefully. Maybe your API keys are not valid!
+ 
+ ### 5. What's next

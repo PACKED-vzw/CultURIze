@@ -25,6 +25,7 @@ This is divided in several categories :
 * Add an option to update the ClientID/ClientSecret without having to open the app's file. For now, if you remove your GitHub app "auth" and lose your client secret/client id, all copies
 of the app that use theses will be unusable.
 * Add support for CSV separated by ';' which are also a common type of CSV file. This can be easily implemented (just read the first line of the file and check if we find a ',' or a ';' first)
+* Better handling for merge error (conflicts) and stuff, which can happen if we mess manually with the repo, deleting too much stuff.
 
 ## Bugs
 

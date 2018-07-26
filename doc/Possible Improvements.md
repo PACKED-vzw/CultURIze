@@ -24,6 +24,7 @@ This is divided in several categories :
       * After: 2 Smaller files (5k rows), saved in 2 subdirectories: img/ and data/
 * Add an option to update the ClientID/ClientSecret without having to open the app's file. For now, if you remove your GitHub app "auth" and lose your client secret/client id, all copies
 of the app that use theses will be unusable.
+* Add support for CSV separated by ';' which are also a common type of CSV file. This can be easily implemented (just read the first line of the file and check if we find a ',' or a ';' first)
 
 ## Bugs
 

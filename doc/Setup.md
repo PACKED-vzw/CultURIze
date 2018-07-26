@@ -69,11 +69,11 @@ Try to click the login button, after a few seconds, a popup should appear, promp
    Just paste this link in the "Push the changes to:" field when using the app and you'll be good to go! But be aware, you won't control what goes in the repo. They will decide if they want to accept your changes or not, and they might refuse!
  
  #### B: Your own solution
- * 1. Creating a GitHub repo where users of your app can make Pull Requests using the app
-   This is simple as the repo does not require any boilerplate. Just create a new GitHub repo. If you want your repo to be the default one, you can go in the `culturize.conf.ts` file and locate the `repo` variable in `PublishFormDefaults`. Copy-paste the link to your repo between the quotes and now your repo should be the default one that the users will see when opening the app.
+ * 1. Create a new GitHub repo where users will be able to make Pull Requests
+   This is simple as the repo does not require any boilerplate. Just create a new GitHub repo. If you want your repo to be the default one for the users of your fork, you can go in the `culturize.conf.ts` file and locate the `repo` variable in `PublishFormDefaults`. Copy-paste the link to your repo between the quotes and now your repo should be the default one that the users will see when opening the app.
 
  * 2. Setup continuous integration between your repo and a server
-   You'll probably want to have the changes live as soon as possible once the server is updated. For that, you can setup CI solution such as [CircleCI](https://circleci.com/docs/2.0/). Don't forget [to allow mod_rewrite on your Apache server!](https://www.digitalocean.com/community/tutorials/how-to-rewrite-urls-with-mod_rewrite-for-apache-on-ubuntu-16-04) 
+   You'll probably want to have the changes live as soon as possible once the server is updated. For that, you can setup CI solution such as [CircleCI](https://circleci.com/docs/2.0/). **Also:** Don't forget [to allow mod_rewrite on your Apache server!](https://www.digitalocean.com/community/tutorials/how-to-rewrite-urls-with-mod_rewrite-for-apache-on-ubuntu-16-04) 
    
 ### 6: Packaging/Distributing the App
  * We don't provide ways of packaging the app (creating installer/executables) by default. To package the app and distribute it, you might be interested in the following resources:

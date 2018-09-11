@@ -1,35 +1,39 @@
 {
-  "name": "culturizeapp",
-  "version": "1.0.0",
-  "description": "The Culturize Desktop Application",
-  "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "lint": "tslint -c tslint.json -p tsconfig.json",
-    "start": "npm run build && electron ./dist/main.js"
-  },
-  "repository": "https://github.com/oSoc18/resolver",
-  "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo",
-    "typescript"
-  ],
-  "author": "oSoC18 Resolver Team",
-  "license": "MIT",
-  "devDependencies": {
-    "electron": "^2.0.2",
-    "tslint": "^5.11.0",
-    "typescript": "^2.8.3"
-  },
-  "dependencies": {
-    "@octokit/rest": "^15.9.4",
-    "csv-parse": "^2.5.0",
-    "git-url-parse": "^9.0.1",
-    "is-github-url": "^1.2.2",
-    "shelljs": "^0.8.2",
-    "simple-git": "^1.96.0"
-  }
+    "name": "culturizeapp",
+    "version": "1.0.0",
+    "description": "The Culturize Desktop Application",
+    "main": "./dist/main.js",
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc -w",
+        "lint": "tslint -c tslint.json -p tsconfig.json",
+        "start": "npm run build && electron ./dist/main.js",
+        "package-win": "electron-packager . --overwrite --asar --platform=win32 --arch=ia32 --icon=static/assets/icon.ico --prune=true --out=release-builds",
+        "package-mac": "electron-packager . --overwrite --asar --platform=darwin --arch=x64 --icon=static/assets/icon.icns --prune=true --out=release-builds"
+    },
+    "repository": "https://github.com/oSoc18/resolver",
+    "keywords": [
+        "Electron",
+        "quick",
+        "start",
+        "tutorial",
+        "demo",
+        "typescript"
+    ],
+    "author": "oSoC18 Resolver Team",
+    "license": "MIT",
+    "devDependencies": {
+        "electron": "^2.0.2",
+        "electron-packager": "^12.1.1",
+        "tslint": "^5.11.0",
+        "typescript": "^2.8.3"
+    },
+    "dependencies": {
+        "@octokit/rest": "^15.9.4",
+        "csv-parse": "^2.5.0",
+        "git-url-parse": "^9.0.1",
+        "is-github-url": "^1.2.2",
+        "shelljs": "^0.8.2",
+        "simple-git": "^1.96.0"
+    }
 }

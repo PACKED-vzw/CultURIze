@@ -8,8 +8,8 @@ This is the GitHub repo of the Culturize App Project of oSoC18.
 
 * Content:
   * [Website](https://osoc18.github.io/culturize/)
-  * [Setup](https://github.com/oSoc18/culturizeapp/blob/master/doc/Setup.md): Learn how to setup a fork of the app and run it!
-  * [Coding Style](https://github.com/oSoc18/culturizeapp/blob/master/doc/Style.md): Read this before contributing to the project.
+  * [Setup](https://github.com/Lod3/culturizeapp/blob/master/doc/Setup.md): Learn how to setup a fork of the app and run it!
+  * [Coding Style](https://github.com/Lod3/culturizeapp/blob/master/doc/Style.md): Read this before contributing to the project.
   * [Bugs and Features idea list](https://github.com/oSoc18/culturizeapp/blob/master/doc/Possible%20Improvements.md)
   * [Explanation of the 4 Components of the Toolchain](https://github.com/oSoc18/culturizeapp/blob/master/doc/pdf/components.pdf)
   * [In-depth explanation of the internal flow of the app](https://github.com/oSoc18/culturizeapp/blob/master/doc/pdf/flow.pdf)

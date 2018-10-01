@@ -18,13 +18,13 @@ This file contains instruction for whoever wants to setup a fork of this project
   Now, open your command prompt, navigate to your working directory and type the following commands:
   
   * `git clone` and paste your fork's url.
-  * `cd culturizeapp`
+  * `cd CultURIze`
   
 ### 2. Downloading the dependencies
- Once you have completed the previous steps, you should have a command prompt open with the current working directory being the `culturizeapp` folder. If that's the case, type `npm install`. This will download everything you need in for the app to work.
+ Once you have completed the previous steps, you should have a command prompt open with the current working directory being the `CultURIze` folder. If that's the case, type `npm install`. This will download everything you need in for the app to work.
   
 ### 3. Obtaining API Keys and Configuring the app
- Naviguate to the `culturizeapp` folder in your file explorer, go to `src` and locate `culturize.conf.example.ts`, duplicate this file and remove the `.example`. You should now have 2 files `culturize.conf.example.ts` and `culturize.conf.ts`. Open `culturize.conf.ts` with your favorite editor and locate theses 2 lines:
+ Navigate to the `CultURIze` folder in your file explorer, go to `src` and locate `culturize.conf.example.ts`, duplicate this file and remove the `.example`. You should now have 2 files `culturize.conf.example.ts` and `culturize.conf.ts`. Open `culturize.conf.ts` with your favorite editor and locate theses 2 lines:
  
  ``` 
   /**

@@ -7,6 +7,7 @@ const GitUrlParse = require("git-url-parse");
 const shellJs = require("shelljs");
 const simpleGit = require("simple-git");
 const path = require("path")
+const log = require('electron-log');
 
 /**
  * This class is responsible for managing a local copy of a
@@ -74,54 +75,57 @@ export class GitRepoManager {
             .then((result) => {
                 // The user has a local copy
                 if (result) {
-                    console.log("Local copy detected, pulling changes");
+                    log.info("Local copy detected, pulling changes");
                     // TODO if the git repository is empty and does not have an initial commit then this does not work.
                     // we get a crash with user message "Preparing GIT" which is not helpfull at all for an enduser.
                     // this error is due to their not being a master until we make the initial commit.
+
+                    // TODO Personal opinion: it may be better to remove the folder with repo, then clone, change and push.
+                    // otherwise we sometimes have some bugs, where the repo breaks because of multiple local transformations
+                    // and an enduser has no way of getting it to work again.
                     simpleGit(this.repoDir)
                     .checkout(this.branch)
                         .reset([ "--hard" ], (err:any) => {
                             if(err)
+                                log.error("Failed to reset local copy of the repo.")
                                 reject("Failed to reset local copy of the repo.");
                         }).pull((err: any) => {
                             if (err == null) {
-                                console.log("Pull successful");
+                                log.info("Pull successful");
                                 resolve();
                             } else {
-                                console.error(err);
+                                log.error(err);
                                 reject("Error while pulling");
                             }
                         });
                 } else {
                     // We don't have a local copy, clone.
-                    console.log("No local copy detected - Cloning");
+                    log.info("No local copy detected - Cloning");
                     simpleGit(this.workingDir)
                     .clone(this.repoURL, undefined, (err: any) => {
                         if (err == null) {
-                            console.log("Cloning success");
-                            console.log(this.repoDir);
+                            log.info(`Cloning success of repo located at ${this.repoDir}`);
                             simpleGit(this.repoDir).checkout(this.branch,(err:any) => {
                                 if(err == null)
                                 {
-                                    console.log("Checkout Success");
+                                    log.info("Checkout Success");
                                     resolve();
                                 }
                                 else
                                 {
-                                    console.error("Failed to checkout branch");
-                                    console.error(err);
+                                    log.error(`Failed to checkout branch ${err}`);
                                     reject();
                                 }
                             });
                         } else {
-                            console.error(err);
+                            log.error(`Failed to clone ${this.repoURL}, error messag: ${err}`);
                             reject('Failed to clone "' + this.repoURL + '"');
                         }
                     });
                 }
             })
             .catch((error) => {
-                console.error(error);
+                log.error(error);
                 reject('Error while attempting to determine if "' + this.repoDir + '" is a repository');
             });
         });
@@ -159,7 +163,7 @@ export class GitRepoManager {
                 .commit(commitMessage)
                 .push(url, this.branch, (err: any) => {
                     if (err != null) {
-                        console.error(err);
+                        log.error(`Failed to push changes. ${err}`);
                         reject("Failed to push changes");
                     } else {
                         resolve();
@@ -168,7 +172,7 @@ export class GitRepoManager {
             }
             catch(err)
             {
-                console.error(err);
+                log.error(`Failed to push changes. ${err}`);
                 reject("Failed to push changes");
             }
         });
@@ -198,18 +202,18 @@ export class GitRepoManager {
     private hasRepo(): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             if (!fs.existsSync(this.repoDir)) {
-                console.log('"' + this.repoDir + '" does not contain a repository');
+                log.warn(`"${this.repoDir}" does not contain a repository`);
                 resolve(false);
             } else {
                 simpleGit(this.repoDir).checkIsRepo((error: Error, result: boolean) => {
                     if (error) {
-                        console.error(error);
-                        reject('Error while checking if "' + this.repoDir + '" is a repository');
+                        log.error(error);
+                        reject(`Error while checking if "${this.repoDir}" is a repository`);
                     } else {
                         if (result) {
-                            console.log('"' + this.repoDir + '" is a repository');
+                            log.info(`"${this.repoDir}" is a repository"`);
                         } else {
-                            console.log('"' + this.repoDir + '" does not contain a repository');
+                            log.info(`"${this.repoDir}" does not contain a repository`);
                         }
                         resolve(result);
                     }

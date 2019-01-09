@@ -1,12 +1,13 @@
 /**
  * @file This file contains the ForkManager class, which will fork a repo and make it
  * even with it's original.
- * 
+ *
  * Useful resources:
  *  To understand the logic behind syncing a fork with it's original: https://stackoverflow.com/a/27762278/3232822
  */
 const octokit = require("@octokit/rest")();
 const GitUrlParse = require("git-url-parse");
+const log = require('electron-log');
 
 /**
  * This class manages the forking process.
@@ -16,7 +17,7 @@ export class ForkManager {
     currentUser: string;
     repo: string;
     branch: string;
-    token: string;  
+    token: string;
 
     /**
      * @constructor
@@ -32,7 +33,7 @@ export class ForkManager {
 
     /**
      * Forks a repository located a "repoURL" for the "currentUser".
-     * The forks "branch" branch is assured to be up to date (even) with the original's 
+     * The forks "branch" branch is assured to be up to date (even) with the original's
      * @param {string} repoURL The URL of the repo to fork. This repo must not be owned by the user logged in.
      * @param {string} currentUser The name of the currently logged in user.
      * @param {string} branch The branch that must be forked/kept even.
@@ -47,11 +48,11 @@ export class ForkManager {
             this.repo = parsedURL.name;
 
             const fork_url = await this.createFork();
-            console.log('Fork created/found at "' + fork_url + '"')
+            log.info(`Fork created/found at "${fork_url}"`)
 
-            console.log('Attempting to update fork')
+            log.info('Attempting to update fork')
             await this.updateFork();
-            console.log('Done')
+            log.info('Done')
             return fork_url;
         } catch (error) {
             return Promise.reject<string>(error);
@@ -68,8 +69,8 @@ export class ForkManager {
                 owner : this.baseOwner,
                 repo  : this.repo,
             }, (error: any, result: any) => {
-                // console.log(result)
                 if (error != null) {
+
                     reject("Error while attempting to fork " + this.baseOwner + "/" + this.repo);
                 } else {
                     resolve(result.data.svn_url);
@@ -90,26 +91,23 @@ export class ForkManager {
                 repo  : this.repo,
                 ref   : "heads/" + this.branch,
             }, (refError: any, result: any) => {
-                // console.log(result.data.object)
-                // console.log(error)
                 if (refError != null) {
-                    console.error(refError);
+                    log.error(`Couldn't update the fork: failed to retrieve the reference to the upstream head. ${refError}`);
                     reject("Couldn't update the fork: failed to retrieve the reference to the upstream head");
                 } else {
                     const resultobject = result.data.object;
                     const sha  = resultobject.sha;
                     const type = resultobject.type;
                     const url  = resultobject.url;
-                    console.log("Successfully retrieved the reference to the upstream head, attempting merge operation");
-                    console.log(`{ sha: ${sha}, type: ${type}, url: ${url} }`);
+                    log.info("Successfully retrieved the reference to the upstream head, attempting merge operation");
+                    log.info(`{ sha: ${sha}, type: ${type}, url: ${url} }`);
                     this.merge(sha)
                         .then((statuscode: number) => {
-                            console.log("Merged successfully (" + statuscode + ")");
+                            log.info(`Merged successfully (${statuscode})`);
                             resolve();
                         })
                         .catch((mergeError: any) => {
-                            console.log('Merge error');
-                            console.error(mergeError);
+                            log.error(`Merge error: ${mergeError}`);
                             reject(mergeError);
                         });
                 }
@@ -121,7 +119,7 @@ export class ForkManager {
      * Merges a head in the base. The head is the sha hash of a commit (usually the latest commit of a fork's origin).
      * This function will try to query the github api to make the repo "this.currentUser"/"this.repo" branch "this.branch"
      * even with the commit "sha".
-     * @param {string} sha 
+     * @param {string} sha
      * @returns a Promise of a number, resolved with the status code on success, rejected with an error on failure.
      */
     private merge(sha: string): Promise<number> {
@@ -134,7 +132,7 @@ export class ForkManager {
                 commit_message : "Updating fork",
             }, (error: any, result: any) => {
                 if (error != null) {
-                    console.error(error);
+                    log.error(`Failed to update the fork: merge error. ${error}`);
                     reject("Failed to update the fork: merge error");
                 } else {
                     resolve(result.status);

@@ -4,12 +4,13 @@
  */
 const octokit = require('@octokit/rest')()
 import { User } from "../../common/Objects/UserObject"
+const log = require('electron-log');
 
 /**
  * Uses the token to query the GitHub API to create User object
  * containing the user's relevant information, such as his username
  * and profile picture.
- * @param {string} token The access token 
+ * @param {string} token The access token
  * @returns a Promise of a User object, resolved on success, rejected with an error message on failure.
  */
 export function getUserInfo(token: string): Promise<User>{
@@ -26,7 +27,7 @@ export function getUserInfo(token: string): Promise<User>{
            resolve(newUser)
         })
         .catch((error: any) => {
-            console.log(error)
+            log.error(`Failed to retrieve user information from GitHub. ${error}`)
             reject("Failed to retrieve user information from GitHub")
         })
     })

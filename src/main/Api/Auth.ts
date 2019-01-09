@@ -1,7 +1,7 @@
 /**
  * @file This file contains function/classes to interact with the GitHub
  * api and log a user in.
- * 
+ *
  * Note: the interaction with GitHub is done manually, and not
  * through octokit, because this is needed to handle the WebFlow login
  * correctly.
@@ -11,6 +11,7 @@ import * as https from "https";
 import * as querystring from "querystring";
 import { BrowserWindow, dialog, Event } from "electron";
 import { APIConf } from "./../../culturize.conf";
+const log = require('electron-log');
 
 /**
  * The type of the function called when the Login request has been completed.
@@ -29,7 +30,7 @@ export class LoginAssistant {
 
     /**
      * @constructor
-     * @param {BrowserWindow} parent The BrowserWindow that will be used 
+     * @param {BrowserWindow} parent The BrowserWindow that will be used
      * as the parent of the login popup.
      */
     constructor(parent: BrowserWindow) {
@@ -41,7 +42,7 @@ export class LoginAssistant {
      * containing the GitHub "log in" page.
      * @param {LoginRequestCallback} callback The callback called when the process has been completed
      * @param {string} scope The scope of the auth. Note: this needs to, at least, be of the "repo" level.
-     * WARNING: We need read/write access to the user's repo for most of the functionality of the app. 
+     * WARNING: We need read/write access to the user's repo for most of the functionality of the app.
      * It is recommended to leave this to it's default value: "repo".
      */
     public requestLogin(callback: LoginRequestCallback, scope: string = "repo") {
@@ -52,7 +53,7 @@ export class LoginAssistant {
         // below.
         const me = this;
 
-        
+
         let currentlyHandlingRequest: boolean = false;
 
         // Create the window object
@@ -106,12 +107,12 @@ export class LoginAssistant {
     /**
      * Handles the github redirection, extracting the code/error code and
      * acting appropriately based on the results.
-     * @param {LoginRequestCallback} callback 
+     * @param {LoginRequestCallback} callback
      * @param {event} event The event object, currently unused so it can be left null.
      * @param {string} url The redirection URL
      */
     private gotRedirectRequest(callback: LoginRequestCallback, event: Event, url: string): void {
-        console.log("Redirection URL: " + url);
+        log.info("Redirection URL: " + url);
 
         // Extract relevant information
         const raw_code = /code=([^&]*)/.exec(url) || null
@@ -121,7 +122,7 @@ export class LoginAssistant {
         this.popup.destroy();
 
         if (code) {
-            console.log("Code Received: " + code);
+            log.info(`Code Received: ${code}`);
 
             // Create the post data
             const postData = querystring.stringify({
@@ -151,40 +152,39 @@ export class LoginAssistant {
                 });
                 response.on("end", () => {
                     const json = JSON.parse(result.toString());
-                    // console.log("Access Token Successfuly Received: " + json.access_token);
                     const token: string = json.access_token;
                     if (response && (response.statusCode === 200) && (token && (token !== ""))) {
                         // Positive callback
                         callback(token, null);
                     } else {
                         let message = "Github API returned code " + response.statusCode;
-                        console.log(json);
+                        log.info(json);
                         callback(null, message);
                     }
                 });
                 response.on("error", (err: any) => {
-                    console.error(err)
+                    log.error(`request error: ${err}`)
                     callback(null, "Request error: " + err);
                 });
             });
-            console.log("Trying to exchange code for token..");
+            log.info("Trying to exchange code for token..");
             // Send the request
             req.write(postData);
             req.end();
         } else if (error) {
             // Handle the case where there's no code and an errro
-            console.error(error);
-            callback(null, "Login Error: " + error);
+            log.error(`Login error : ${error}`);
+            callback(null, `Login Error: ${error}`);
         } else {
             // Handle the case where both the error and the code are null
-            console.error("Both the code & error are null, redirection URL must be invalid!");
+            log.error("Both the code & error are null, redirection URL must be invalid!");
             callback(null, "Invalid redirection, please try again");
         }
     }
 
     /**
      * Creates a Popup URL based on the Client ID and scope
-     * @returns The URL 
+     * @returns The URL
      */
     private getPopupURL(): string {
         return`https://github.com/login/oauth/authorize?client_id=${APIConf.clientID}&scope=${this.scope}`;

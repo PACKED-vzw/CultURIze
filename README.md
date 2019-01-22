@@ -1,8 +1,5 @@
-# Culturize
-
-This is the GitHub repo of the Culturize project.
-
 ![CulturizeLogo](https://github.com/PACKED-vzw/CultURIze/blob/master/static/assets/logo-culturize-klein.png)
+This is the GitHub repo of the Culturize project.
 
 ## License
 The Culturize Desktop App is released under the [MIT License](https://opensource.org/licenses/MIT)

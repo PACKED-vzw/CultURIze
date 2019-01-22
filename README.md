@@ -12,10 +12,17 @@ CultURIze is a four-step process to make persistent URI's for collection items, 
 CultURIze is made for registrars, curator and managers of small to medium heritage collections. 
 
 More information about the inspiration, governance, howto are on the [CultURIze Wiki](https://github.com/PACKED-vzw/CultURIze/wiki) 
-  
+
+## CultURIze requires 
+* an Apache webserver
+* a Github account
+* a CircleCI account
+* Electron
+* Typescript
+
 ## Getting Started
 * Define the domain and numbering [scheme](https://github.com/PACKED-vzw/CultURIze/wiki/Define-a-Persistent-URI-Scheme) for your persistent URIs.
-* Set up a [(Apache) webserver](https://github.com/PACKED-vzw/CultURIze/wiki/Set-Up-a-Webserver).
+* Set up an [(Apache) webserver](https://github.com/PACKED-vzw/CultURIze/wiki/Set-Up-a-Webserver).
 * Set up a [(Github) repository](https://github.com/PACKED-vzw/CultURIze/wiki/Set-Up-a-Code-Repository) and link it to your webserver.
 * Record the persistent URI’s in  a [spreadsheet](https://github.com/PACKED-vzw/CultURIze/wiki/Create-a-Spreadsheet). 
 * Download and [install](https://github.com/PACKED-vzw/CultURIze/wiki/App-Installation-Instructions) the desktop application. Use it to turn your spreadsheet in an [server configuration file](App-Tutorial) and push it to your repository.

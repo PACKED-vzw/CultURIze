@@ -13,7 +13,7 @@ CultURIze is made for registrars, curator and managers of small to medium herita
 
 More information about the inspiration, governance, howto are on the [CultURIze Wiki](https://github.com/PACKED-vzw/CultURIze/wiki) 
 
-## CultURIze requires 
+## CultURIze is relies on
 * an Apache webserver
 * a Github account
 * a CircleCI account

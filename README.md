@@ -2,7 +2,7 @@
 
 This is the GitHub repo of the Culturize App Project of oSoC18.
 
-![CulturizeLogo](https://github.com/oSoc18/culturizeapp/blob/master/static/assets/logo-culturize-klein.png)
+![CulturizeLogo](https://github.com/PACKED-vzw/CultURIze/blob/master/static/assets/logo-culturize-klein.png)
 
 * License
 * About

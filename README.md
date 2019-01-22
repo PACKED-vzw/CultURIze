@@ -7,11 +7,11 @@ Copyright (c) 2019 PACKED vzw
 All content in this repository is released under the [CC-BY-SA License](https://creativecommons.org/licenses/by-sa/4.0/).
 The code of the Culturize Desktop App is released under the [MIT License](https://opensource.org/licenses/MIT).
 ## About
-CultURIze is a four-step process to make persistent URI's for collection items, a spreadsheet to record persistent URI's, a desktop app to turn it in a .htaccess file, a Githubrepo to automate the configuration of an Apache webserver.
+CultURIze is a four-step process to make persistent URI's for collection items, using a spreadsheet to record persistent URI's, a desktop app to turn it in a .htaccess file, and a Githubrepo to automate the configuration of an Apache webserver.
 
-CultURIze is made for registrars, curator and managers of small to medium heritage collections. 
+CultURIze is made for registrars, curators and managers of small to medium heritage collections. 
 
-More information about the inspiration, governance, howto are on the [CultURIze Wiki](https://github.com/PACKED-vzw/CultURIze/wiki) 
+More information about the inspiration, governance, and howto's for setting up a Culturize workflow are available on the [CultURIze Wiki](https://github.com/PACKED-vzw/CultURIze/wiki) 
 
 ## CultURIze relies on
 * an Apache webserver

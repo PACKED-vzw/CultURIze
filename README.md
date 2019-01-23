@@ -12,7 +12,7 @@ CultURIze is a four-step process to make persistent URI's for collection items, 
 
 CultURIze is made for registrars, curators and managers of small to medium heritage collections. 
 
-More information about inspiration, governance, and howto's for setting up a Culturize workflow are available on the [CultURIze Wiki](https://github.com/PACKED-vzw/CultURIze/wiki) 
+More information about inspiration, governance, and howto's for setting up a Culturize workflow are available on the [CultURIze Wiki](https://github.com/PACKED-vzw/CultURIze/wiki/home) 
 
 ## CultURIze relies on
 * an Apache webserver

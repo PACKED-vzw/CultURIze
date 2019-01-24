@@ -15,11 +15,11 @@ CultURIze is made for registrars, curators and managers of small to medium herit
 More information about inspiration, governance, and howto's for setting up a Culturize workflow are available on the [CultURIze Wiki](https://github.com/PACKED-vzw/CultURIze/wiki/home) 
 
 ## CultURIze relies on
-* an Apache webserver
+* an [Apache webserver](https://httpd.apache.org/)
 * a Github account
-* a CircleCI account
-* Electron
-* Typescript
+* a [CircleCI](https://circleci.com/) account
+* [Electron](https://electronjs.org/)
+* [Typescript](https://www.typescriptlang.org/)
 
 ## Getting Started
 * Define the domain and numbering [scheme](https://github.com/PACKED-vzw/CultURIze/wiki/Define-a-Persistent-URI-Scheme) for your persistent URIs.

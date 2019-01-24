@@ -35,9 +35,9 @@ More information about inspiration, governance, and howto's for setting up a Cul
   * Source code: the Source code for the HTML pages is contained in the [static](static/) folder, and the source code for the core logic in the [src](src/) folder. 
   
 ## Authors
-  * OsoC 2018 team: Bert Schoovaerts, Pierre Van Houtryve, Marie Devos, Milena Vergara Santiago
-  * OKBE: Brecht Van de Vyvere, Eveline Vlassenroot
-  * PACKED: Bert Lemmens, Alina Saenko, Lode Scheers, Nastasia Vanderperren
+  * [oSoc18](https://2018.summerofcode.be/culturize.html) team: Bert Schoovaerts, Pierre Van Houtryve, Marie Devos, Milena Vergara Santiago
+  * [OKBE](https://openknowledge.be/): Brecht Van de Vyvere, Eveline Vlassenroot
+  * [PACKED](https://www.packed.be/): Bert Lemmens, Alina Saenko, Lode Scheers, Nastasia Vanderperren
   * Deuze: Maxime Deuze
 ## Acknowledgements
   * inspired by [w3id.org](http://w3id.org)

@@ -23,10 +23,10 @@ More information about inspiration, governance, and howto's for setting up a Cul
 
 ## Getting Started
 
-# Windows #
-(Windows installer instructies)
+## Windows ##
+(Windows installer instructions)
 
-# Linux/Mac #
+## Linux/Mac ##
 ## Introduction ##
 
 This file contains instruction for whoever wants to setup a fork of this project and distribute it to others.

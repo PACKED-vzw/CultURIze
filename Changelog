@@ -1,5 +1,6 @@
-DEV
+v0.1.0 (25/01/19)
 ===
+- issue_compatibility
   - Changed file name for main/api/forkManager.ts to main/api/ForkManager.ts, for import compatibility reasons
   - Concatenation with os.path.join instead of string + string
   - Improved app logging by using electron-log. Logs located at: ~/.config/culturizeapp/log.log

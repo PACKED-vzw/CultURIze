@@ -9,6 +9,7 @@ const simpleGit = require("simple-git");
 const path = require("path")
 const log = require('electron-log');
 
+
 /**
  * This class is responsible for managing a local copy of a
  * GitHub repository.
@@ -44,6 +45,7 @@ export class GitRepoManager {
         this.branch = branch;
 
         // Default to "userData" folder if no working dir is provided.
+        // TODO should be defined in a config file located at culturize.conf.ts instead of in the git class.
         if (workingDir == "") {
             this.workingDir = app.getPath("userData") + "/repo";
         } else {
@@ -86,9 +88,11 @@ export class GitRepoManager {
                     simpleGit(this.repoDir)
                     .checkout(this.branch)
                         .reset([ "--hard" ], (err:any) => {
-                            if(err)
-                                log.error("Failed to reset local copy of the repo.")
-                                reject("Failed to reset local copy of the repo.");
+                            if(typeof err !== 'undefined' && err !== null && err) {
+                                  log.error("Failed to reset local copy of the repo.");
+                                  log.error(err);
+                                  reject("Failed to reset local copy of the repo.");
+                            }
                         }).pull((err: any) => {
                             if (err == null) {
                                 log.info("Pull successful");

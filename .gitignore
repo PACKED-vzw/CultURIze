@@ -4,3 +4,4 @@ src/culturize.conf.ts
 .vscode
 release-builds/
 test.csv
+.idea/*

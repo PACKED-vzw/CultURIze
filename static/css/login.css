@@ -108,6 +108,7 @@ button#signin_button {
   color: #1CD2A7;
   font-family: "montserrat-semibold";
   transition: border-bottom 0.2s ease;
+  cursor: pointer;
 }
 
 .create-one-link:hover{

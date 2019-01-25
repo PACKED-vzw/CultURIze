@@ -20,6 +20,7 @@
       </header>
       <button id="signin_button" class="button" type="button" onclick="actOnLogin()"><span>Sign in</span></button>
       <p class="no-account">Don't have an account yet? <a class="create-one-link" onclick="actOnCreateAccount()">Create one!</a></p>
+      <p class="no-account">Having issues ? <a class="create-one-link" onclick="actOnHardReset()">Hard reset</a> the app.</p>
     </div>
   </main>
   <footer>
@@ -43,9 +44,13 @@
     loginBtn.setAttribute('disabled','disabled')
   }
 
-  function actOnCreateAccount() 
+  function actOnCreateAccount()
   {
     shell.openItem('https://github.com/join')
+  }
+
+  function actOnHardReset() {
+      ipc.send('hard-reset');
   }
 
   ipc.on('login-failure',(event,arg) => {

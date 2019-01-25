@@ -2,7 +2,7 @@
  * @file This file contains the entry point of the app, and handles most ipc events sent
  * the main process.
 */
-import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, globalShortcut } from "electron";
 import { PublishRequest } from "./common/Objects/PublishObjects";
 import { LoginAssistant } from "./main/Api/Auth";
 import { publish } from "./main/Publishing/Publishing";
@@ -10,6 +10,8 @@ import { getUserInfo } from "./main/Api/User";
 import { User } from "./common/Objects/UserObject";
 const octokit = require("@octokit/rest")();
 const log = require('electron-log');
+const rimraf = require("rimraf");
+
 
 /**
  * This is the main window of the program.
@@ -43,6 +45,32 @@ function createWindow() {
         mainWindow = null;
     });
 
+    mainWindow.on('close', (e: any) => {
+      const globalAny:any = global;
+
+      if (globalAny.sharedObj.transforming)  {
+        const choice = dialog.showMessageBox(
+          mainWindow,
+          {
+            type: 'question',
+            buttons: ['Yes', 'No, I am transforming a CSV file',],
+            title: 'Confirm your actions',
+            message: 'Do you really want to close the application? If you are transforming a CSV and the operation is not done you will lose all information.'
+          }
+        );
+        console.log('CHOICE: ', choice);
+        if (choice > 0) e.preventDefault();
+      }
+    });
+
+  	globalShortcut.register('f5', function() {
+  		console.log('f5 is pressed')
+  		mainWindow.reload()
+  	})
+  	globalShortcut.register('CommandOrControl+R', function() {
+  		console.log('CommandOrControl+R is pressed')
+  		mainWindow.reload()
+  	})
 }
 
 /**
@@ -92,7 +120,7 @@ ipcMain.on("request-login", () => {
 export function authError(error: string) {
     log.error("Login/Auth Error.");
     if(error != null){
-        log.error(error);
+        log.error(`Auth Error ${error}`);
         dialog.showErrorBox("Auth Error", error);
     }
     loadLoginpage();
@@ -109,6 +137,20 @@ ipcMain.on("logout-user", () => {
     // Clear the cookies
     mainWindow.webContents.session.clearStorageData(null, () => {});
     loadLoginpage();
+})
+
+/**
+ * Handles a Hard Reset button click.
+ * A hard reset clears the cache and deletes the repos of a user
+ */
+ipcMain.on("hard-reset", () => {
+  // Clear the cookies
+  mainWindow.webContents.session.clearStorageData(null, () => {});
+  loadLoginpage();
+
+  // removes the repositories
+  let workingDir = app.getPath("userData") + "/repo";
+  rimraf(workingDir, function () { log.info(`Folder repo deleted ${workingDir}`); });
 })
 
 /**
@@ -183,6 +225,8 @@ app.on("ready", createWindow);
  * to leave the app active until the user quits explicitly with Cmd + Q.
  */
 app.on("window-all-closed", () => {
+    console.log('closed2')
+
     if (process.platform !== "darwin") {
         app.quit();
     }
@@ -208,3 +252,17 @@ ipcMain.on("get-user-object", (event: any) => {
     log.info('A Window requested a copy of the user object');
     event.returnValue = currentUser.withoutToken();
 })
+
+
+/*
+ * initialize a global with the info if a transformation is happening or not
+ */
+export function toggleTransformation(toggle: boolean) {
+   const globalAny:any = global;
+   globalAny.sharedObj = {transforming: toggle};
+
+   if (mainWindow) {
+     mainWindow.webContents.send("transformation", toggle);
+   }
+ }
+ toggleTransformation(false);

@@ -82,6 +82,15 @@ form{
   outline: none;
 }
 
+.input-form-large{
+  background-color: #FEFFFE;
+  border-radius: 0.6rem;
+  border: none;
+  height: 2.5rem;
+  width: 50rem;
+  outline: none;
+}
+
 .input-submit{
   border-radius: 1.5rem;
   color: white;
@@ -205,7 +214,7 @@ button#extra_button {
   align-items: center;
 }
 
-.pf-logout{
+.pf-menu-right{
   font-family: 'Karla', sans-serif;
   color:#9CA1A4;
   font-size: 1.4rem;
@@ -213,11 +222,11 @@ button#extra_button {
   border-bottom: 0.2rem solid #F2F7F7;
   padding-bottom: 0.2rem;
   font-size:2rem;
+  cursor: pointer;
 }
 
-.pf-logout:hover{
+.pf-menu-right a:hover{
   border-bottom: 0.2rem solid #15B28E;
-
 }
 
 .profile-info{

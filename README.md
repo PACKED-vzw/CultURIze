@@ -50,7 +50,7 @@ https://github.com/PACKED-vzw/CultURIze/wiki
   * `cd CultURIze`
   
 ### 2. Downloading the dependencies
- Once you have completed the previous steps, you should have a command prompt open with the current working directory being the `CultURIze` folder. If that's the case, type `npm install`. This will download everything you need in for the app to work.
+ Once you have completed the previous steps, you should have a command prompt open with the current working directory being the `CultURIze` folder. If that's the case, type `npm install`. This will download everything you need in for the app to work. Since the release of Ubuntu 18 however you will need to manually install libconf-2.so.4 `sudo apt install libgconf2-4`.
   
 ### 3. Obtaining API Keys and Configuring the app
  Navigate to the `CultURIze` folder in your file explorer, go to `src` and locate `culturize.conf.example.ts`, duplicate this file and remove the `.example`. You should now have 2 files `culturize.conf.example.ts` and `culturize.conf.ts`. Open `culturize.conf.ts` with your favorite editor and locate theses 2 lines:

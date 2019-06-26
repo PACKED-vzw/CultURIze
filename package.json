@@ -29,7 +29,7 @@
         "typescript": "^2.8.3"
     },
     "dependencies": {
-        "@octokit/rest": "^15.9.4",
+        "@octokit/rest": "^16.28.2",
         "csv-parse": "^2.5.0",
         "electron-log": "^2.2.17",
         "git-url-parse": "^9.0.1",

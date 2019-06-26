@@ -23,7 +23,7 @@
     "author": "oSoC18 Resolver Team",
     "license": "MIT",
     "devDependencies": {
-        "electron": "^2.0.2",
+        "electron": "^2.0.18",
         "electron-packager": "^12.1.1",
         "tslint": "^5.11.0",
         "typescript": "^2.8.3"

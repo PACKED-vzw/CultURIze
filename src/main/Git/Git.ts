@@ -78,7 +78,7 @@ export class GitRepoManager {
                     log.info("Local copy detected, pulling changes");
                     // TODO if the git repository is empty and does not have an initial commit then this does not work.
                     // we get a crash with user message "Preparing GIT" which is not helpfull at all for an enduser.
-                    // this error is due to their not being a master until we make the initial commit.
+                    // this error is due to there not being a master until we make the initial commit.
 
                     // TODO Personal opinion: it may be better to remove the folder with repo, then clone, change and push.
                     // otherwise we sometimes have some bugs, where the repo breaks because of multiple local transformations
@@ -86,9 +86,10 @@ export class GitRepoManager {
                     simpleGit(this.repoDir)
                     .checkout(this.branch)
                         .reset([ "--hard" ], (err:any) => {
-                            if(err)
-                                log.error("Failed to reset local copy of the repo.")
+                            if(err != null) {
+                                log.error(`Failed to reset local copy of the repo. Error msg: ${err}`);
                                 reject("Failed to reset local copy of the repo.");
+                            }
                         }).pull((err: any) => {
                             if (err == null) {
                                 log.info("Pull successful");

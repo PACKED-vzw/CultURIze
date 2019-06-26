@@ -1,3 +1,17 @@
+DEV
+===
+- issues_improvements
+  - Added a hard reset button, which clears the cache and deletes all files locate in the repo folder.
+    button added in the header of main.html page
+    button added bellow the create account of the login page
+  - Changed css for the topbar button and the new link on the login page
+  - Enlarged the input for commit message, pull request title, pull request body.
+    Note: it may be interesting to change the design and set TextArea instead of Inputs
+  - Solved an issue where when we uploaded the csv files multiple times in succession it said the git broke, which was not True
+  - Added a dialog asking the user if he is sure to close the app when he is transforming a CSV
+    This dialog aims to prevent a user from closing his window and lose the current transformation
+  - Various little fixes
+    
 v0.1.0 (25/01/19)
 ===
 - issue_compatibility

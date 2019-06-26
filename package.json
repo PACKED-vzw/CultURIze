@@ -35,6 +35,8 @@
         "simple-git": "^1.116.0",
         "git-url-parse": "^11.1.2",
         "is-github-url": "^1.2.2",
-        "shelljs": "^0.8.3"
+        "shelljs": "^0.8.3",
+        "rimraf": "^2.6.3",
+        "shelljs": "^0.8.2",
     }
 }

@@ -22,7 +22,7 @@
  */
 
 import { PublishRequest, PublishRequestResult } from "./../../common/Objects/PublishObjects";
-import { mainWindow } from "./../../main";
+import { mainWindow, toggleTransformation } from "./../../main";
 import { ForkManager } from "./../Api/ForkManager";
 import { convertCSVtoHTACCESS } from "./../Converter/Converter";
 import { GitRepoManager } from "./../Git/Git";
@@ -72,6 +72,8 @@ export async function publish(request: PublishRequest) {
             log.error(`Ignored the base subdirectory "${baseSubdir}" because it is not valid`);
     }
     try {
+        // set the start of the transformation
+        toggleTransformation(true);
 
         log.info(`Request Data: ${JSON.stringify(request)}`)
         // Check the request for incorrect input
@@ -148,10 +150,16 @@ export async function publish(request: PublishRequest) {
 
         notifyStep('Done !')
 
+        // set the end of the transformations
+        toggleTransformation(false);
+        
         sendRequestResult(
             new PublishRequestResult(true, null, response.numLinesAccepted, response.numLinesRejected),
         );
     } catch (error) {
+        // set the end of the transformations
+        toggleTransformation(false);
+
         log.error(<string>error)
         sendRequestResult(
             new PublishRequestResult(false, <string>error),

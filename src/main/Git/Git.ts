@@ -9,6 +9,7 @@ const simpleGit = require("simple-git");
 const path = require("path")
 const log = require('electron-log');
 
+
 /**
  * This class is responsible for managing a local copy of a
  * GitHub repository.
@@ -44,6 +45,7 @@ export class GitRepoManager {
         this.branch = branch;
 
         // Default to "userData" folder if no working dir is provided.
+        // TODO should be defined in a config file located at culturize.conf.ts instead of in the git class.
         if (workingDir == "") {
             this.workingDir = app.getPath("userData") + "/repo";
         } else {

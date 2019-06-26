@@ -17,7 +17,10 @@
                 <img class="pf-pic" id="p-avatar" width="60">
                 <p class="pf-name" id="p-username"></p>
             </div>
-            <a class="pf-logout" id="logout">Log-out</a>
+            <span class="pf-menu-right">
+              <a id="logout">Log-out</a>
+              <a id="hard-reset">Hard-reset</a>
+            </span>
         </div>
     </div>
     <div class="main-div">
@@ -52,19 +55,19 @@
 
                 <div class="formrow">
                     <span class="p-form">Commit message: </span>
-                    <input class="input-form" id="commit_msg" type="text" required>
+                    <input class="input-form input-form-large" id="commit_msg" type="text" required>
                     <!--<button class="info" type="button" ><span class="info-p">?</span></button>-->
                 </div>
 
                 <div class="formrow">
                     <span class="p-form">Pull request title: </span>
-                    <input class="input-form" type="text" id="pr_title" required>
+                    <input class="input-form input-form-large" type="text" id="pr_title" required>
                     <!--<button class="info" type="button" ><span class="info-p">?</span></button>-->
                 </div>
 
                 <div class="formrow">
                     <span class="p-form">Pull request body: </span>
-                    <input class="input-form" type="text" id="pr_body" required>
+                    <input class="input-form input-form-large" type="text" id="pr_body" required>
                     <!--<button class="info" type="button" ><span class="info-p">?</span></button>-->
                 </div>
             </div>
@@ -80,8 +83,8 @@
         </form>
         <div id="feedback-div">
             <div id="feedback">
-                <!-- 
-            This is filled by the javascript code to display the 
+                <!--
+            This is filled by the javascript code to display the
             status of the execution
           -->
             </div>
@@ -117,6 +120,8 @@
     const showMoreButton = document.getElementById('extra_button')
     const logoutButton = document.getElementById('logout')
     enableLogout();
+    const hardReset = document.getElementById('hard-reset')
+    hardReset.onclick = actOnHardReset;
 
     // Profile
     const userAvatar = document.getElementById('p-avatar')
@@ -162,6 +167,10 @@
 
     function actOnLogout() {
         ipc.send('logout-user')
+    }
+
+    function actOnHardReset() {
+        ipc.send('hard-reset');
     }
 
     function showFeedback(str) {

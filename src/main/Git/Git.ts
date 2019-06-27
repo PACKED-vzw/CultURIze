@@ -167,7 +167,7 @@ export class GitRepoManager {
                 .push(url, this.branch, (err: any) => {
                     if (err != null) {
                         log.error(`Failed to push changes. ${err}`);
-                        reject("Failed to push changes");
+                        reject("Failed to push changes. Are you sure you have the permission to push on this repo?");
                     } else {
                         resolve();
                     }
@@ -176,7 +176,7 @@ export class GitRepoManager {
             catch(err)
             {
                 log.error(`Failed to push changes. ${err}`);
-                reject("Failed to push changes");
+                reject("Failed to push changes. Are you sure you have the permission to push on this repo?");
             }
         });
     }

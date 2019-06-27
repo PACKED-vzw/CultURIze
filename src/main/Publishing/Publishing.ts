@@ -23,7 +23,6 @@
 
 import { PublishRequest, PublishRequestResult } from "./../../common/Objects/PublishObjects";
 import { mainWindow, toggleTransformation } from "./../../main";
-import { ForkManager } from "./../Api/ForkManager";
 import { convertCSVtoHTACCESS } from "./../Converter/Converter";
 import { GitRepoManager } from "./../Git/Git";
 import { PublishOptions } from "./../../culturize.conf"
@@ -95,6 +94,8 @@ export async function publish(request: PublishRequest) {
         // Parse the url
         notifyStep("Parsing URL");
         const parsedURL = GitUrlParse(request.repoUrl);
+        log.info(`repo information ${parsedURL}`);
+
         const destOwner = parsedURL.owner;
         const destName = parsedURL.name;
         const prettyName = destOwner + "/" + destName;
@@ -108,21 +109,14 @@ export async function publish(request: PublishRequest) {
         // Here, depending on if the user's the owner of the repo he wants
         // to send the .htaccess to, we'll either do a direct push to his repo
         // or fork the repo so we can make a pull request later.
-        if(isOwnerOfRepo)
-        {
-            // If the current user owns the repo, no forking will be required
-            notifyStep(user.userName + ' owns ' + request.repoUrl + ', no forking required')
-            repoURL = request.repoUrl
-        }
-        else
-        {
-            // If the current user doesn't own the repo, we have to fork it
-            notifyStep("Attempting to fork " + prettyName);
 
-            const forks = new ForkManager(user.token);
-            repoURL = await forks.forkRepo(request.repoUrl, user.userName, request.branch);
-
-            notifyStep("Successfully forked " + prettyName + ' at "' + repoURL + '"');
+        // If the current user owns the repo
+        repoURL = request.repoUrl
+        if (isOwnerOfRepo) {
+            notifyStep(`${user.userName} owns ${request.repoUrl}`);
+        } else {
+            notifyStep(`${user.userName} does not own the repo ${request.repoUrl}, make sure you have permissions to
+             push and pull this repo.`);
         }
 
         // Prepare the repoManager
@@ -137,16 +131,6 @@ export async function publish(request: PublishRequest) {
         // Push the changes
         notifyStep("Pushing changes");
         await manager.pushChanges(request.commitMsg);
-
-        // Make the pull request if we don't own the repo
-        if(!isOwnerOfRepo)
-        {
-            notifyStep("Creating pull request");
-            await createPullRequest(user.token, destOwner, destName, user.userName, request.branch,
-                () => request.prTitle, () => request.prBody);
-        }
-        else
-            notifyStep("The current owner owns the repo, no Pull Request required")
 
         notifyStep('Done !')
 
@@ -217,45 +201,6 @@ function prepareGitRepoManager(repoURL: string, branch: string, token: string): 
  * title/body for the PullRequest
  */
 type StringProvider = () => string;
-
-/**
- * Makes a pull request to "github.com/owner/repo" to implement
- * the changes in "github.com/user/repo"
- * @param {string} token     The token
- * @param {string} owner     The owner of the repo where we want to make the PR
- * @param {string} repo      The name of the repo where we want to make the PR
- * @param {string} user      The name of the current user
- * @param {string} branch    The name of the branche
- * @param {StringProvider} titleProvider The function that will generate a title for the PR
- * @param {StringProvider} bodyProvider  The function that will generate a body for the PR
- */
-function createPullRequest (token: string, owner: string, repo: string, user: string, branch: string,
-    titleProvider: StringProvider, bodyProvider: StringProvider): Promise<void> {
-    // Authenticate with octokit
-    octokit.authenticate({
-        type: "oauth",
-        token: token
-    });
-    // Send the pull request (asynchronous)
-    return new Promise<void>((resolve, reject) => {
-        octokit.pullRequests.create({
-            owner,
-            repo,
-            title : titleProvider(),
-            head  : user + ":" + branch,
-            body  : bodyProvider(),
-            base  : branch,
-        }, (error: any , result: any) => {
-            if (error != null) {
-                let str: string = error.message;
-                let errors = JSON.parse(str).errors;
-                reject(errors[0].message);
-            } else {
-                resolve();
-            }
-        });
-    });
-}
 
 /**
  * Checks a request for incorrect/invalid/illegal inputs.

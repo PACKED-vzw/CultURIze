@@ -58,13 +58,16 @@ export class LoginAssistant {
 
         // Create the window object
         this.popup = new BrowserWindow({
-                title: "Login with GitHub",
-                width: 600,
-                height: 800,
-                show: false,
-                alwaysOnTop: true,
-                parent: this.parentWindow,
-            });
+            title: "Login with GitHub",
+            width: 600,
+            height: 800,
+            show: false,
+            alwaysOnTop: true,
+            parent: this.parentWindow,
+            webPreferences: {
+                nodeIntegration: false,
+            }
+        });
 
         // remove the "file-options-help" bar.
         this.popup.setMenu(null);

@@ -1,5 +1,10 @@
-DEV
+v0.2.0 (27.06.19)
 ===
+- 24.06-19 - 27.06.19
+  - Upgraded all npm packages but electron to their latest version, refactored the code to accommodate breaking changes
+  - Upgraded electron to the latest stable version on the same major
+  - Changed the default behavior of the app to not fork the git when a user is not the owner, add an error message
+    when trying to push and returning an error as a not authorized user.
 - issues_improvements
   - Added a hard reset button, which clears the cache and deletes all files locate in the repo folder.
     button added in the header of main.html page

@@ -24,7 +24,24 @@ More information about inspiration, governance, and howto's for setting up a Cul
 ## Getting Started
 
 ## Windows ##
-(Windows installer instructions)
+### 0. What you'll need
+  * [Git](https://git-scm.com/) *(Used both to clone the repo, and as a dependency of the Culturize App that isn't downloaded by npm)*
+  * 5 minutes of your time
+
+### 1. Configure your git client
+Make sure your git is configured properly, to do this you can execute the following code
+in you windows console.
+
+```
+git config --global user.email "youremail@gmail.com"
+
+git config --global user.username "yourusername"
+```
+
+This is a very important step, if you do not do this the Culturize app will not work.
+  
+### 2. Run the Executable
+Run the windows executable located in the folder `/release-builds`.
 
 ## Linux/Mac ##
 ## Introduction ##

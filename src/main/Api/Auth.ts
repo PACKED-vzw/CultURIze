@@ -89,14 +89,14 @@ export class LoginAssistant {
             me.popup.show();
         });
 
-        // Handles a redirect request
-        this.popup.webContents.on("did-get-redirect-request", (event: Event, oldUrl: string, newUrl: string) => {
-            // Same as above
-            if (newUrl.includes("localhost")) {
-                currentlyHandlingRequest = true;
-                me.gotRedirectRequest(callback, event, newUrl);
-            }
-        });
+        // // Handles a redirect request
+        // this.popup.webContents.on("did-get-redirect-request", (event: Event, oldUrl: string, newUrl: string) => {
+        //     // Same as above
+        //     if (newUrl.includes("localhost")) {
+        //         currentlyHandlingRequest = true;
+        //         me.gotRedirectRequest(callback, event, newUrl);
+        //     }
+        // });
 
         // Handles the closing of the window.
         this.popup.on("closed", () => {

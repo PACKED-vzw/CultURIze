@@ -1,7 +1,7 @@
 /**
  * @file This file contains the entry point of the app, and handles most ipc events sent
  * the main process.
-*/
+ */
 import { app, BrowserWindow, dialog, ipcMain, globalShortcut } from "electron";
 import { PublishRequest } from "./common/Objects/PublishObjects";
 import { LoginAssistant } from "./main/Api/Auth";
@@ -34,43 +34,47 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         height: 800,
         width: 800,
+        webPreferences: {
+            nodeIntegration: true
+        }
     });
     mainWindow.setMenu(null);
     mainWindow.maximize();
 
     loadLoginpage()
-    // mainWindow.webContents.openDevTools()
+    //mainWindow.webContents.openDevTools();
 
     mainWindow.on("closed", () => {
         mainWindow = null;
     });
 
     mainWindow.on('close', (e: any) => {
-      const globalAny:any = global;
+        const globalAny:any = global;
 
-      if (globalAny.sharedObj.transforming)  {
-        const choice = dialog.showMessageBox(
-          mainWindow,
-          {
-            type: 'question',
-            buttons: ['Yes', 'No, I am transforming a CSV file',],
-            title: 'Confirm your actions',
-            message: 'Do you really want to close the application? If you are transforming a CSV and the operation is not done you will lose all information.'
-          }
-        );
-        console.log('CHOICE: ', choice);
-        if (choice > 0) e.preventDefault();
-      }
+        if (globalAny.sharedObj.transforming)  {
+            const choice = dialog.showMessageBoxSync(
+                mainWindow,
+                {
+                    type: 'question',
+                    buttons: ['Yes', 'No, I am transforming a CSV file',],
+                    title: 'Confirm your actions',
+                    message: 'Do you really want to close the application? If you are transforming a CSV and the operation is not done you will lose all information.'
+                }
+            );
+
+            console.log('CHOICE: ', choice);
+            if (choice > 0) e.preventDefault();
+        }
     });
 
-  	globalShortcut.register('f5', function() {
-  		console.log('f5 is pressed')
-  		mainWindow.reload()
-  	})
-  	globalShortcut.register('CommandOrControl+R', function() {
-  		console.log('CommandOrControl+R is pressed')
-  		mainWindow.reload()
-  	})
+    globalShortcut.register('f5', function() {
+        console.log('f5 is pressed')
+        mainWindow.reload()
+    })
+    globalShortcut.register('CommandOrControl+R', function() {
+        console.log('CommandOrControl+R is pressed')
+        mainWindow.reload()
+    })
 }
 
 /**
@@ -144,13 +148,13 @@ ipcMain.on("logout-user", () => {
  * A hard reset clears the cache and deletes the repos of a user
  */
 ipcMain.on("hard-reset", () => {
-  // Clear the cookies
-  mainWindow.webContents.session.clearStorageData(null, () => {});
-  loadLoginpage();
+    // Clear the cookies
+    mainWindow.webContents.session.clearStorageData(null, () => {});
+    loadLoginpage();
 
-  // removes the repositories
-  let workingDir = app.getPath("userData") + "/repo";
-  rimraf(workingDir, function () { log.info(`Folder repo deleted ${workingDir}`); });
+    // removes the repositories
+    let workingDir = app.getPath("userData") + "/repo";
+    rimraf(workingDir, function () { log.info(`Folder repo deleted ${workingDir}`); });
 })
 
 /**
@@ -258,11 +262,11 @@ ipcMain.on("get-user-object", (event: any) => {
  * initialize a global with the info if a transformation is happening or not
  */
 export function toggleTransformation(toggle: boolean) {
-   const globalAny:any = global;
-   globalAny.sharedObj = {transforming: toggle};
+    const globalAny:any = global;
+    globalAny.sharedObj = {transforming: toggle};
 
-   if (mainWindow) {
-     mainWindow.webContents.send("transformation", toggle);
-   }
- }
- toggleTransformation(false);
+    if (mainWindow) {
+        mainWindow.webContents.send("transformation", toggle);
+    }
+}
+toggleTransformation(false);

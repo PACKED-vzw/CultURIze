@@ -53,7 +53,6 @@ export class LoginAssistant {
         // below.
         const me = this;
 
-
         let currentlyHandlingRequest: boolean = false;
 
         // Create the window object
@@ -69,15 +68,19 @@ export class LoginAssistant {
             }
         });
 
+        // this.popup.webContents.openDevTools();
+
         // remove the "file-options-help" bar.
         this.popup.setMenu(null);
         // Loads the URL
-        this.popup.loadURL(this.getPopupURL());
+        let success = this.popup.loadURL(this.getPopupURL());
 
         // Set event handlers
         this.popup.webContents.on("will-navigate", (event: Event, url: string) => {
             // The github redir should be to localhost, so if we try to navigate to a
             // localhost url, that's the github callback.
+            log.info(url);
+
             if (url.includes("localhost")) {
                 currentlyHandlingRequest = true;
                 me.gotRedirectRequest(callback, event, url);
@@ -89,14 +92,14 @@ export class LoginAssistant {
             me.popup.show();
         });
 
-        // // Handles a redirect request
-        // this.popup.webContents.on("did-get-redirect-request", (event: Event, oldUrl: string, newUrl: string) => {
-        //     // Same as above
-        //     if (newUrl.includes("localhost")) {
-        //         currentlyHandlingRequest = true;
-        //         me.gotRedirectRequest(callback, event, newUrl);
-        //     }
-        // });
+        // Handles a serverside redirect request
+        this.popup.webContents.on('will-redirect', (event, url, isInPlace, isMainFrame, frameProcessId, frameRoutingId) => {
+          // Same as above
+          if (url.includes("localhost")) {
+              currentlyHandlingRequest = true;
+              me.gotRedirectRequest(callback, event, url);
+          }
+        })
 
         // Handles the closing of the window.
         this.popup.on("closed", () => {

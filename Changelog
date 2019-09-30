@@ -1,3 +1,8 @@
+DEV
+===
+- upgrade_chromium
+  - upgrade chromium to latest version
+
 V0.3.0 (03.07.19)
 ===
 - 01.07.19 - 03.07.19
@@ -22,7 +27,7 @@ v0.2.0 (27.06.19)
   - Added a dialog asking the user if he is sure to close the app when he is transforming a CSV
     This dialog aims to prevent a user from closing his window and lose the current transformation
   - Various little fixes
-    
+
 v0.1.0 (25/01/19)
 ===
 - issue_compatibility

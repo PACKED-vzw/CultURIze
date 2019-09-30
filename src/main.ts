@@ -42,7 +42,6 @@ function createWindow() {
     mainWindow.maximize();
 
     loadLoginpage()
-    //mainWindow.webContents.openDevTools();
 
     mainWindow.on("closed", () => {
         mainWindow = null;
@@ -70,6 +69,10 @@ function createWindow() {
     globalShortcut.register('f5', function() {
         console.log('f5 is pressed')
         mainWindow.reload()
+    })
+    globalShortcut.register('f4', function() {
+      console.log('f4 is pressed');
+      mainWindow.webContents.openDevTools();
     })
     globalShortcut.register('CommandOrControl+R', function() {
         console.log('CommandOrControl+R is pressed')

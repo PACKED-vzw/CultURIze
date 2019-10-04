@@ -125,7 +125,10 @@ export class LoginAssistant {
         const code = (raw_code && raw_code.length > 1) ? raw_code[1] : null
         const error = /\?error=(.+)$/.exec(url)
 
-        this.popup.destroy();
+
+        if (this.popup !== undefined && this.popup !== null) {
+          this.popup.destroy();
+        }
 
         if (code) {
             log.info(`Code Received: ${code}`);

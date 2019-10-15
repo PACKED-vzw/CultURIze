@@ -30,7 +30,7 @@
     },
     "dependencies": {
         "@octokit/rest": "^16.28.2",
-        "csv-parse": "^4.4.3",
+        "csv-parse": "^4.4.6",
         "electron-log": "^3.0.6",
         "simple-git": "^1.116.0",
         "git-url-parse": "^11.1.2",

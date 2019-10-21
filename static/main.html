@@ -18,19 +18,19 @@
                 <p class="pf-name" id="p-username"></p>
             </div>
             <span class="pf-menu-right">
-              <a id="logout">Log-out</a>
-              <a id="hard-reset">Hard-reset</a>
+                <a id="logout">Log out</a>
+                <a id="hard-reset">Reset</a>
             </span>
         </div>
     </div>
     <div class="main-div">
         <form class="kader" onsubmit="actOnSubmit(); return false">
             <div class="formrow">
-                <span class="p-form">CSV file path: </span>
+                <span class="p-form">CSV file: </span>
                 <input class="input-form" type="text" id="csvpath" required>
                 <button class="input-submit" type="button" onclick="actOnOpenCSV()">
-          <span class="submit-p">Open</span>
-        </button>
+                    <span class="submit-p">Choose </span>
+                </button>
                 <!--<button class="info" type="button" ><span class="info-p">?</span></button>-->
             </div>
 
@@ -41,7 +41,7 @@
             </div>
 
             <div class="formrow">
-                <span class="p-form">Push the changes to: </span>
+                <span class="p-form">Upload changes to:</span>
                 <input class="input-form" type="url" id="github" required>
                 <!--<button class="info" type="button" ><span class="info-p">?</span></button>-->
             </div>
@@ -74,11 +74,11 @@
 
             <div class="buttons">
                 <button id="publish_button" class="button" type="submit">
-          <span>Publish</span>
-        </button>
-                <button id="extra_button" class="button extra" type="button" onclick="actOnShowMore()">
-          <span class="hidden">+</span>
-        </button>
+                    <span>Upload</span>
+                </button>
+                <button id="extra_button" class="button" type="button" onclick="actOnShowMore()">
+                    <span class="hidden">Advanced</span>
+                </button>
             </div>
         </form>
         <div id="feedback-div">
@@ -207,7 +207,8 @@
 
     ipc.on('publish-done', (event, result) => {
         if (result.successful == true)
-            showFeedback('Success! (' + result.numLinesAccepted + ' rows used, ' + result.numLinesRejected + ' rejected)')
+            showFeedback('Success! (' + result.numLinesAccepted + ' rows used, ' + result.numLinesRejected +
+                ' rejected)')
         else
             showFeedback(result.error)
 

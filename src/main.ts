@@ -4,7 +4,7 @@
  */
 import { app, BrowserWindow, dialog, globalShortcut, ipcMain } from "electron";
 import { PublishRequest } from "./common/Objects/PublishObjects";
-import { LoginAssistant } from "./main/Api/Auth";
+// import { LoginAssistant } from "./main/Api/Auth";
 import { publish } from "./main/Publishing/Publishing";
 import { User } from "./common/Objects/UserObject";
 import { getUserInfo } from "./main/Api/User";
@@ -51,10 +51,11 @@ function createWindow() {
     } catch (e) {/* */}
 
     if (!settings["github-key"]) {
-        console.log("retreiving github key");
+        console.log("retreiving github pa token");
         loadTokenLoginpage();
     } else {
-        finishLogin(settings["github-key"]);
+        // validating token
+        validateToken(settings["github-key"]);
     }
 
     // loadLoginpage();
@@ -102,12 +103,8 @@ function createWindow() {
 
 /**
  * This function set the current active page of the mainwindow
- * to the login page. (/static/login.html)
+ * to the token login page. (/static/tokenlogin.html)
  */
-function loadLoginpage() {
-    mainWindow.loadFile(__dirname + "/../static/login.html");
-}
-
 function loadTokenLoginpage() {
     mainWindow.loadFile(__dirname + "/../static/tokenlogin.html");
 }
@@ -120,47 +117,10 @@ function loadMainMenu() {
     mainWindow.loadFile(__dirname + "/../static/main.html");
 }
 
-/**
- * Handles a request to login the user from the Renderer process.
- * This event is usually fired by the renderer when the user clicks
- * on the "login" button.
- */
-ipcMain.on("request-login", () => {
-    log.info("Requested a login!");
-    const assist = new LoginAssistant(mainWindow);
-    assist.requestLogin((token, error) => {
-        log.info("Token " + (token ? "not null" : "null") + ", Error " + (error ? "not null" : "null"));
-        if (token) {
-            finishLogin(token);
-        } else {
-            mainWindow.webContents.send("login-failure", error);
-        }
-    });
-});
-
 ipcMain.on("validate-token", (event: Event, token: string) => {
     log.info("validate a github pa token");
-    finishLogin(token);
+    validateToken(token);
 });
-
-/**
- * Handles a authentication-related error, and displays a "error" box to the user
- * giving him some information about what happened. This is called when the
- * user tries to do something without being authenticated
- * (which should never happen, unless there's a bug in the app that
- * allows the user to access main.html without being logged in)
- * or if the GitHub API refuses to give us user information (again, because of
- * a bug, or if the API is down)
- * @param {string} error The error message to be displayed to the user
- */
-export function authError(error: string) {
-    log.error("Login/Auth Error.");
-    if (error != null) {
-        log.error(`Auth Error ${error}`);
-        dialog.showErrorBox("Auth Error", error);
-    }
-    loadLoginpage();
-}
 
 /**
  * Handles a logout event, which is usually fired by the renderer process
@@ -172,7 +132,8 @@ export function authError(error: string) {
 ipcMain.on("logout-user", () => {
     // Clear the cookies
     mainWindow.webContents.session.clearStorageData(null, () => {});
-    loadLoginpage();
+    writeToken("");
+    loadTokenLoginpage();
 });
 
 /**
@@ -182,30 +143,38 @@ ipcMain.on("logout-user", () => {
 ipcMain.on("hard-reset", () => {
     // Clear the cookies
     mainWindow.webContents.session.clearStorageData(null, () => {});
-    loadLoginpage();
+    loadTokenLoginpage();
 
     // removes the repositories
     const workingDir = app.getPath("userData") + "/repo";
     rimraf(workingDir, () => { log.info(`Folder repo deleted ${workingDir}`); });
 });
 
-/**
- * This function completes the login process by retrieving the user's
- * information and showing the main-menu page (see loadMainMenu}. If the
- * user information cannot be retrieved, authError is called, and the error
- * is logged to the console using console.error()
- * @async
- * @param {string} token The access token returned by the GitHub API
- */
-async function finishLogin(token: string) {
+function writeToken(token: string) {
+    const path = app.getPath("userData") + "/culturize.json";
+    console.log(path);
+    const settings = {"github-key": token};
+    fs.writeFileSync(path, JSON.stringify(settings));
+}
+
+async function validateToken(token: string) {
     try {
-        log.info("Logging in: Retrieving user information.");
+        log.info("validating user token");
         currentUser = await getUserInfo(token);
-        log.info("Redirecting...");
         loadMainMenu();
+        writeToken(token);
     } catch (error) {
-        log.error(`Something went wrong and we couldn't log you in. ${error}`);
-        authError("Something went wrong and we couldn't log you in.");
+        log.error("Token isn't valid " + error);
+        const url: string = mainWindow.webContents.getURL();
+        if (url.indexOf("tokenlogin") === -1) {
+            loadTokenLoginpage();
+            mainWindow.webContents.once("dom-ready", () => {
+                log.info("sending login failure");
+                mainWindow.webContents.send("token-expired");
+            });
+        } else {
+            mainWindow.webContents.send("login-failure", error);
+        }
     }
 }
 
@@ -229,7 +198,11 @@ ipcMain.on("request-publishing", (event: Event, request: PublishRequest) => {
     } else {
         log.error("Aborting publishing process because the current user is invalid.");
         // Else, the user is not valid, request him to login again
-        authError("You can't publish a file without being authenticated.");
+        loadTokenLoginpage();
+        mainWindow.webContents.once("dom-ready", () => {
+            log.info("sending login failure");
+            mainWindow.webContents.send("token-expired");
+        });
     }
 });
 

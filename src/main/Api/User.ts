@@ -13,23 +13,21 @@ import { User } from "../../common/Objects/UserObject";
  * @param {string} token The access token
  * @returns a Promise of a User object, resolved on success, rejected with an error message on failure.
  */
-export function getUserInfo(token: string): Promise<User> {
+export async function getUserInfo(token: string): Promise<User> {
     const octokit = new Octokit({
         auth: `token ${token}`,
     });
-    return new Promise<User>((resolve, reject) => {
-        octokit.users.getAuthenticated({})
-            .then((result: any) => {
-                log.info("logged in user: " + result.data.login);
+    const data: {[index: string]: any} = await octokit.request("HEAD /");
+    const scopes = data.headers["x-oauth-scopes"].split(", ");
 
-                const userName: string = result.data.login;
-                const avatar_url: string = result.data.avatar_url;
-                const newUser: User = new User(token, userName, avatar_url);
-                resolve(newUser);
-            })
-            .catch((error: any) => {
-                log.error(`Failed to retrieve user information from GitHub. ${error}`);
-                reject("Failed to retrieve user information from GitHub");
-            });
-    });
+    if (scopes.lastIndexOf("repo") === -1) {
+        throw new Error("wrong scope");
+    }
+
+    const result = await octokit.users.getAuthenticated({});
+    const userName: string = result.data.login;
+    const avatar_url: string = result.data.avatar_url;
+    const newUser: User = new User(token, userName, avatar_url);
+
+    return newUser;
 }

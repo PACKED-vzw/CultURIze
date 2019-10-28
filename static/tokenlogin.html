@@ -15,7 +15,7 @@
       <header>
         <form onsubmit="actOnSubmit(); return false">
         <h1>Welcome</h1>
-          <p id="login-error-feedback">(feedback placeholder)</p>
+        <p id="login-error-feedback">(feedback placeholder)</p>
         <span class="p-form">Github personal acces token</span>
         <input class="input-form" id="github-pat" required>
       </header>
@@ -57,9 +57,15 @@
   }
 
   ipc.on('login-failure',(event,arg) => {
-    loginBtn.removeAttribute('disabled')
+    validateBtn.removeAttribute('disabled')
     loginFeedback.style.visibility = 'visible'
-    loginFeedback.innerHTML = 'Something went wrong while trying to log you in, sorry!'
+    loginFeedback.innerHTML = 'Token seems to be invalid or doesn\' have the correct scope'
+  })
+
+  ipc.on('token-expired',(event) => {
+    validateBtn.removeAttribute('disabled')
+    loginFeedback.style.visibility = 'visible'
+    loginFeedback.innerHTML = 'Token seems to be expired, please provide a new one'
   })
 </script>
 </html>

@@ -1,6 +1,7 @@
 /**
  * @file This file is reponsible for interacting with the Git command line tool.
  */
+import { User } from "./../../common/Objects/UserObject";
 import { app } from "electron";
 import fs = require("fs");
 const GitUrlParse = require("git-url-parse");
@@ -28,25 +29,25 @@ export class GitRepoManager {
     repoName: string;
     ownerName: string;
     repoDir: string;
-    token: string;
+    user: User;
     branch: string;
 
     /**
      * @constructor
      * @param {string} repoURL The URL of the repo that's going to be cloned.
      * @param {string} branch  The branch of the repo that should be checked out/pushed to
-     * @param {string} token   The token
+     * @param {string} user   The user
      * @param {string} workingDir (optional) The working directory where we'll operate
      * If "workingDir" is not provided, the default directory will be localed in %appdata%/(application name)/repo/
      */
-    constructor(repoURL: string, branch: string, token: string, workingDir: string = "") {
+    constructor(repoURL: string, branch: string, user: User, workingDir: string = "") {
         this.repoURL = repoURL;
-        this.token = token;
+        this.user = user;
         this.branch = branch;
 
         // Default to "userData" folder if no working dir is provided.
         // TODO should be defined in a config file located at culturize.conf.ts instead of in the git class.
-        if (workingDir == "") {
+        if (workingDir === "") {
             this.workingDir = app.getPath("userData") + "/repo";
         } else {
             this.workingDir = workingDir;
@@ -73,34 +74,37 @@ export class GitRepoManager {
      */
     public updateLocalCopy(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            this.hasRepo()
-            .then((result) => {
+            this.hasRepo().then((result) => {
                 // The user has a local copy
                 if (result) {
                     log.info("Local copy detected, pulling changes");
-                    // TODO if the git repository is empty and does not have an initial commit then this does not work.
-                    // we get a crash with user message "Preparing GIT" which is not helpfull at all for an enduser.
-                    // this error is due to there not being a master until we make the initial commit.
+                    // TODO if the git repository is empty and does not have an initial commit
+                    // then this does not work.  we get a crash with user
+                    // message "Preparing GIT" which is not helpfull at all for
+                    // an enduser. this error is due to there not being a
+                    // master until we make the initial commit.
 
-                    // TODO Personal opinion: it may be better to remove the folder with repo, then clone, change and push.
-                    // otherwise we sometimes have some bugs, where the repo breaks because of multiple local transformations
+                    // TODO Personal opinion: it may be better to remove the folder with repo,
+                    // then clone, change and push.
+                    // otherwise we sometimes have some bugs, where the repo breaks because of
+                    // multiple local transformations
                     // and an enduser has no way of getting it to work again.
                     simpleGit(this.repoDir)
                     .checkout(this.branch)
-                        .reset([ "--hard" ], (err:any) => {
-                            if(err != null) {
-                                log.error(`Failed to reset local copy of the repo. Error msg: ${err}`);
-                                reject("Failed to reset local copy of the repo.");
-                            }
-                        }).pull((err: any) => {
-                            if (err == null) {
-                                log.info("Pull successful");
-                                resolve();
-                            } else {
-                                log.error(err);
-                                reject("Error while pulling");
-                            }
-                        });
+                    .reset([ "--hard" ], (err: any) => {
+                        if (err != null) {
+                            log.error(`Failed to reset local copy of the repo. Error msg: ${err}`);
+                            reject("Failed to reset local copy of the repo.");
+                        }
+                    }).pull((err: any) => {
+                        if (err == null) {
+                            log.info("Pull successful");
+                            resolve();
+                        } else {
+                            log.error(err);
+                            reject("Error while pulling");
+                        }
+                    });
                 } else {
                     // We don't have a local copy, clone.
                     log.info("No local copy detected - Cloning");
@@ -108,15 +112,12 @@ export class GitRepoManager {
                     .clone(this.repoURL, undefined, (err: any) => {
                         if (err == null) {
                             log.info(`Cloning success of repo located at ${this.repoDir}`);
-                            simpleGit(this.repoDir).checkout(this.branch,(err:any) => {
-                                if(err == null)
-                                {
+                            simpleGit(this.repoDir).checkout(this.branch, (err2: any) => {
+                                if (err2 == null) {
                                     log.info("Checkout Success");
                                     resolve();
-                                }
-                                else
-                                {
-                                    log.error(`Failed to checkout branch ${err}`);
+                                } else {
+                                    log.error(`Failed to checkout branch ${err2}`);
                                     reject();
                                 }
                             });
@@ -126,8 +127,7 @@ export class GitRepoManager {
                         }
                     });
                 }
-            })
-            .catch((error) => {
+            }).catch((error) => {
                 log.error(error);
                 reject('Error while attempting to determine if "' + this.repoDir + '" is a repository');
             });
@@ -160,7 +160,7 @@ export class GitRepoManager {
     public pushChanges(commitMessage: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const url = this.makeGitHTTPSUrl();
-            try{
+            try {
                 simpleGit(this.repoDir)
                 .add("./*")
                 .commit(commitMessage)
@@ -172,9 +172,7 @@ export class GitRepoManager {
                         resolve();
                     }
                 });
-            }
-            catch(err)
-            {
+            } catch (err) {
                 log.error(`Failed to push changes. ${err}`);
                 reject("Failed to push changes. Are you sure you have the permission to push on this repo?");
             }
@@ -189,13 +187,14 @@ export class GitRepoManager {
      * @returns the generated URL
      */
     private makeGitHTTPSUrl() {
-        return `https://${this.ownerName}:${this.token}@github.com/${this.ownerName}/${this.repoName}.git`;
+        return `https://${this.user.userName}:${this.user.token}@github.com/${this.ownerName}/${this.repoName}.git`;
     }
 
     /**
      * Checks if "repoDir" contains a repo. This will check using 1 of 2 ways:
      *
-     * 1st = Check if the "repoDir" folder exists. If it doesn't exists, resolve(false) is called. (= repo doesn't exist)
+     * 1st = Check if the "repoDir" folder exists. If it doesn't exists, resolve(false) is
+     * called. (= repo doesn't exist)
      *
      * 2nd = If "repoDir" exists, use "simpleGit.hasRepo" to check if it contains a valid GitHub repository.
      *

@@ -2,14 +2,16 @@
  * @file This file contains the entry point of the app, and handles most ipc events sent
  * the main process.
  */
-import { app, BrowserWindow, dialog, ipcMain, globalShortcut } from "electron";
+import { app, BrowserWindow, dialog, globalShortcut, ipcMain } from "electron";
 import { PublishRequest } from "./common/Objects/PublishObjects";
 import { LoginAssistant } from "./main/Api/Auth";
 import { publish } from "./main/Publishing/Publishing";
-import { getUserInfo } from "./main/Api/User";
 import { User } from "./common/Objects/UserObject";
-const octokit = require("@octokit/rest")();
-const log = require('electron-log');
+import { getUserInfo } from "./main/Api/User";
+
+import fs = require("fs");
+import log = require("electron-log");
+import octokit = require("@octokit/rest");
 const rimraf = require("rimraf");
 
 
@@ -35,49 +37,67 @@ function createWindow() {
         height: 800,
         width: 800,
         webPreferences: {
-            nodeIntegration: true
-        }
+            nodeIntegration: true,
+        },
     });
     mainWindow.setMenu(null);
     mainWindow.maximize();
 
-    loadLoginpage()
+    let settings = {"github-key": ""};
+    try {
+        const path = app.getPath("userData") + "/culturize.json";
+        console.log(path);
+        settings = JSON.parse(fs.readFileSync(path, {encoding: "utf8"}));
+    } catch (e) {/* */}
+
+    if (!settings["github-key"]) {
+        console.log("retreiving github key");
+        loadTokenLoginpage();
+    } else {
+        finishLogin(settings["github-key"]);
+    }
+
+    // loadLoginpage();
 
     mainWindow.on("closed", () => {
         mainWindow = null;
     });
 
-    mainWindow.on('close', (e: any) => {
-        const globalAny:any = global;
+    mainWindow.on("close", (e: any) => {
+        const globalAny: any = global;
 
         if (globalAny.sharedObj.transforming)  {
             const choice = dialog.showMessageBoxSync(
                 mainWindow,
                 {
-                    type: 'question',
-                    buttons: ['Yes', 'No, I am transforming a CSV file',],
-                    title: 'Confirm your actions',
-                    message: 'Do you really want to close the application? If you are transforming a CSV and the operation is not done you will lose all information.'
-                }
+                    type: "question",
+                    buttons: ["Yes", "No, I am transforming a CSV file"],
+                    title: "Confirm your actions",
+                    message: "Do you really want to close the application? \
+                        If you are transforming a CSV and the operation is \
+                        not done you will lose all information.",
+                },
             );
 
-            console.log('CHOICE: ', choice);
-            if (choice > 0) e.preventDefault();
+            console.log("CHOICE: ", choice);
+            if (choice > 0) {
+                e.preventDefault();
+            }
         }
     });
 
-    globalShortcut.register('f5', function() {
-        console.log('f5 is pressed')
-        mainWindow.reload()
-    })
-    globalShortcut.register('f4', function() {
-      console.log('f4 is pressed');
-      mainWindow.webContents.openDevTools();
-    })
-    globalShortcut.register('CommandOrControl+R', function() {
-        console.log('CommandOrControl+R is pressed')
-        mainWindow.reload()
-    })
+    globalShortcut.register("f5", () => {
+        console.log("f5 is pressed");
+        mainWindow.reload();
+    });
+    globalShortcut.register("f4", () => {
+        console.log("f4 is pressed");
+        mainWindow.webContents.openDevTools();
+    });
+    globalShortcut.register("CommandOrControl+R", () => {
+        console.log("CommandOrControl+R is pressed");
+        mainWindow.reload();
+    });
 }
 
 /**
@@ -86,6 +106,10 @@ function createWindow() {
  */
 function loadLoginpage() {
     mainWindow.loadFile(__dirname + "/../static/login.html");
+}
+
+function loadTokenLoginpage() {
+    mainWindow.loadFile(__dirname + "/../static/tokenlogin.html");
 }
 
 /**
@@ -107,11 +131,16 @@ ipcMain.on("request-login", () => {
     assist.requestLogin((token, error) => {
         log.info("Token " + (token ? "not null" : "null") + ", Error " + (error ? "not null" : "null"));
         if (token) {
-            finishLogin(token)
+            finishLogin(token);
         } else {
             mainWindow.webContents.send("login-failure", error);
         }
     });
+});
+
+ipcMain.on("validate-token", (event: Event, token: string) => {
+    log.info("validate a github pa token");
+    finishLogin(token);
 });
 
 /**
@@ -126,7 +155,7 @@ ipcMain.on("request-login", () => {
  */
 export function authError(error: string) {
     log.error("Login/Auth Error.");
-    if(error != null){
+    if (error != null) {
         log.error(`Auth Error ${error}`);
         dialog.showErrorBox("Auth Error", error);
     }
@@ -144,7 +173,7 @@ ipcMain.on("logout-user", () => {
     // Clear the cookies
     mainWindow.webContents.session.clearStorageData(null, () => {});
     loadLoginpage();
-})
+});
 
 /**
  * Handles a Hard Reset button click.
@@ -156,9 +185,9 @@ ipcMain.on("hard-reset", () => {
     loadLoginpage();
 
     // removes the repositories
-    let workingDir = app.getPath("userData") + "/repo";
-    rimraf(workingDir, function () { log.info(`Folder repo deleted ${workingDir}`); });
-})
+    const workingDir = app.getPath("userData") + "/repo";
+    rimraf(workingDir, () => { log.info(`Folder repo deleted ${workingDir}`); });
+});
 
 /**
  * This function completes the login process by retrieving the user's
@@ -174,7 +203,7 @@ async function finishLogin(token: string) {
         currentUser = await getUserInfo(token);
         log.info("Redirecting...");
         loadMainMenu();
-    } catch(error) {
+    } catch (error) {
         log.error(`Something went wrong and we couldn't log you in. ${error}`);
         authError("Something went wrong and we couldn't log you in.");
     }
@@ -210,14 +239,16 @@ ipcMain.on("request-publishing", (event: Event, request: PublishRequest) => {
  * that it's a valid string.
  * @returns {boolean} True if the current user is valid, false otherwise.
  */
-function isCurrentUserValid() : boolean {
-    if(currentUser == null)
+function isCurrentUserValid(): boolean {
+    if (currentUser == null) {
         return false;
+    }
 
-    if((currentUser.userName == null) || (currentUser.avatar_url == null) || (currentUser.token == null))
+    if ((currentUser.userName == null) || (currentUser.avatar_url == null) || (currentUser.token == null)) {
         return false;
+    }
 
-    return (currentUser.avatar_url !== "") && (currentUser.userName != "") && (currentUser.token !== "");
+    return (currentUser.avatar_url !== "") && (currentUser.userName !== "") && (currentUser.token !== "");
 }
 
 /**
@@ -232,7 +263,7 @@ app.on("ready", createWindow);
  * to leave the app active until the user quits explicitly with Cmd + Q.
  */
 app.on("window-all-closed", () => {
-    console.log('closed2')
+    console.log("closed2");
 
     if (process.platform !== "darwin") {
         app.quit();
@@ -256,16 +287,16 @@ app.on("activate", () => {
  * it.
  */
 ipcMain.on("get-user-object", (event: any) => {
-    log.info('A Window requested a copy of the user object');
+    log.info("A Window requested a copy of the user object");
     event.returnValue = currentUser.withoutToken();
-})
+});
 
 
 /*
  * initialize a global with the info if a transformation is happening or not
  */
 export function toggleTransformation(toggle: boolean) {
-    const globalAny:any = global;
+    const globalAny: any = global;
     globalAny.sharedObj = {transforming: toggle};
 
     if (mainWindow) {

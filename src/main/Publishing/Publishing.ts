@@ -22,15 +22,16 @@
  */
 
 import { PublishRequest, PublishRequestResult } from "./../../common/Objects/PublishObjects";
+import { User } from "./../../common/Objects/UserObject";
 import { mainWindow, toggleTransformation } from "./../../main";
 import { convertCSVtoHTACCESS } from "./../Converter/Converter";
 import { GitRepoManager } from "./../Git/Git";
 import { PublishOptions } from "./../../culturize.conf"
-import fs = require('fs');
+import fs = require("fs");
 const isGithubUrl = require("is-github-url");
 const octokit = require("@octokit/rest")();
 const GitUrlParse = require("git-url-parse");
-const log = require('electron-log');
+const log = require("electron-log");
 
 /**
  * This is the regular expression used to check the
@@ -50,7 +51,7 @@ const dirRegex = /^((\w)+)(((\/)(\w+))+)?$/;
  * This allows us to notify the user that something is happened, so he doesn't think that the app crashed.
  * @param {number} ms The number of milliseconds to sleep for
  */
-const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 
 /**
@@ -62,19 +63,19 @@ const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 export async function publish(request: PublishRequest) {
     notifyStep("Preparing");
     // Prepare the Subdirectory by inserting the baseSubdir if applicable.
-    let baseSubdir : string = PublishOptions.baseSubdir ? PublishOptions.baseSubdir : "";
-    if(baseSubdir !== "")
-    {
-        if(dirRegex.test(baseSubdir))
-            request.subdir = baseSubdir + '/' + request.subdir;
-        else
+    const baseSubdir: string = PublishOptions.baseSubdir ? PublishOptions.baseSubdir : "";
+    if (baseSubdir !== "") {
+        if (dirRegex.test(baseSubdir)) {
+            request.subdir = baseSubdir + "/" + request.subdir;
+        } else {
             log.error(`Ignored the base subdirectory "${baseSubdir}" because it is not valid`);
+        }
     }
     try {
         // set the start of the transformation
         toggleTransformation(true);
 
-        log.info(`Request Data: ${JSON.stringify(request)}`)
+        log.info(`Request Data: ${JSON.stringify(request)}`);
         // Check the request for incorrect input
         notifyStep("Checking input");
         await checkRequestInput(request);
@@ -87,9 +88,9 @@ export async function publish(request: PublishRequest) {
         // touching the remote repos.
         notifyStep("Converting file");
         await sleep(10);
-        let response = await convertCSVtoHTACCESS(request.csvPath);
+        const response = await convertCSVtoHTACCESS(request.csvPath);
         log.info("Conversion result: " + response.file.length + " characters in the .htaccess, generated from "
-        + response.numLinesAccepted + " rows (" + response.numLinesRejected + ")");
+                 + response.numLinesAccepted + " rows (" + response.numLinesRejected + ")");
 
         // Parse the url
         notifyStep("Parsing URL");
@@ -101,28 +102,28 @@ export async function publish(request: PublishRequest) {
         const prettyName = destOwner + "/" + destName;
 
         // Case-insensitive comparison
-        let isOwnerOfRepo = (destOwner.toUpperCase() === user.userName.toUpperCase())
+        const isOwnerOfRepo = (destOwner.toUpperCase() === user.userName.toUpperCase());
 
         // The URL of the repo that we're going to clone/manage.
-        let repoURL : string
+        let repoURL: string;
 
         // Here, depending on if the user's the owner of the repo he wants
         // to send the .htaccess to, we'll either do a direct push to his repo
         // or fork the repo so we can make a pull request later.
 
         // If the current user owns the repo
-        repoURL = request.repoUrl
+        repoURL = request.repoUrl;
         if (isOwnerOfRepo) {
             notifyStep(`${user.userName} owns ${request.repoUrl}`);
         } else {
             notifyStep(`${user.userName} does not own the repo ${request.repoUrl}, make sure you have permissions to
-             push and pull this repo.`);
+                    push and pull this repo.`);
         }
 
         // Prepare the repoManager
         notifyStep("Preparing Git");
         log.info("Preparing GitRepoManager instance");
-        const manager = await prepareGitRepoManager(repoURL, request.branch, user.token);
+        const manager = await prepareGitRepoManager(repoURL, request.branch, user);
 
         // Save the file
         notifyStep("Saving the .htaccess to the desired location");
@@ -132,11 +133,11 @@ export async function publish(request: PublishRequest) {
         notifyStep("Pushing changes");
         await manager.pushChanges(request.commitMsg);
 
-        notifyStep('Done !')
+        notifyStep("Done !");
 
         // set the end of the transformations
         toggleTransformation(false);
-        
+
         sendRequestResult(
             new PublishRequestResult(true, null, response.numLinesAccepted, response.numLinesRejected),
         );
@@ -144,9 +145,9 @@ export async function publish(request: PublishRequest) {
         // set the end of the transformations
         toggleTransformation(false);
 
-        log.error(<string>error)
+        log.error(error as string);
         sendRequestResult(
-            new PublishRequestResult(false, <string>error),
+            new PublishRequestResult(false, error as string),
         );
     }
 }
@@ -181,18 +182,18 @@ function sendRequestResult(result: PublishRequestResult) {
  * @param {string} branch  The branch of the repo that'll be checked out
  * @param {string} token   The user token (used to push/pull).
  */
-function prepareGitRepoManager(repoURL: string, branch: string, token: string): Promise<GitRepoManager> {
+function prepareGitRepoManager(repoURL: string, branch: string, user: User): Promise<GitRepoManager> {
     return new Promise<GitRepoManager>((resolve, reject) => {
-        const grm = new GitRepoManager(repoURL, branch, token);
-        log.info("Updating local copy")
+        const grm = new GitRepoManager(repoURL, branch, user);
+        log.info("Updating local copy");
         grm.updateLocalCopy()
-            .then(() => {
-                resolve(grm);
-            })
-            .catch((err: any) => {
-                log.error(err);
-                reject(err);
-             });
+        .then(() => {
+            resolve(grm);
+        })
+        .catch((err: any) => {
+            log.error(err);
+            reject(err);
+        });
     });
 }
 
@@ -208,31 +209,31 @@ type StringProvider = () => string;
  */
 function checkRequestInput(request: PublishRequest): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-        const repoUrl = request.repoUrl
+        const repoUrl = request.repoUrl;
 
         // Check if the repo URL is a GitHub URL
         if (!isGithubUrl(repoUrl)) {
             reject('"' + repoUrl + '" is not a valid GitHub repository');
-            return
+            return;
         }
 
         // Check if the subdir is a valid path.
-        const subdir = request.subdir
+        const subdir = request.subdir;
         if ((subdir.length > 0) && (!dirRegex.test(subdir))) {
             reject('"' + subdir + '" is not a valid path');
-            return
+            return;
         }
 
         // Check if the path to the csv exists.
-        const path = request.csvPath
-        if(!fs.existsSync(path)){
-            reject("The file \""+path+"\" does not exists.");
+        const path = request.csvPath;
+        if (!fs.existsSync(path)) {
+            reject("The file \"" + path + "\" does not exists.");
             return;
         }
 
         // Check if the path ends with .csv
-        if(!path.endsWith(".csv")){
-            reject("The file \""+path+"\" is not a .csv file.");
+        if (!path.endsWith(".csv")) {
+            reject("The file \"" + path + "\" is not a .csv file.");
             return;
         }
 

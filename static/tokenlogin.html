@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/login.css">
+  <title>Culturize - Sign-in</title>
+</head>
+<body>
+  <main>
+    <div class="box">
+      <img src="assets/logo-culturize.png" alt="" width="238" height="102">
+      <header>
+        <form onsubmit="actOnSubmit(); return false">
+        <h1>Welcome</h1>
+        <p id="login-error-feedback">(feedback placeholder)</p>
+        <span class="p-form">Github personal acces token</span>
+        <input class="input-form" id="github-pat" required>
+      </header>
+      <button id="validate_button" class="button" type="submit"><span>Validate</span></button>
+        </form>
+      <p class="no-account">Don't have an account yet? <a class="create-one-link" onclick="actOnCreateAccount()">Create one!</a></p>
+      <p class="no-account">Having issues ? <a class="create-one-link" onclick="actOnHardReset()">Hard reset</a> the app.</p>
+    </div>
+  </main>
+  <footer>
+    <div class="footer-logos-div">
+      <img class="footer-logo" src="assets/logo-packed.svg" alt="logo-packed" width="130" height="70">
+      <img class="footer-logo" src="assets/logo-osoc.svg" alt="logo-osoc" width="70" height="80">
+    </div>
+  </footer>
+</body>
+<script>
+  const electron = require('electron')
+  const shell = electron.shell
+  const ipc = electron.ipcRenderer
+  const loginToken = document.getElementById('github-pat')
+  const validateBtn = document.getElementById('validate_button')
+  const loginFeedback = document.getElementById('login-error-feedback')
+  loginFeedback.style.visibility = 'hidden'
+
+  function actOnSubmit()
+  {
+    ipc.send('validate-token', loginToken.value)
+    validateBtn.setAttribute('disabled','disabled')
+  }
+
+  function actOnCreateAccount()
+  {
+    shell.openItem('https://github.com/join')
+  }
+
+  function actOnHardReset() {
+      ipc.send('hard-reset');
+  }
+
+  ipc.on('login-failure',(event,arg) => {
+    validateBtn.removeAttribute('disabled')
+    loginFeedback.style.visibility = 'visible'
+    loginFeedback.innerHTML = 'Token seems to be invalid or doesn\' have the correct scope'
+  })
+
+  ipc.on('token-expired',(event) => {
+    validateBtn.removeAttribute('disabled')
+    loginFeedback.style.visibility = 'visible'
+    loginFeedback.innerHTML = 'Token seems to be expired, please provide a new one'
+  })
+</script>
+</html>

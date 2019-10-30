@@ -9,8 +9,18 @@ html {
   box-sizing: inherit;
 }
 
-body {
+@font-face {
+  font-family: "montserrat-medium";
+  src: url("../assets/font/montserrat/montserrat-medium.woff") format("woff"), url("../assets/font/montserrat/montserrat-medium.woff") format("woff");
+  font-weight: 400;
+}
 
+@font-face {
+  font-family: "montserrat-semibold";
+  src: url("../assets/font/montserrat/montserrat-semibold.woff") format("woff"), url("../assets/font/montserrat/montserrat-semibold.woff") format("woff");
+}
+
+body {
   background-image: url("../assets/bg.png");
   background-size: cover;
   background-repeat: no-repeat;
@@ -18,7 +28,7 @@ body {
 
 .main-div {
   position: fixed;
-  top: 50%;
+  top: 55%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
@@ -27,16 +37,15 @@ body {
   margin-top: 7rem;
   background-color: #F3F4F3;
   width: 80rem;
-  height: 55rem;
+  max-height: 55rem;
   display: flex;
   justify-content: flex-start;
   /* margin: 0 auto; */
-
   border-radius: 6rem;
   flex-direction: column;
-
   padding: 8rem;
-  box-shadow: 0px 0px 130px #8E8F92;
+  box-shadow: 0px 0px 10px #8E8F92;
+  overflow-y: scroll;
 }
 
 #feedback-div {
@@ -56,18 +65,28 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: flex-start;
 }
 
-form {
-  width: 70rem;
-  height: 130rem;
+
+/*form {
+width: 70rem;
+height: 130rem;
+}*/
+
+.label-info {
+  min-width: 20%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .p-form {
   color: #667E86;
-  font-family: 'Karla', sans-serif;
-  font-size: 1.6rem;
-  margin-right: 2rem;
+  font-family: 'montserrat-medium', 'Karla', sans-serif;
+  font-size: 1.4rem;
+  margin-right: 0.2rem;
 }
 
 #opts_more {
@@ -80,7 +99,7 @@ form {
   border-radius: 0.6rem;
   border: none;
   height: 2.5rem;
-  width: 20rem;
+  width: 80%;
   outline: none;
 }
 
@@ -91,6 +110,7 @@ form {
   height: 2.5rem;
   width: 50rem;
   outline: none;
+  font-family: 'montserrat-medium', 'Karla', sans-serif;
 }
 
 .input-submit {
@@ -103,7 +123,6 @@ form {
   width: 7rem;
   outline: none;
   transition: background-color 0.5s ease;
-
 }
 
 .input-submit:hover {
@@ -112,11 +131,11 @@ form {
 
 .submit-p {
   font-size: 1.3rem;
-  font-family: 'Karla', sans-serif;
+  font-family: 'montserrat-medium', 'Karla', sans-serif;
 }
 
 .button {
-  font-family: 'Karla', sans-serif;
+  font-family: 'montserrat-medium', 'Karla', sans-serif;
   position: relative;
   color: white;
   font-size: 1.8rem;
@@ -131,6 +150,14 @@ form {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.button-menu {
+  background-color: #F2F4F2;
+  padding: 1.5rem;
+  font-size: 1.4rem;
+  font-family: 'montserrat-medium', 'Karla', sans-serif;
+  border: none;
 }
 
 .button.extra:enabled:hover {
@@ -171,30 +198,29 @@ button:enabled:hover {
   height: 2.5rem;
   border: none;
   border-radius: 2rem;
-  margin-left: 1.5rem;
   color: #9CA1A4;
-  font-family: 'Karla', sans-serif;
+  font-family: 'montserrat-medium', 'Karla', sans-serif;
   transition: background-color 0.5s ease;
   outline: none;
 }
 
 .info:hover {
   background-color: #DDE0EB;
-
 }
 
 .profile-div {
   opacity: 0.9;
-  height: 8rem;
+  height: 7rem;
   background-color: #F2F4F2;
 }
 
 .pf-pic {
   border-radius: 100rem;
+  margin-right: 1rem;
 }
 
 .profile {
-  width: 96rem;
+  width: 100%;
   margin: auto;
   display: flex;
   justify-content: space-between;
@@ -202,14 +228,17 @@ button:enabled:hover {
 }
 
 .pf-menu-right {
-  font-family: 'Karla', sans-serif;
+  font-family: 'montserrat-medium', 'Karla', sans-serif;
   color: #9CA1A4;
   font-size: 1.4rem;
-  text-decoration: none;
   border-bottom: 0.2rem solid #F2F7F7;
   padding-bottom: 0.2rem;
   font-size: 2rem;
   cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-right: 2rem;
 }
 
 .pf-menu-right a:hover {
@@ -228,7 +257,7 @@ button:enabled:hover {
 }
 
 .pf-name {
-  font-family: 'Karla', sans-serif;
+  font-family: 'montserrat-medium', 'Karla', sans-serif;
   color: #727D85;
   font-size: 2.3rem;
   font-weight: bolder;
@@ -236,7 +265,9 @@ button:enabled:hover {
   margin-left: 0 !important;
 }
 
+
 /* Show the tooltip text when you mouse over the tooltip container */
+
 .tooltip:hover .tooltiptext {
   visibility: visible;
 }

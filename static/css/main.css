@@ -130,7 +130,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  box-shadow: 0px 0px 50px rgba(142, 143, 146, 0.5);
+  box-shadow: 0px 0px 10px rgba(142, 143, 146, 0.5);
 }
 
 .formrow {

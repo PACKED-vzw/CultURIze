@@ -34,8 +34,8 @@ let currentUser: User = null;
  */
 function createWindow() {
     mainWindow = new BrowserWindow({
-        height: 800,
-        width: 800,
+        height: 720,
+        width: 900,
         webPreferences: {
             nodeIntegration: true,
         },

@@ -62,7 +62,7 @@ body {
   justify-content: flex-end;
 }
 
-.pf-menu-right a:hover {
+.pf-menu-right button:hover {
   border-bottom: 0.2rem solid #15B28E;
 }
 
@@ -88,7 +88,7 @@ body {
 
 .button-menu {
   background-color: #F2F4F2;
-  padding: 1.5rem;
+  padding: 1rem;
   font-size: 1.4rem;
   font-family: 'montserrat-medium', 'Karla', sans-serif;
   border: none;
@@ -277,11 +277,24 @@ button:enabled:hover {
 .info:hover .tooltiptext {
   display: inline-block;
   visibility: visible;
-  width: 10rem;
-  margin: -2rem;
+  width: 30rem;
+  padding: 0.5rem;
   background-color: black;
   position: absolute;
   z-index: 1;
+  text-align: start;
+  font-family: 'montserrat-medium', 'Karla', sans-serif;
+  opacity: 0.8;
+  border-radius: 0.5rem;
+  border: none;
+}
+
+.tooltiptext a {
+  color: rgb(81, 180, 157);  
+}
+
+.tooltiptext a:hover {
+  color: pink;
 }
 
 #feedback {

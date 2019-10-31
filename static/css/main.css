@@ -116,6 +116,11 @@ body {
   cursor: pointer;
 }
 
+.button-menu:hover .tooltiptext {
+  font-size: 1rem !important;
+  width: 10rem !important;
+}
+
 /* main screen - form */
 
 .main-div {
@@ -194,7 +199,7 @@ body {
   color: #DDE0EB;
 }
 
-.info .tooltiptext {
+.info .tooltiptext, .button-menu .tooltiptext {
   visibility: hidden;
   display: none;
   width: 0;
@@ -204,7 +209,7 @@ body {
 
 /* Show the tooltip text when you mouse over the tooltip container */
 
-.info:hover .tooltiptext {
+.info:hover .tooltiptext, .button-menu:hover .tooltiptext {
   display: inline-block;
   visibility: visible;
   width: 30rem;

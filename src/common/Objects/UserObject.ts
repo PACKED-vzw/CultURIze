@@ -16,10 +16,10 @@ export class User {
      * @param {string} userName The user's name
      * @param {string} avatar_url The url to the user's profile picture
      */
-    constructor(token: string, userName: string, avatar_url: string){
+    constructor(token: string, userName: string, avatarURL: string) {
         this.token = token;
         this.userName = userName;
-        this.avatar_url = avatar_url;
+        this.avatar_url = avatarURL;
     }
 
     /**
@@ -28,7 +28,7 @@ export class User {
      * (the token)
      * @returns the new instance
      */
-    public withoutToken() : User {
+    public withoutToken(): User {
         return new User(null, this.userName, this.avatar_url);
     }
 }

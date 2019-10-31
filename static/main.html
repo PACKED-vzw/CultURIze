@@ -27,7 +27,7 @@
         <form class="kader" onsubmit="actOnSubmit(); return false">
             <div class="formrow"> 
                 <span class="label-info">
-                    <span class="p-form">CSV file</span>
+                    <span class="p-form">CSV file*</span>
                     <button class="info" type="button">?
                         <span class="tooltiptext">Choose the CVS in which you defined your 
                             persistent identifiers. See <a href="https://github.com/PACKED-vzw/CultURIze/wiki/Create-a-Spreadsheet"
@@ -36,7 +36,7 @@
                     </button>
                 </span>
                 <input class="input-form" type="text" id="csvpath" required>
-                <button class="input-submit" type="button" onclick="actOnOpenCSV()"> <span class="submit-p">Choose </span> </button>
+                <button class="choose-csv" type="button" onclick="actOnOpenCSV()"> Choose </button>
             </div>
             <div class="formrow"> 
                 <span class="label-info">
@@ -50,7 +50,7 @@
                 <input class="input-form" type="text" id="subdir"> </div>
             <div class="formrow"> 
                 <span class="label-info">
-                    <span class="p-form">Upload to</span>
+                    <span class="p-form">Upload to*</span>
                     <button class="info" type="button">?
                         <span class="tooltiptext">This is the URL of the GitHub repository to which the
                             file of the persistent identifiers should be uploaded, e.g. https://github.com/PACKED-vzw/CultURIze

@@ -37,9 +37,9 @@ export async function lookForFile(callback: FileFoundCallback) {
         },
         (files: string[]) => {
             if (files) {
-                if (files.length !== 1) {
+                if (files.length > 1) {
                     callback(null, "Too many files selected!");
-                } else {
+                } else if (files.length === 1) {
                     callback(files[0], "");
                 }
             } else {

@@ -9,6 +9,8 @@ html {
   box-sizing: inherit;
 }
 
+/* fonts and backgrounds */
+
 @font-face {
   font-family: "montserrat-medium";
   src: url("../assets/font/montserrat/montserrat-medium.woff") format("woff"), url("../assets/font/montserrat/montserrat-medium.woff") format("woff");
@@ -24,6 +26,78 @@ body {
   background-image: url("../assets/bg.png");
   background-size: cover;
   background-repeat: no-repeat;
+}
+
+/* navigation bar */
+
+.profile {
+  width: 95%;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile-div {
+  opacity: 0.9;
+  height: 7rem;
+  background-color: #F2F4F2;
+}
+
+.pf-pic {
+  border-radius: 100rem;
+  margin-right: 1rem;
+}
+
+
+.pf-menu-right {
+  font-family: 'montserrat-medium', 'Karla', sans-serif;
+  color: #9CA1A4;
+  font-size: 1.4rem;
+  border-bottom: 0.2rem solid #F2F7F7;
+  padding-bottom: 0.2rem;
+  font-size: 2rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.pf-menu-right a:hover {
+  border-bottom: 0.2rem solid #15B28E;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 6rem;
+  text-align: left;
+  width: 20rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.pf-name {
+  font-family: 'montserrat-medium', 'Karla', sans-serif;
+  color: #727D85;
+  font-size: 2.3rem;
+  font-weight: bolder;
+  text-align: left !important;
+  margin-left: 0 !important;
+}
+
+.button-menu {
+  background-color: #F2F4F2;
+  padding: 1.5rem;
+  font-size: 1.4rem;
+  font-family: 'montserrat-medium', 'Karla', sans-serif;
+  border: none;
+}
+
+.button-menu:hover {
+  color: white;
+  border-radius: 6rem;
+  cursor: pointer;
 }
 
 .main-div {
@@ -43,9 +117,8 @@ body {
   /* margin: 0 auto; */
   border-radius: 6rem;
   flex-direction: column;
-  padding: 8rem;
+  padding: 8rem 8rem 3rem 8rem;
   box-shadow: 0px 0px 10px #8E8F92;
-  overflow-y: scroll;
 }
 
 #feedback-div {
@@ -75,11 +148,11 @@ height: 130rem;
 }*/
 
 .label-info {
-  min-width: 20%;
+  min-width: 30%;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  align-items: center;
+  align-items: baseline;
 }
 
 .p-form {
@@ -100,15 +173,6 @@ height: 130rem;
   border: none;
   height: 2.5rem;
   width: 80%;
-  outline: none;
-}
-
-.input-form-large {
-  background-color: #FEFFFE;
-  border-radius: 0.6rem;
-  border: none;
-  height: 2.5rem;
-  width: 50rem;
   outline: none;
   font-family: 'montserrat-medium', 'Karla', sans-serif;
 }
@@ -138,11 +202,11 @@ height: 130rem;
   font-family: 'montserrat-medium', 'Karla', sans-serif;
   position: relative;
   color: white;
-  font-size: 1.8rem;
-  height: 3rem;
+  font-size: 1.6rem;
+  height: 2.5rem;
   background-color: #1CD2A7;
   border-radius: 8rem;
-  padding: 3rem;
+  padding: 2rem;
   outline: none;
   transition: all 0.5s ease;
   border: none;
@@ -150,14 +214,6 @@ height: 130rem;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-}
-
-.button-menu {
-  background-color: #F2F4F2;
-  padding: 1.5rem;
-  font-size: 1.4rem;
-  font-family: 'montserrat-medium', 'Karla', sans-serif;
-  border: none;
 }
 
 .button.extra:enabled:hover {
@@ -200,76 +256,32 @@ button:enabled:hover {
   border-radius: 2rem;
   color: #9CA1A4;
   font-family: 'montserrat-medium', 'Karla', sans-serif;
-  transition: background-color 0.5s ease;
+  transition: background-color 0.5s ease !important;
   outline: none;
 }
 
 .info:hover {
-  background-color: #DDE0EB;
+  color: #DDE0EB;
 }
 
-.profile-div {
-  opacity: 0.9;
-  height: 7rem;
-  background-color: #F2F4F2;
+.info .tooltiptext {
+  visibility: hidden;
+  display: none;
+  width: 0;
+  margin: 0;
+  padding: 0;
 }
-
-.pf-pic {
-  border-radius: 100rem;
-  margin-right: 1rem;
-}
-
-.profile {
-  width: 100%;
-  margin: auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.pf-menu-right {
-  font-family: 'montserrat-medium', 'Karla', sans-serif;
-  color: #9CA1A4;
-  font-size: 1.4rem;
-  border-bottom: 0.2rem solid #F2F7F7;
-  padding-bottom: 0.2rem;
-  font-size: 2rem;
-  cursor: pointer;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  margin-right: 2rem;
-}
-
-.pf-menu-right a:hover {
-  border-bottom: 0.2rem solid #15B28E;
-}
-
-.profile-info {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  height: 6rem;
-  text-align: left;
-  width: 20rem;
-  justify-content: space-between;
-  margin-top: 1rem;
-}
-
-.pf-name {
-  font-family: 'montserrat-medium', 'Karla', sans-serif;
-  color: #727D85;
-  font-size: 2.3rem;
-  font-weight: bolder;
-  text-align: left !important;
-  margin-left: 0 !important;
-}
-
 
 /* Show the tooltip text when you mouse over the tooltip container */
 
-.tooltip:hover .tooltiptext {
+.info:hover .tooltiptext {
+  display: inline-block;
   visibility: visible;
+  width: 10rem;
+  margin: -2rem;
+  background-color: black;
+  position: absolute;
+  z-index: 1;
 }
 
 #feedback {

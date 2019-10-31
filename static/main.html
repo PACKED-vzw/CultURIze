@@ -11,7 +11,7 @@
 </head>
 
 <body>
-    <div class="profile-div">
+    <nav class="profile-div">
         <div class="profile">
             <div class="profile-info"> <img class="pf-pic" id="p-avatar" width="60">
                 <p class="pf-name" id="p-username"></p>
@@ -21,43 +21,71 @@
                 <button class="button-menu" id="logout">Log out</button>
             </div>
         </div>
-    </div>
+    </nav>
     <div class="main-div">
         <form class="kader" onsubmit="actOnSubmit(); return false">
-            <div class="formrow"> <span class="label-info">
-                        <span class="p-form">CSV file</span>
-                <button class="info" type="button"><span class="info-p">?</span></button>
+            <div class="formrow"> 
+                <span class="label-info">
+                    <span class="p-form">CSV file</span>
+                    <button class="info" type="button">?
+                        <span class="tooltiptext">Dit is een test</span>
+                    </button>
                 </span>
                 <input class="input-form" type="text" id="csvpath" required>
                 <button class="input-submit" type="button" onclick="actOnOpenCSV()"> <span class="submit-p">Choose </span> </button>
             </div>
-            <div class="formrow"> <span class="label-info">
+            <div class="formrow"> 
+                <span class="label-info">
                     <span class="p-form">Subdirectory</span>
-                <button class="info" type="button"><span class="info-p">?</span></button>
+                    <button class="info" type="button">?
+                        <span class="tooltiptext">Dit is een test</span>
+                    </button>
                 </span>
                 <input class="input-form" type="text" id="subdir"> </div>
-            <div class="formrow"> <span class="label-info">
+            <div class="formrow"> 
+                <span class="label-info">
                     <span class="p-form">Upload to</span>
-                <button class="info" type="button"><span class="info-p">?</span></button>
+                    <button class="info" type="button">?
+                        <span class="tooltiptext">Dit is een test</span>
+                    </button>
                 </span>
-                <input class="input-form input-form-large" type="url" id="github" required> </div>
+                <input class="input-form" type="url" id="github" required> </div>
             <div id="opts_more">
-                <div class="formrow"> <span class="label-info">
-                        <span class="p-form">Branch: </span>
-                    <button class="info" type="button"><span class="info-p">?</span></button>
+                <div class="formrow"> 
+                    <span class="label-info">
+                        <span class="p-form">Branch </span>
+                        <button class="info" type="button">?
+                            <span class="tooltiptext">Dit is een test</span>
+                        </button>
                     </span>
-                    <input class="input-form input-form-large" type="text" id="branch" required> </div>
-                <div class="formrow"> <span class="p-form">Commit message: </span>
-                    <input class="input-form input-form-large" id="commit_msg" type="text" required>
-                    <!--<button class="info" type="button" ><span class="info-p">?</span></button>-->
+                    <input class="input-form" type="text" id="branch" required> 
                 </div>
-                <div class="formrow"> <span class="p-form">Pull request title: </span>
-                    <input class="input-form input-form-large" type="text" id="pr_title" required>
-                    <!--<button class="info" type="button" ><span class="info-p">?</span></button>-->
+                <div class="formrow"> 
+                    <span class="label-info">
+                        <span class="p-form">Commit message </span>
+                        <button class="info" type="button">?
+                            <span class="tooltiptext">Dit is een test</span>
+                        </button>
+                    </span>
+                    <input class="input-form" id="commit_msg" type="text" required>
                 </div>
-                <div class="formrow"> <span class="p-form">Pull request body: </span>
-                    <input class="input-form input-form-large" type="text" id="pr_body" required>
-                    <!--<button class="info" type="button" ><span class="info-p">?</span></button>-->
+                <div class="formrow"> 
+                    <span class="label-info">
+                        <span class="p-form">Pull request title </span>
+                        <button class="info" type="button">?
+                            <span class="tooltiptext">Dit is een test</span>
+                        </button>
+                    </span>
+                    <input class="input-form" type="text" id="pr_title" required>
+                </div>
+                <div class="formrow"> 
+                    <span class="label-info">
+                        <span class="p-form">Pull request body </span>
+                        <button class="info" type="button">?
+                            <span class="tooltiptext">Dit is een test</span>
+                        </button>
+                    </span>
+                    <input class="input-form" type="text" id="pr_body" required>
                 </div>
             </div>
             <div class="buttons">
@@ -104,6 +132,7 @@
     // Profile
     const userAvatar = document.getElementById('p-avatar')
     const userName = document.getElementById('p-username')
+    const profile = document.getElementById('profile-url')
     let optionsAreRevealed = false
         // Fill in the fields with the default values
     const PublishFormDefaults = require('./../dist/culturize.conf.js').PublishFormDefaults

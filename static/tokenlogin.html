@@ -14,24 +14,30 @@
     <main>
         <div class="box">
             <header> <img src="assets/logo-culturize.png" alt="" width="238" height="102">
-                <h1>Welcome</h1> </header>
+                <h1>Welcome</h1>
+            </header>
             <form onsubmit="actOnSubmit(); return false">
-                <p class="sign-in-p">Get a <a href="https://github.com/settings/tokens/new" class="link" target="_blank">Github access token</a> to sign in</p>
+                <p class="sign-in-p">Get a <a href="https://github.com/settings/tokens/new" class="link"
+                        target="_blank">Github access token</a> to sign in</p>
                 <p id="login-error-feedback">(feedback placeholder)</p>
-                <input class="input-form" id="github-pat" required placeholder="Enter access token" onfocus="this.placeholder = ''" onblur="this.placeholder='Enter access token'">
+                <input class="input-form" id="github-pat" required placeholder="Enter access token"
+                    onfocus="this.placeholder = ''" onblur="this.placeholder='Enter access token'">
                 <button id="validate_button" class="button" type="submit"><span>Sign in</span></button>
             </form>
-            <p class="no-account">No GitHub account? <a class="link" href="https://github.com/join" target="_blank" >
-        Create one!</a></p>
+            <p class="no-account">No GitHub account? <a class="link" href="https://github.com/join" target="_blank">
+                    Create one!</a></p>
             <!-- <p class="no-account">Having issues ? <a class="link" onclick="actOnHardReset()">
         Hard reset</a> the app.</p> -->
         </div>
     </main>
     <footer>
         <div class="footer-logos-div">
-            <a href="https://packed.be" target="_blank" class="footer-logo"> <img src="assets/logo-packed.svg" alt="logo-packed" width="130" height="70"> </a>
-            <a href="https://2018.summerofcode.be/culturize.html" target="_blank" class="footer-logo"> <img src="assets/logo-osoc.svg" alt="logo-osoc" width="70" height="80"> </a>
-            <a href="https://github.com/PACKED-vzw/CultURIze" target="_blank" class="footer-logo"> <img id="github" src="assets/logo-github.png" alt="logo-github" height="40"> </a>
+            <a href="https://packed.be" target="_blank" class="footer-logo"> <img src="assets/logo-packed.svg"
+                    alt="logo-packed" width="130" height="70"> </a>
+            <a href="https://2018.summerofcode.be/culturize.html" target="_blank" class="footer-logo"> <img
+                    src="assets/logo-osoc.svg" alt="logo-osoc" width="70" height="80"> </a>
+            <a href="https://github.com/PACKED-vzw/CultURIze" target="_blank" class="footer-logo"> <img id="github"
+                    src="assets/logo-github.png" alt="logo-github" height="40"> </a>
         </div>
     </footer>
 </body>

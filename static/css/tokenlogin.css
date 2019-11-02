@@ -116,7 +116,7 @@ p {
     transform: scale(1.1);
 }
 
-a {
+.link {
     text-decoration: none;
     color: #1CD2A7;
     font-family: "montserrat-semibold";
@@ -124,7 +124,7 @@ a {
     cursor: pointer;
 }
 
-a:hover {
+.link:hover {
     border-bottom: 0.15rem solid #1CD2A7;
 }
 

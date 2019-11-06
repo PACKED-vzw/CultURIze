@@ -11,313 +11,339 @@ contents:
 - feedback screen
 */
 
+
+/* fonts and backgrounds */
+
+@font-face {
+    font-family: "montserrat-medium";
+    src: url("../assets/font/montserrat/montserrat-medium.woff") format("woff"), url("../assets/font/montserrat/montserrat-medium.woff") format("woff");
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "montserrat-semibold";
+    src: url("../assets/font/montserrat/montserrat-semibold.woff") format("woff"), url("../assets/font/montserrat/montserrat-semibold.woff") format("woff");
+}
+
+body {
+    background-image: url("../assets/bg.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
 html {
-  font-size: 62.5%;
-  box-sizing: border-box;
+    font-size: 62.5%;
+    box-sizing: border-box;
+    font-family: 'montserrat-medium', 'Karla', sans-serif;
 }
 
 *,
 *::before,
 *::after {
-  box-sizing: inherit;
+    box-sizing: inherit;
+    font-family: 'montserrat-medium', 'Karla', sans-serif;
 }
 
-/* fonts and backgrounds */
-
-@font-face {
-  font-family: "montserrat-medium";
-  src: url("../assets/font/montserrat/montserrat-medium.woff") format("woff"), url("../assets/font/montserrat/montserrat-medium.woff") format("woff");
-  font-weight: 400;
-}
-
-@font-face {
-  font-family: "montserrat-semibold";
-  src: url("../assets/font/montserrat/montserrat-semibold.woff") format("woff"), url("../assets/font/montserrat/montserrat-semibold.woff") format("woff");
-}
-
-body {
-  background-image: url("../assets/bg.png");
-  background-size: cover;
-  background-repeat: no-repeat;
-}
 
 /* navigation bar - profile */
 
 .profile-div {
-  opacity: 0.9;
-  height: 7rem;
-  background-color: #F2F4F2;
+    opacity: 0.9;
+    height: 7rem;
+    background-color: #F2F4F2;
 }
 
 .profile {
-  width: 95%;
-  margin: auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    width: 95%;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-
 .profile-info {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  height: 6rem;
-  text-align: left;
-  width: 20rem;
-  justify-content: space-between;
-  margin-top: 1rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 6rem;
+    text-align: left;
+    width: 20rem;
+    justify-content: space-between;
+    margin-top: 1rem;
 }
 
 .pf-name {
-  font-family: 'montserrat-medium', 'Karla', sans-serif;
-  color: #727D85;
-  font-size: 2.3rem;
-  font-weight: bolder;
-  text-align: left !important;
-  margin-left: 0 !important;
+    color: #727D85;
+    font-size: 2.3rem;
+    font-weight: bolder;
+    text-align: left !important;
+    margin-left: 0 !important;
 }
 
 .pf-pic {
-  border-radius: 100rem;
-  margin-right: 1rem;
+    border-radius: 100rem;
+    margin-right: 1rem;
 }
+
 
 /* navigation bar - buttons right */
 
 .pf-menu-right {
-  font-family: 'montserrat-medium', 'Karla', sans-serif;
-  color: #9CA1A4;
-  font-size: 1.4rem;
-  border-bottom: 0.2rem solid #F2F7F7;
-  padding-bottom: 0.2rem;
-  font-size: 2rem;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
+    color: #9CA1A4;
+    font-size: 1.4rem;
+    border-bottom: 0.2rem solid #F2F7F7;
+    padding-bottom: 0.2rem;
+    font-size: 2rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
 }
 
 .pf-menu-right button:hover {
-  border-bottom: 0.2rem solid #15B28E;
+    border-bottom: 0.2rem solid #15B28E;
 }
 
-
 .button-menu {
-  background-color: #F2F4F2;
-  padding: 1rem;
-  font-size: 1.4rem;
-  font-family: 'montserrat-medium', 'Karla', sans-serif;
-  border: none;
+    background-color: #F2F4F2;
+    padding: 1rem;
+    font-size: 1.4rem;
+    border: none;
 }
 
 .button-menu:hover {
-  color: white;
-  border-radius: 6rem;
-  cursor: pointer;
+    color: white;
+    border-radius: 6rem;
+    cursor: pointer;
 }
 
 .button-menu:hover .tooltiptext {
-  font-size: 1rem !important;
-  width: 10rem !important;
+    font-size: 1rem !important;
+    width: 10rem !important;
 }
+
 
 /* main screen - form */
 
 .main-div {
-  position: fixed;
-  top: 55%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+    position: fixed;
+    top: 55%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .kader {
-  margin-top: 7rem;
-  background-color: #F3F4F3;
-  width: 80rem;
-  max-height: 55rem;
-  display: flex;
-  justify-content: flex-start;
-  /* margin: 0 auto; */
-  border-radius: 6rem;
-  flex-direction: column;
-  padding: 8rem 8rem 3rem 8rem;
-  box-shadow: 0px 0px 10px #8E8F92;
+    margin-top: 7rem;
+    background-color: #F3F4F3;
+    width: 80rem;
+    max-height: 55rem;
+    display: flex;
+    justify-content: flex-start;
+    /* margin: 0 auto; */
+    border-radius: 6rem;
+    flex-direction: column;
+    padding: 8rem 8rem 3rem 8rem;
+    box-shadow: 0px 0px 10px #8E8F92;
 }
 
 .formrow {
-  padding: 1rem;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
+    padding: 1rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
 }
 
 .label-info {
-  min-width: 30%;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: baseline;
+    min-width: 30%;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: baseline;
 }
 
 .p-form {
-  color: #667E86;
-  font-family: 'montserrat-medium', 'Karla', sans-serif;
-  font-size: 1.4rem;
-  margin-right: 0.2rem;
+    color: #667E86;
+    font-size: 1.4rem;
+    margin-right: 0.2rem;
 }
 
 .input-form {
-  background-color: #FEFFFE;
-  border-radius: 0.6rem;
-  border: none;
-  height: 2.5rem;
-  width: 80%;
-  outline: none;
-  font-family: 'montserrat-medium', 'Karla', sans-serif;
+    background-color: #FEFFFE;
+    border-radius: 0.6rem;
+    border: none;
+    height: 2.5rem;
+    width: 80%;
+    outline: none;
+}
+
+
+/* main screen - form - radio buttons*/
+
+.radio-group {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-content: center;
+    font-size: 1.4rem;
+    background-color: #F3F4F3;
+}
+
+.server {
+    margin-right: 5rem;
+}
+
+.server input[type='radio'] {
+    margin-right: 1.2rem;
+}
+
+.server input[type='radio']:checked + label {
+    background-color: #1CD2A7;
 }
 
 #opts_more {
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
 }
 
+
 /* main screen - tooltips */
+
 .info {
-  background-color: #E4E6EB;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: none;
-  border-radius: 2rem;
-  color: #9CA1A4;
-  font-family: 'montserrat-medium', 'Karla', sans-serif;
-  transition: background-color 0.5s ease !important;
-  outline: none;
+    background-color: #E4E6EB;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: none;
+    border-radius: 2rem;
+    color: #9CA1A4;
+    transition: background-color 0.5s ease !important;
+    outline: none;
 }
 
 .info:hover {
-  color: #DDE0EB;
+    color: #DDE0EB;
 }
 
-.info .tooltiptext, .button-menu .tooltiptext {
-  visibility: hidden;
-  display: none;
-  width: 0;
-  margin: 0;
-  padding: 0;
+.info .tooltiptext,
+.button-menu .tooltiptext {
+    visibility: hidden;
+    display: none;
+    width: 0;
+    margin: 0;
+    padding: 0;
 }
+
 
 /* Show the tooltip text when you mouse over the tooltip container */
 
-.info:hover .tooltiptext, .button-menu:hover .tooltiptext {
-  display: inline-block;
-  visibility: visible;
-  width: 30rem;
-  padding: 0.5rem;
-  background-color: black;
-  position: absolute;
-  z-index: 1;
-  text-align: start;
-  font-family: 'montserrat-medium', 'Karla', sans-serif;
-  opacity: 0.8;
-  border-radius: 0.5rem;
-  border: none;
+.info:hover .tooltiptext,
+.button-menu:hover .tooltiptext {
+    display: inline-block;
+    visibility: visible;
+    width: 30rem;
+    padding: 0.5rem;
+    background-color: black;
+    position: absolute;
+    z-index: 1;
+    text-align: start;
+    opacity: 0.8;
+    border-radius: 0.5rem;
+    border: none;
 }
 
 .tooltiptext a {
-  color: rgb(81, 180, 157);  
+    color: rgb(81, 180, 157);
 }
 
 .tooltiptext a:hover {
-  color: pink;
+    color: pink;
 }
+
 
 /* main screen - buttons */
 
 .choose-csv {
-  border-radius: 1.5rem;
-  color: white;
-  background-color: #1CD2A7;
-  border: none;
-  height: 2.5rem;
-  margin-left: 2rem;
-  width: 7rem;
-  outline: none;
-  transition: background-color 0.5s ease;
-  font-size: 1.3rem;
-  font-family: 'montserrat-medium', 'Karla', sans-serif;
+    border-radius: 1.5rem;
+    color: white;
+    background-color: #1CD2A7;
+    border: none;
+    height: 2.5rem;
+    margin-left: 2rem;
+    width: 7rem;
+    outline: none;
+    transition: background-color 0.5s ease;
+    font-size: 1.3rem;
 }
 
 .choose-csv:hover {
-  background-color: #15B28E;
+    background-color: #15B28E;
 }
 
 .button {
-  font-family: 'montserrat-medium', 'Karla', sans-serif;
-  position: relative;
-  color: white;
-  font-size: 1.6rem;
-  height: 2.5rem;
-  background-color: #1CD2A7;
-  border-radius: 8rem;
-  padding: 2rem;
-  outline: none;
-  transition: all 0.5s ease;
-  border: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+    position: relative;
+    color: white;
+    font-size: 1.6rem;
+    height: 2.5rem;
+    background-color: #1CD2A7;
+    border-radius: 8rem;
+    padding: 2rem;
+    outline: none;
+    transition: all 0.5s ease;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .button.extra:enabled:hover {
-  background-color: rgb(81, 180, 157);
-  transform: scale(0.85);
+    background-color: rgb(81, 180, 157);
+    transform: scale(0.85);
 }
 
 .button.extra:enabled:active {
-  background-color: rgb(81, 180, 157);
-  transition: all 0.15s ease;
-  transform: scale(0.75);
+    background-color: rgb(81, 180, 157);
+    transition: all 0.15s ease;
+    transform: scale(0.75);
 }
 
 button:enabled:hover {
-  background-color: #15B28E;
-  transform: scale(1.05);
+    background-color: #15B28E;
+    transform: scale(1.05);
 }
 
 #extra_button:enabled:hover {
-  transform: scale(0.85);
+    transform: scale(0.85);
 }
 
 .button:disabled {
-  background-color: rgb(11, 90, 72);
+    background-color: rgb(11, 90, 72);
 }
 
 .buttons {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  margin-top: 6rem;
-  bottom: 0 !important;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 4rem;
+    bottom: 0 !important;
 }
+
 
 /* feedback screen */
 
 #feedback-div {
-  margin-top: 3rem;
-  background-color: #F3F4F3;
-  height: 8rem;
-  border-radius: 3.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0px 0px 10px rgba(142, 143, 146, 0.5);
+    margin-top: 3rem;
+    background-color: #F3F4F3;
+    height: 8rem;
+    border-radius: 3.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0px 0px 10px rgba(142, 143, 146, 0.5);
 }
 
 #feedback {
-  font-size: 2.33rem;
-  font-family: 'Karla', sans-serif;
-  font-weight: bolder;
+    font-size: 2.33rem;
+    font-family: 'Karla', sans-serif !important;
+    font-weight: bolder;
 }

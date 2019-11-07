@@ -38,7 +38,7 @@ const log = require("electron-log");
  * validity of the subdirectory given by the user
  * (and the baseSubdir of PublishOptions)
  */
-const dirRegex = /^((\w)+)(((\/)(\w+))+)?$/;
+const dirRegex = /^([\w-]+)(((\/)([\w-]+))+)?$/;
 
 /**
  * This is a small function that can be used with await to "sleep" (wait)

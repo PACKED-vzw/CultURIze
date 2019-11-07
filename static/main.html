@@ -28,8 +28,7 @@
         <form class="kader" onsubmit="actOnSubmit(); return false">
             <div class="formrow"> <span class="label-info">
                     <span class="p-form">CSV file*</span>
-                <button class="info" type="button">? <span class="tooltiptext">Choose the CVS in which you defined your 
-                            persistent identifiers. See <a href="https://github.com/PACKED-vzw/CultURIze/wiki/Create-a-Spreadsheet"
+                <button class="info" type="button">? <span class="tooltiptext">Choose the CVS in which you defined your persistent identifiers. See <a href="https://github.com/PACKED-vzw/CultURIze/wiki/Create-a-Spreadsheet"
                             target="_blank">our documentation</a> for more information
                         </span> </button>
                 </span>
@@ -56,9 +55,9 @@
                         </span> </button>
                 </span> <span class="input-form radio-group">
                     <span class="p-form server">
-                        <input type="radio" name="server" value="apache" checked required> Apache
+                        <input type="radio" name="server" id="apache" value="apache" checked required><label for="apache">Apache</label> 
                     </span> <span class="p-form server">
-                        <input type="radio" name="server" value="nginx"> Nginx
+                        <input type="radio" name="server" id="nginx" value="nginx"><label for="nginx">Nginx</label> 
                     </span> </span>
             </div>
             <div id="opts_more">

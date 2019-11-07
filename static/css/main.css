@@ -197,7 +197,7 @@ html {
 }
 
 .server input[type='radio']:checked + label {
-    background-color: #1CD2A7;
+    font-family: 'montserrat-semibold';
 }
 
 #opts_more {
@@ -243,7 +243,7 @@ html {
     padding: 0.5rem;
     background-color: black;
     position: absolute;
-    z-index: 1;
+    z-index: 1000;
     text-align: start;
     opacity: 0.8;
     border-radius: 0.5rem;

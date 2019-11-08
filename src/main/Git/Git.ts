@@ -24,13 +24,13 @@ const log = require('electron-log');
  * trying to manage!
  */
 export class GitRepoManager {
-    repoURL: string;
-    workingDir: string;
-    repoName: string;
-    ownerName: string;
-    repoDir: string;
-    user: User;
-    branch: string;
+    public repoURL: string;
+    public workingDir: string;
+    public repoName: string;
+    public ownerName: string;
+    public repoDir: string;
+    public user: User;
+    public branch: string;
 
     /**
      * @constructor

@@ -18,96 +18,79 @@
             </div>
             <div class="pf-menu-right">
                 <button class="button-menu" id="docs" onclick="parent.open('https://github.com/packed-vzw/Culturize/wiki', '_blank')">Manual</button>
-                <button class="button-menu" id="hard-reset">Reset
-                    <span class="tooltiptext">Empties the cache if you're experiencing 
-                        issues with the app</span>
-                </button>
-                <button class="button-menu" id="logout">Log out</button>                
+                <button class="button-menu" id="hard-reset">Reset <span class="tooltiptext">Empties the cache if you're experiencing
+                        issues with the app</span> </button>
+                <button class="button-menu" id="logout">Log out</button>
             </div>
         </div>
     </nav>
     <div class="main-div">
         <form class="kader" onsubmit="actOnSubmit(); return false">
-            <div class="formrow"> 
-                <span class="label-info">
+            <div class="formrow"> <span class="label-info">
                     <span class="p-form">CSV file*</span>
-                    <button class="info" type="button">?
-                        <span class="tooltiptext">Choose the CVS in which you defined your 
-                            persistent identifiers. See <a href="https://github.com/PACKED-vzw/CultURIze/wiki/Create-a-Spreadsheet"
+                <button class="info" type="button">? <span class="tooltiptext">Choose the CVS in which you defined your persistent identifiers. See <a href="https://github.com/PACKED-vzw/CultURIze/wiki/Create-a-Spreadsheet"
                             target="_blank">our documentation</a> for more information
-                        </span>
-                    </button>
+                        </span> </button>
                 </span>
                 <input class="input-form" type="text" id="csvpath" required>
                 <button class="choose-csv" type="button" onclick="actOnOpenCSV()"> Choose </button>
             </div>
-            <div class="formrow"> 
-                <span class="label-info">
+            <div class="formrow"> <span class="label-info">
                     <span class="p-form">Subdirectory</span>
-                    <button class="info" type="button">?
-                        <span class="tooltiptext">The name of the folder in which the file of the persistent identifiers
+                <button class="info" type="button">? <span class="tooltiptext">The name of the folder in which the file of the persistent identifiers
                             should be uploaded, e.g. the name of your museum, the name of the collection, etc.
-                        </span>
-                    </button>
+                        </span> </button>
                 </span>
                 <input class="input-form" type="text" id="subdir"> </div>
-            <div class="formrow"> 
-                <span class="label-info">
+            <div class="formrow"> <span class="label-info">
                     <span class="p-form">Upload to*</span>
-                    <button class="info" type="button">?
-                        <span class="tooltiptext">This is the URL of the GitHub repository to which the
+                <button class="info" type="button">? <span class="tooltiptext">This is the URL of the GitHub repository to which the
                             file of the persistent identifiers should be uploaded, e.g. https://github.com/PACKED-vzw/CultURIze
-                        </span>
-                    </button>
+                        </span> </button>
                 </span>
                 <input class="input-form" type="url" id="github" required> </div>
+            <div class="formrow"> <span class="label-info">
+                    <span class="p-form">Webserver*</span>
+                <button class="info" type="button">? <span class="tooltiptext">Select the type of webserver that you'll be using
+                        </span> </button>
+                </span> <span class="input-form radio-group">
+                    <span class="p-form server">
+                        <input type="radio" name="server" id="apache" value="apache" checked required><label for="apache">Apache</label>
+                    </span> <span class="p-form server">
+                        <input type="radio" name="server" id="nginx" value="nginx"><label for="nginx">Nginx</label>
+                    </span> </span>
+            </div>
             <div id="opts_more">
-                <div class="formrow"> 
-                    <span class="label-info">
+                <div class="formrow"> <span class="label-info">
                         <span class="p-form">Branch </span>
-                        <button class="info" type="button">?
-                            <span class="tooltiptext">The branch on your GitHub repository to which the 
+                    <button class="info" type="button">? <span class="tooltiptext">The branch on your GitHub repository to which the
                                 file of the persistent identifiers should be uploaded
-                            </span>
-                        </button>
+                            </span> </button>
                     </span>
-                    <input class="input-form" type="text" id="branch" required> 
-                </div>
-                <div class="formrow"> 
-                    <span class="label-info">
+                    <input class="input-form" type="text" id="branch" required> </div>
+                <div class="formrow"> <span class="label-info">
                         <span class="p-form">Commit message </span>
-                        <button class="info" type="button">?
-                            <span class="tooltiptext">A message that documents the 
-                                upload to the GitHub repository</span>
-                        </button>
+                    <button class="info" type="button">? <span class="tooltiptext">A message that documents the
+                                upload to the GitHub repository</span> </button>
                     </span>
-                    <input class="input-form" id="commit_msg" type="text" required>
-                </div>
-                <div class="formrow"> 
-                    <span class="label-info">
+                    <input class="input-form" id="commit_msg" type="text" required> </div>
+                <div class="formrow"> <span class="label-info">
                         <span class="p-form">Pull request title </span>
-                        <button class="info" type="button">?
-                            <span class="tooltiptext">A title that documents the 
-                                    upload to the GitHub repository</span>
-                        </button>
+                    <button class="info" type="button">? <span class="tooltiptext">A title that documents the
+                                    upload to the GitHub repository</span> </button>
                     </span>
-                    <input class="input-form" type="text" id="pr_title" required>
-                </div>
-                <div class="formrow"> 
-                    <span class="label-info">
+                    <input class="input-form" type="text" id="pr_title" required> </div>
+                <div class="formrow"> <span class="label-info">
                         <span class="p-form">Pull request body </span>
-                        <button class="info" type="button">?
-                            <span class="tooltiptext">Additional information you'll want to add, e.g. 
+                    <button class="info" type="button">? <span class="tooltiptext">Additional information you'll want to add, e.g.
                                 the reason of this upload, etc.
-                            </span>
-                        </button>
+                            </span> </button>
                     </span>
-                    <input class="input-form" type="text" id="pr_body" required>
-                </div>
+                    <input class="input-form" type="text" id="pr_body" required> </div>
             </div>
             <div class="buttons">
-                <button id="publish_button" class="button" type="submit"> <span>Upload</span> </button>
                 <button id="extra_button" class="button" type="button" onclick="actOnShowMore()"> <span class="hidden">Advanced</span> </button>
+                <button id="publish_button" class="button" type="submit"> <span>Upload</span> </button>
             </div>
         </form>
         <div id="feedback-div">
@@ -128,6 +111,8 @@
     const csvPathField = document.getElementById('csvpath')
     const subdirField = document.getElementById('subdir')
     const githubUrlField = document.getElementById('github')
+    const webserverNginx = document.getElementById('nginx')
+    const webserverApache = document.getElementById('apache')
         // Extra fields
     const branchField = document.getElementById('branch')
     const commitMsgField = document.getElementById('commit_msg')
@@ -199,7 +184,7 @@
     function actOnSubmit() {
         submitButton.setAttribute('disabled', 'disabled')
         disableLogout();
-        MainMenu.publish(csvPathField.value, subdirField.value, githubUrlField.value, branch.value, commitMsgField.value, prTitleField.value, prBodyField.value)
+        MainMenu.publish(csvPathField.value, subdirField.value, githubUrlField.value, branch.value, commitMsgField.value, prTitleField.value, prBodyField.value, webserverApache.checked)
     }
 
     function actOnShowMore() {

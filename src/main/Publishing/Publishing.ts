@@ -24,7 +24,7 @@
 import { PublishRequest, PublishRequestResult } from "./../../common/Objects/PublishObjects";
 import { User } from "./../../common/Objects/UserObject";
 import { mainWindow, toggleTransformation } from "./../../main";
-import { convertCSVtoHTACCESS } from "./../Converter/Converter";
+import { convertCSVtoWebConfig } from "./../Converter/Converter";
 import { GitRepoManager } from "./../Git/Git";
 import { PublishOptions } from "./../../culturize.conf"
 import fs = require("fs");
@@ -88,8 +88,9 @@ export async function publish(request: PublishRequest) {
         // touching the remote repos.
         notifyStep("Converting file");
         await sleep(10);
-        const response = await convertCSVtoHTACCESS(request.csvPath);
-        log.info("Conversion result: " + response.file.length + " characters in the .htaccess, generated from "
+        log.info("generation config file for" + request.forApache ? "apache" : "nginx");
+        const response = await convertCSVtoWebConfig(request.csvPath, request.forApache);
+        log.info("Conversion result: " + response.file.length + " characters in the configuration, generated from "
                  + response.numLinesAccepted + " rows (" + response.numLinesRejected + ")");
 
         // Parse the url
@@ -126,8 +127,12 @@ export async function publish(request: PublishRequest) {
         const manager = await prepareGitRepoManager(repoURL, request.branch, user);
 
         // Save the file
-        notifyStep("Saving the .htaccess to the desired location");
-        manager.saveStringToFile(response.file, ".htaccess", request.subdir);
+        notifyStep("Saving the configuration file to the desired location");
+        if (request.forApache) {
+            manager.saveStringToFile(response.file, ".htaccess", request.subdir);
+        } else {
+            manager.saveStringToFile(response.file, "nginx_redirect.conf", request.subdir);
+        }
 
         // Push the changes
         notifyStep("Pushing changes");

@@ -30,6 +30,7 @@ export let mainWindow: BrowserWindow;
 let currentUser: User = null;
 
 function checkIfCalledFromCLI(args: any) {
+    log.info(args);
     if (!args || args.length <= 1) {
         return false;
     }
@@ -243,7 +244,7 @@ app.on("ready", () => {
     const useCLI = checkIfCalledFromCLI(process.argv);
 
     if (useCLI) {
-        log.info("cli app");
+        log.info("cli app 2");
         mainCLI(process.argv);
     } else {
         log.info("gui");

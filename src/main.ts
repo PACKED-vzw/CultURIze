@@ -8,6 +8,7 @@ import { PublishRequest } from "./common/Objects/PublishObjects";
 import { publish } from "./main/Publishing/Publishing";
 import { User } from "./common/Objects/UserObject";
 import { getUserInfo } from "./main/Api/User";
+import { mainCLI } from "./cli";
 
 import fs = require("fs");
 import log = require("electron-log");
@@ -27,6 +28,17 @@ export let mainWindow: BrowserWindow;
  * It is null if the user is not connected.
  */
 let currentUser: User = null;
+
+function checkIfCalledFromCLI(args: any) {
+    if (!args || args.length <= 1) {
+        return false;
+    }
+    if (args.length === 2 && args[0].endsWith("electron")) {
+        return false;
+    } else {
+        return true;
+    }
+}
 
 /**
  * This function is called when the app is ready, and is tasked with
@@ -227,7 +239,17 @@ function isCurrentUserValid(): boolean {
 /**
  * Forwards the handling of the "ready" event to the "createWindow" function
  */
-app.on("ready", createWindow);
+app.on("ready", () => {
+    const useCLI = checkIfCalledFromCLI(process.argv);
+
+    if (useCLI) {
+        log.info("cli app");
+        mainCLI(process.argv);
+    } else {
+        log.info("gui");
+        createWindow();
+    }
+});
 
 /**
  * Handles the "all windows closed" event.

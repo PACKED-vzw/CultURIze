@@ -29,18 +29,6 @@ export let mainWindow: BrowserWindow;
  */
 let currentUser: User = null;
 
-function checkIfCalledFromCLI(args: any) {
-    log.info(args);
-    if (!args || args.length <= 1) {
-        return false;
-    }
-    if (args.length === 2 && args[0].endsWith("electron")) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
 /**
  * This function is called when the app is ready, and is tasked with
  * creating the main window.
@@ -241,15 +229,7 @@ function isCurrentUserValid(): boolean {
  * Forwards the handling of the "ready" event to the "createWindow" function
  */
 app.on("ready", () => {
-    const useCLI = checkIfCalledFromCLI(process.argv);
-
-    if (useCLI) {
-        log.info("cli app 2");
-        mainCLI(process.argv);
-    } else {
-        log.info("gui");
-        createWindow();
-    }
+    createWindow();
 });
 
 /**

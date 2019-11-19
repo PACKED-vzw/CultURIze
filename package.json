@@ -25,7 +25,7 @@
     "license": "MIT",
     "devDependencies": {
         "electron": "^6.0.3",
-        "electron-packager": "^14.0.0",
+        "electron-packager": "^14.0.4",
         "tslint": "^5.18.0",
         "typescript": "^3.5.2"
     },
@@ -33,11 +33,10 @@
         "@octokit/rest": "^16.28.2",
         "csv-parse": "^4.6.3",
         "electron-log": "^3.0.6",
-        "simple-git": "^1.116.0",
         "git-url-parse": "^11.1.2",
         "is-github-url": "^1.2.2",
-        "shelljs": "^0.8.3",
         "rimraf": "^2.6.3",
-        "yargs": "^14.2.0"
+        "shelljs": "^0.8.3",
+        "simple-git": "^1.116.0"
     }
 }

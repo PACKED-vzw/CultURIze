@@ -62,7 +62,7 @@ Check out [the wiki](https://github.com/PACKED-vzw/CultURIze/wiki).
 #### Contributing
 
 * [Coding Style](doc/Style.md): Read this before contributing to the project.
-* [Bugs and Features idea list](doc/Possible%20Improvements.md)
+* [Bugs and Features idea list](https://github.com/PACKED-vzw/CultURIze/issues)
 * [In-depth explanation of the internal flow of the desktop application](doc/pdf/flow.pdf)
 * Source code: the Source code for the HTML pages is contained in the [static](static/) folder, and the source code for the core logic in the [src](src/) folder.
   

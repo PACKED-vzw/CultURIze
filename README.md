@@ -1,3 +1,5 @@
+# CultURIze
+
 ![CulturizeLogo](static/assets/logo-culturize-klein.png)
 
 This is the GitHub repository for CultURIze.

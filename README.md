@@ -35,7 +35,7 @@ Check out [the wiki](https://github.com/PACKED-vzw/CultURIze/wiki).
 #### Requirements
 
 * [Node.js LTS](https://nodejs.org/en/)
-* [npm](https://www.npmjs.com/get-npm) is normally distributed with Node.js, which means that when you download Node.js, you automatically get npm installed on your computer. You can update `npm` to the latest version with `npm install npm@latest -g`
+* [npm](https://www.npmjs.com/get-npm) is normally distributed with Node.js, which means that when you download Node.js, you automatically get npm installed on your computer. You can update npm to the latest version with `npm install npm@latest -g`
 
 #### Build from source
 

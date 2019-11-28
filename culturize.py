@@ -1,42 +1,31 @@
 #!/usr/bin/env python
 
+# System imports
 from argparse import ArgumentParser
+from os import path
 import csv
 
-def parse_args():
-    """Build and parse cli arguments
-    :returns: arguments dict
-    """
+# Constants
+NGINX_CONF_FILE  = 'nginx_redirect.conf'
+APACHE_CONF_FILE = '.htaccess'
 
-    parser = ArgumentParser(description="Convert csv uri files to webserver redirect rules")
-    parser.add_argument('csv', help="CSV file to parse")
-    parser.add_argument('-t', '--target', required=True, choices=['apache', 'nginx'],
-                        help="target web server")
-#    parser.add_argument('-a', '--add', action='store_true',
-#                        help="add generated redirect rules to webserver config")
-    parser.add_argument('-d', '--dest',
-                        help="target file location")
-#    parser.add_argument('-y', '--yes', action='store_true',
-#                        help="default to yes on confirmation prompt")
+# Functions
+def construct_file_path(directory, file_name):
+    """Given a directory and a file_name, construct a full file_path."""
+    return path.join(directory, file_name)
 
-    return parser.parse_args()
-
-def construct_nginx_rules(entries):
-    """Nginx redirect rules"""
+def construct_webserver_rules(entries, webserver):
+    """Construct webserver redirect rules based on webserver."""
     lst = []
-    for row in entries:
-        lst.append(f"rewrite /{row['docType']}/{row['pid']}$ {row['url']} redirect")
-
-    return '\n'.join(lst)
-
-def construct_apache_rules(entries):
-    """Apache redirect rules"""
-    lst = []
-    for row in entries:
-        lst.append(f"RewriteRule ^{row['docType']}/{row['pid']}$ {row['url']} [R=302,NC,NE,L]")
-
-    result = "Options +FollowSymLinks\nRewriteEngine on\n\n"
-    return result + '\n'.join(lst)
+    if webserver == 'nginx':
+        prefix = ""
+        for row in entries:
+            lst.append(f"rewrite /{row['docType']}/{row['pid']}$ {row['url']} redirect")
+    else:
+        prefix = "Options +FollowSymLinks\nRewriteEngine on\n\n"
+        for row in entries:
+            lst.append(f"RewriteRule ^{row['docType']}/{row['pid']}$ {row['url']} [R=302,NC,NE,L]")
+    return prefix + '\n'.join(lst) + '\n'
 
 def is_valid_row(row):
     """check if a row is valid for transformation"""
@@ -46,7 +35,6 @@ def is_valid_row(row):
         return False
     if not row["URL"]:
         return False
-
     return True
 
 def parse_csv(filename):
@@ -58,29 +46,27 @@ def parse_csv(filename):
             if is_valid_row(row):
                 rows.append({"pid": row["PID"], "docType": row["document type"],
                              "url": row["URL"]})
-
     return rows
 
-def main():
+def main(args):
     """Main culturize function """
-    args = parse_args()
     rows = parse_csv(args.csv)
 
-    if args.target == "nginx":
-        result = construct_nginx_rules(rows)
-    else:
-        result = construct_apache_rules(rows)
+    file_name = NGINX_CONF_FILE if args.target == 'nginx' else APACHE_CONF_FILE
+    directory = args.dest if args.dest else ''
 
-    if not args.dest:
-        if args.target == "nginx":
-            dest = "nginx_redirect.conf"
-        else:
-            dest = ".htaccess"
-    else:
-        dest = args.dest
+    result = construct_webserver_rules(rows, args.target)
+    destination_file_path = construct_file_path(directory, file_name)
 
-    with open(dest, 'w') as destfile:
-        destfile.write(result)
+    with open(destination_file_path, 'w') as d:
+        d.write(result)
 
 if __name__ == "__main__":
-    main()
+    parser = ArgumentParser(description="Convert csv uri files to webserver redirect rules")
+    parser.add_argument('csv', help="CSV file to parse")
+    parser.add_argument('-t', '--target', required=True, choices=['apache', 'nginx'],
+                        help="target web server")
+    parser.add_argument('-d', '--dest',
+                        help="destination directory")
+    args = parser.parse_args()
+    main(args)

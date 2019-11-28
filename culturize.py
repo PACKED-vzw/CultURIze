@@ -20,7 +20,6 @@ def parse_args():
                         help="destination directory")
 #    parser.add_argument('-y', '--yes', action='store_true',
 #                        help="default to yes on confirmation prompt")
-
     return parser.parse_args()
 
 def construct_file_path(directory, file_name):
@@ -48,7 +47,6 @@ def is_valid_row(row):
         return False
     if not row["URL"]:
         return False
-
     return True
 
 def parse_csv(filename):
@@ -60,7 +58,6 @@ def parse_csv(filename):
             if is_valid_row(row):
                 rows.append({"pid": row["PID"], "docType": row["document type"],
                              "url": row["URL"]})
-
     return rows
 
 def main():
@@ -68,15 +65,8 @@ def main():
     args = parse_args()
     rows = parse_csv(args.csv)
 
-    if args.target == "nginx":
-        file_name = "nginx_redirect.conf"
-    else:
-        file_name = ".htaccess"
-
-    if args.dest:
-        directory = args.dest
-    else:
-        directory = ''
+    file_name = 'nginx_redirect.conf' if args.target == 'nginx' else '.htaccess'
+    directory = args.dest if args.dest else ''
 
     result = construct_webserver_rules(rows, args.target)
     destination_file_path = construct_file_path(directory, file_name)

@@ -27,22 +27,18 @@ def construct_file_path(directory, file_name):
     """Given a directory and a file_name, construct a full file_path."""
     return path.join(directory, file_name)
 
-def construct_nginx_rules(entries):
-    """Nginx redirect rules"""
+def construct_webserver_rules(entries, webserver):
+    """Construct webserver redirect rules based on webserver."""
     lst = []
-    for row in entries:
-        lst.append(f"rewrite /{row['docType']}/{row['pid']}$ {row['url']} redirect")
-
-    return '\n'.join(lst)
-
-def construct_apache_rules(entries):
-    """Apache redirect rules"""
-    lst = []
-    for row in entries:
-        lst.append(f"RewriteRule ^{row['docType']}/{row['pid']}$ {row['url']} [R=302,NC,NE,L]")
-
-    result = "Options +FollowSymLinks\nRewriteEngine on\n\n"
-    return result + '\n'.join(lst)
+    if webserver == 'nginx':
+        prefix = ""
+        for row in entries:
+            lst.append(f"rewrite /{row['docType']}/{row['pid']}$ {row['url']} redirect")
+    else:
+        prefix = "Options +FollowSymLinks\nRewriteEngine on\n\n"
+        for row in entries:
+            lst.append(f"RewriteRule ^{row['docType']}/{row['pid']}$ {row['url']} [R=302,NC,NE,L]")
+    return prefix + '\n'.join(lst) + '\n'
 
 def is_valid_row(row):
     """check if a row is valid for transformation"""
@@ -73,10 +69,8 @@ def main():
     rows = parse_csv(args.csv)
 
     if args.target == "nginx":
-        result = construct_nginx_rules(rows)
         file_name = "nginx_redirect.conf"
     else:
-        result = construct_apache_rules(rows)
         file_name = ".htaccess"
 
     if args.dest:
@@ -84,7 +78,9 @@ def main():
     else:
         directory = ''
 
+    result = construct_webserver_rules(rows, args.target)
     destination_file_path = construct_file_path(directory, file_name)
+
     with open(destination_file_path, 'w') as d:
         d.write(result)
 

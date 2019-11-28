@@ -74,12 +74,9 @@ def main():
 
     if args.target == "nginx":
         result = construct_nginx_rules(rows)
-    else:
-        result = construct_apache_rules(rows)
-
-    if args.target == "nginx":
         file_name = "nginx_redirect.conf"
     else:
+        result = construct_apache_rules(rows)
         file_name = ".htaccess"
 
     if args.dest:

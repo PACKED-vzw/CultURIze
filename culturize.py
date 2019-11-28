@@ -1,27 +1,15 @@
 #!/usr/bin/env python
 
+# System imports
 from argparse import ArgumentParser
 from os import path
 import csv
 
+# Constants
+NGINX_CONF_FILE  = 'nginx_redirect.conf'
+APACHE_CONF_FILE = '.htaccess'
 
-def parse_args():
-    """Build and parse cli arguments
-    :returns: arguments dict
-    """
-
-    parser = ArgumentParser(description="Convert csv uri files to webserver redirect rules")
-    parser.add_argument('csv', help="CSV file to parse")
-    parser.add_argument('-t', '--target', required=True, choices=['apache', 'nginx'],
-                        help="target web server")
-#    parser.add_argument('-a', '--add', action='store_true',
-#                        help="add generated redirect rules to webserver config")
-    parser.add_argument('-d', '--dest',
-                        help="destination directory")
-#    parser.add_argument('-y', '--yes', action='store_true',
-#                        help="default to yes on confirmation prompt")
-    return parser.parse_args()
-
+# Functions
 def construct_file_path(directory, file_name):
     """Given a directory and a file_name, construct a full file_path."""
     return path.join(directory, file_name)
@@ -60,12 +48,11 @@ def parse_csv(filename):
                              "url": row["URL"]})
     return rows
 
-def main():
+def main(args):
     """Main culturize function """
-    args = parse_args()
     rows = parse_csv(args.csv)
 
-    file_name = 'nginx_redirect.conf' if args.target == 'nginx' else '.htaccess'
+    file_name = NGINX_CONF_FILE if args.target == 'nginx' else APACHE_CONF_FILE
     directory = args.dest if args.dest else ''
 
     result = construct_webserver_rules(rows, args.target)
@@ -75,4 +62,11 @@ def main():
         d.write(result)
 
 if __name__ == "__main__":
-    main()
+    parser = ArgumentParser(description="Convert csv uri files to webserver redirect rules")
+    parser.add_argument('csv', help="CSV file to parse")
+    parser.add_argument('-t', '--target', required=True, choices=['apache', 'nginx'],
+                        help="target web server")
+    parser.add_argument('-d', '--dest',
+                        help="destination directory")
+    args = parser.parse_args()
+    main(args)

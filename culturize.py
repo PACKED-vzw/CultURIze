@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 from argparse import ArgumentParser
+from os import path
 import csv
+
 
 def parse_args():
     """Build and parse cli arguments
@@ -15,11 +17,15 @@ def parse_args():
 #    parser.add_argument('-a', '--add', action='store_true',
 #                        help="add generated redirect rules to webserver config")
     parser.add_argument('-d', '--dest',
-                        help="target file location")
+                        help="destination directory")
 #    parser.add_argument('-y', '--yes', action='store_true',
 #                        help="default to yes on confirmation prompt")
 
     return parser.parse_args()
+
+def construct_file_path(directory, file_name):
+    """Given a directory and a file_name, construct a full file_path."""
+    return path.join(directory, file_name)
 
 def construct_nginx_rules(entries):
     """Nginx redirect rules"""
@@ -71,16 +77,19 @@ def main():
     else:
         result = construct_apache_rules(rows)
 
-    if not args.dest:
-        if args.target == "nginx":
-            dest = "nginx_redirect.conf"
-        else:
-            dest = ".htaccess"
+    if args.target == "nginx":
+        file_name = "nginx_redirect.conf"
     else:
-        dest = args.dest
+        file_name = ".htaccess"
 
-    with open(dest, 'w') as destfile:
-        destfile.write(result)
+    if args.dest:
+        directory = args.dest
+    else:
+        directory = ''
+
+    destination_file_path = construct_file_path(directory, file_name)
+    with open(destination_file_path, 'w') as d:
+        d.write(result)
 
 if __name__ == "__main__":
     main()

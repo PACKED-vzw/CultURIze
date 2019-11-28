@@ -3,23 +3,24 @@
  * The PublishRequest object and the PublishRequestResult object.
  */
 
-import { User } from './UserObject'
+import { User } from "./UserObject";
 
 /**
  * Encapsulates a request to publish a CSV file
  */
 export class PublishRequest {
-    csvPath: string;
-    subdir: string;
-    repoUrl: string;
-    branch: string;
-    commitMsg: string;
-    prTitle: string;
-    prBody : string
-    user: User;
+    public csvPath: string;
+    public subdir: string;
+    public repoUrl: string;
+    public branch: string;
+    public commitMsg: string;
+    public prTitle: string;
+    public prBody: string;
+    public user: User;
+    public forApache: boolean;
 
     /**
-     * Note: this constructor doesn't take the user object, because it's 
+     * Note: this constructor doesn't take the user object, because it's
      * manually filled by the main process when it passes the request along, and
      * not filled at creation of the object (which is done by the renderer process, which
      * doesn't access to the full user object)
@@ -32,15 +33,16 @@ export class PublishRequest {
      * @param {string} prTitle The title of the pull request, if one is made
      * @param {string} prBody The body of the pull request, if one is made.
      */
-    constructor(csv: string, dir: string, url: string,
-    branch: string, commitMsg: string, prTitle: string, prBody: string) {
+    constructor(csv: string, dir: string, url: string, branch: string, commitMsg: string,
+                prTitle: string, prBody: string, forApache: boolean) {
         this.csvPath = csv;
         this.subdir = dir;
         this.repoUrl = url;
         this.branch = branch;
-        this.commitMsg = commitMsg
+        this.commitMsg = commitMsg;
         this.prTitle = prTitle;
         this.prBody = prBody;
+        this.forApache = forApache;
     }
 
     /**
@@ -64,10 +66,10 @@ export class PublishRequest {
  * This class encapsulates the result of a Publish request.
  */
 export class PublishRequestResult {
-    successful: boolean;
-    error: string;
-    numLinesAccepted: number;
-    numLinesRejected: number;
+    public successful: boolean;
+    public error: string;
+    public numLinesAccepted: number;
+    public numLinesRejected: number;
 
     /**
      * @constructor

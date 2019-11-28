@@ -8,9 +8,9 @@ const dialog = remote.dialog;
 /**
  * The type of the callback that's called when the user is done
  * looking for a file (dialog box is closed)
- * 
+ *
  * The first arg is the path to the file (maybe null)
- * 
+ *
  * The second arg is the error message, if applicable (maybe null)
  */
 type FileFoundCallback = (filepath: string, errorMsg: string) => void;
@@ -37,9 +37,9 @@ export async function lookForFile(callback: FileFoundCallback) {
         },
         (files: string[]) => {
             if (files) {
-                if (files.length !== 1) {
+                if (files.length > 1) {
                     callback(null, "Too many files selected!");
-                } else {
+                } else if (files.length === 1) {
                     callback(files[0], "");
                 }
             } else {
@@ -60,6 +60,9 @@ export async function lookForFile(callback: FileFoundCallback) {
  * @param {string} prTitle  GitHub Pull Request title
  * @param {string} prBody   GitHub Pull Request body.
  */
-export function publish(filepath: string, subdir: string, repoUrl: string, branch: string, commitMsg: string, prTitle: string, prBody: string) {
-   ipcRenderer.send("request-publishing", new PublishRequest(filepath, subdir, repoUrl, branch, commitMsg, prTitle, prBody ));
+export function publish(filepath: string, subdir: string, repoUrl: string, branch: string,
+                        commitMsg: string, prTitle: string, prBody: string, forApache: boolean) {
+   ipcRenderer.send("request-publishing",
+                    new PublishRequest(filepath, subdir, repoUrl, branch,
+                                       commitMsg, prTitle, prBody, forApache));
 }

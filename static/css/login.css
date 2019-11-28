@@ -103,7 +103,7 @@ button#signin_button {
   padding-top: 2rem;
 }
 
-.create-one-link{
+.create-one-link {
   text-decoration: none;
   color: #1CD2A7;
   font-family: "montserrat-semibold";
@@ -111,11 +111,11 @@ button#signin_button {
   cursor: pointer;
 }
 
-.create-one-link:hover{
+.create-one-link:hover {
   border-bottom: 0.2rem solid #1CD2A7;
 }
 
-footer{
+footer {
   opacity: 0.5;
   height: 8rem;
   background-color: #DEDEE9;

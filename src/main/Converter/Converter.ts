@@ -7,7 +7,7 @@ const csv_parser = require("csv-parse");
 const fs = require("fs");
 const log = require('electron-log');
 
-import { CSVConf, HTAccessConf } from "./../../culturize.conf"
+import { CSVConf, HTAccessConf } from "./../../culturize.conf";
 
 /**
  * This is a function type used by createArrayFromCSV which is
@@ -32,10 +32,13 @@ export class CSVRow {
      * @static
      * @returns a Promise, resolved with the result on success, rejected with an error message on error.
      * @param {string} filepath The path to the .csv file
-     * @param {OnAcceptRow} rowAccept The function that will be called when a row is accepted (= satisfies every requirement) and pushed to the array.
-     * @param {OnRejectRow} rowReject The function that will be called when a row is rejected (= insufficient/incompatible data)
+     * @param {OnAcceptRow} rowAccept The function that will be called when a row is accepted
+     *                      (= satisfies every requirement) and pushed to the array.
+     * @param {OnRejectRow} rowReject The function that will be called when a row is rejected
+     *                      (= insufficient/incompatible data)
      */
-    public static createArrayFromCSV(filepath: string, rowAccept: OnAcceptRow, rowReject: OnRejectRow): Promise<CSVRow[]> {
+    public static createArrayFromCSV(filepath: string, rowAccept: OnAcceptRow,
+                                     rowReject: OnRejectRow): Promise<CSVRow[]> {
         return new Promise<CSVRow[]>((resolve, reject) => {
             // Read the file to a buffer
             const str: string = fs.readFileSync(filepath, "utf8");
@@ -59,7 +62,7 @@ export class CSVRow {
 
                     // Makes the parser discard
                     // inconsistent column count instead of crashing
-                    relax_column_count: true
+                    relax_column_count: true,
                 });
 
             // Set the functions that handles the parsing process
@@ -69,25 +72,22 @@ export class CSVRow {
                     const row: CSVRow = CSVRow.createRow(data);
                     if (row != null) {
                         // If it isn't null, check the 'legality'/validity of the row
-                        let validity = row.isValid()
-                        if(validity != null)
-                        {
+                        const validity = row.isValid();
+                        if (validity != null) {
                             rowReject(row);
-                            if(!CSVConf.IGNORE_ON_INVALID_DATA) {
-                                log.warn('The CSV file contains invalid data:' + validity)
-                                reject(validity)
+                            if (!CSVConf.IGNORE_ON_INVALID_DATA) {
+                                log.warn("The CSV file contains invalid data:" + validity);
+                                reject(validity);
                                 break;
                             }
-                        }
-                        else
-                        {
+                        } else {
                             // We're good, push
                             rowAccept(row);
                             array.push(row);
                         }
-                    }
-                    else
+                    } else {
                         rowReject(row);
+                    }
                 }
             });
 
@@ -100,14 +100,11 @@ export class CSVRow {
             // Sets the function that finishes the parsing
             // process
             parser.on("finish", () => {
-                if(array.length === 0)
-                {
+                if (array.length === 0) {
                     log.error("No valid row found in the CSV File.");
                     reject("No valid row found in the CSV File.");
                     return;
-                }
-                else
-                {
+                } else {
                     // If the array contains something, check it for
                     // duplicates
                     CSVRow.checkArrayForDuplicates(array)
@@ -115,8 +112,8 @@ export class CSVRow {
                             resolve(array);
                         })
                         .catch((reason: string) => {
-                            reject(reason)
-                        })
+                            reject(reason);
+                        });
                 }
             });
 
@@ -152,23 +149,23 @@ export class CSVRow {
      * an error message if it contains duplicates.
      * @param {CSVRow[]} array The array to be checked
      */
-    private static checkArrayForDuplicates(array: CSVRow[]) : Promise<void> {
-        return new Promise<void>((resolve,reject) => {
-            let redirs = new Array<string>()
+    private static checkArrayForDuplicates(array: CSVRow[]): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            const redirs = new Array<string>();
 
             // Iterate over the array, and populate the "redirs" array
             // with strings of the form element.docType + '/' + element.pid
-            for(let element of array)
-            {
-                let tmp: string = element.docType + '/' + element.pid;
+            for (const element of array) {
+                let tmp: string = element.docType + "/" + element.pid;
 
                 // If the redirections are going to be case insensitive,
                 // compare all the redirections in uppercase.
                 // If we ignored this step, we could generate false positives,
                 // claiming that the array doesn't contain duplicate redirections
                 // while it does.
-                if(HTAccessConf.caseInsensitiveRedirs)
+                if (HTAccessConf.caseInsensitiveRedirs) {
                     tmp = tmp.toUpperCase();
+                }
 
                 redirs.push(tmp);
             }
@@ -177,21 +174,19 @@ export class CSVRow {
             redirs.sort();
 
             // Check if there's a place where the (element before) === (element after)
-            let duplicates = new Array<string>();
-            let redirs_length = redirs.length;
-            for(let k = 0; k < redirs_length - 1; k++) {
-                if(redirs[k] == redirs[k+1]) {
+            const duplicates = new Array<string>();
+            const redirsLength = redirs.length;
+            for (let k = 0; k < redirsLength - 1; k++) {
+                if (redirs[k] === redirs[k + 1]) {
                     duplicates.push(redirs[k]);
                 }
             }
 
             // Check if the duplicates contains anything
-            if(duplicates.length !== 0)
-            {
+            if (duplicates.length !== 0) {
                 // Create a "diagnostic" string that contains every duplicate
-                let diagStr : string = "Duplicate redirections found: "
-                for(let duplicate of duplicates)
-                {
+                let diagStr: string = "Duplicate redirections found: ";
+                for (const duplicate of duplicates) {
                     log.error(`Duplicate redirection of ${duplicate}`);
                     diagStr += duplicate + ", ";
                 }
@@ -201,48 +196,8 @@ export class CSVRow {
 
             // If we passed every check, we are good!
             resolve();
-        })
+        });
     }
-
-    /**
-     * Helper function that checks if a CSVRow instance contains
-     * valid data.
-     *
-     * @returns null if the row is valid, or an error message if it isn't.
-     */
-    private isValid() : string {
-        /**
-         * Checks if a string obeys the "^([a-z]|[A-Z]|[0-9]|-|_)+$"
-         * regular expression.
-         *
-         * TL;DR: The string can only contains uppercase/lowercase letters, numbers, dashes and underscores.
-         * @param {string} text The string to be checked
-         * @returns True if the string is considered valid, false otherwise.
-         */
-        let fn = (text: string) : boolean => {
-            return /^([a-z]|[A-Z]|[0-9]|-|_)+$/.test(text);
-        }
-
-        // Check if the doctype isn't empty
-        if(this.docType !== "")
-        {
-            // If the document type is not empty, check if it's recognized by the Regular Expression.
-            // If it isn't, we have an error.
-            if(!fn(this.docType))
-                return "The document type \"" + this.docType + "\" contains invalid characters";
-        }
-        // If the doctype is empty, check if it's allowed. If it isn't -> error.
-        else if(!CSVConf.ALLOW_NO_DOCTYPE)
-            return "No document type in row";
-
-        // Check the PID.
-        if(!fn(this.pid))
-            return "The PID \"" + this.pid + "\" contains invalid characters";
-
-        // If we passed all the checks, return "null" (for success)
-        return null;
-    }
-
 
     /**
      * Checks if a row of data satisfies the minimum requirements to form a
@@ -265,7 +220,8 @@ export class CSVRow {
             const data = row[key];
             return (data != null) && (data !== "");
         };
-        return isValid(CSVConf.COL_PID) && isValid(CSVConf.COL_URL) && (isValid(CSVConf.COL_DOCTYPE) || CSVConf.ALLOW_NO_DOCTYPE);
+        return isValid(CSVConf.COL_PID) && isValid(CSVConf.COL_URL)
+                && (isValid(CSVConf.COL_DOCTYPE) || CSVConf.ALLOW_NO_DOCTYPE);
     }
 
     /**
@@ -286,9 +242,9 @@ export class CSVRow {
     }
 
     // Members
-    pid: string;
-    docType: string;
-    url: string;
+    public pid: string;
+    public docType: string;
+    public url: string;
 
     /**
      * The constructor of the class, which is private so it can
@@ -300,13 +256,107 @@ export class CSVRow {
      */
     private constructor(pid: string, docType: string, url: string) {
         this.pid = pid.trim();
-        if(docType != null)
+        if (docType != null) {
             this.docType = docType.trim();
-        else
-            this.docType = ""
+        } else {
+            this.docType = "";
+        }
         // Replace "%" with "\%" to prohibit apache from
         // recognizing it as a regex substitution argument.
         this.url = url.trim().replace("%", "\\%");
+    }
+
+    /**
+     * Helper function that checks if a CSVRow instance contains
+     * valid data.
+     *
+     * @returns null if the row is valid, or an error message if it isn't.
+     */
+    private isValid(): string {
+        /**
+         * Checks if a string obeys the "^([a-z]|[A-Z]|[0-9]|-|_)+$"
+         * regular expression.
+         *
+         * TL;DR: The string can only contains uppercase/lowercase letters, numbers, dashes and underscores.
+         * @param {string} text The string to be checked
+         * @returns True if the string is considered valid, false otherwise.
+         */
+        const fn = (text: string): boolean => {
+            return /^([a-z]|[A-Z]|[0-9]|-|_)+$/.test(text);
+        };
+
+        // Check if the doctype isn't empty
+        if (this.docType !== "") {
+            // If the document type is not empty, check if it's recognized by the Regular Expression.
+            // If it isn't, we have an error.
+            if (!fn(this.docType)) {
+                return "The document type \"" + this.docType + "\" contains invalid characters";
+            }
+        // If the doctype is empty, check if it's allowed. If it isn't -> error.
+        } else if (!CSVConf.ALLOW_NO_DOCTYPE) {
+            return "No document type in row";
+        }
+
+        // Check the PID.
+        if (!fn(this.pid)) {
+            return "The PID \"" + this.pid + "\" contains invalid characters";
+        }
+
+        // If we passed all the checks, return "null" (for success)
+        return null;
+    }
+}
+
+/**
+ * This class manages the nginx configuration file creation
+ * process from a CSVRow[]
+ */
+export class NginxConfCreator {
+    private csvArray: CSVRow[];
+
+    /**
+     * @constructor
+     * @param {CSVRow[]} csvArray The array that will be converted to nginx config
+     */
+    constructor(csvArray: CSVRow[]) {
+        this.csvArray = csvArray;
+    }
+
+    /**
+     * Compiles the array to nginx config
+     * @returns The nginx config file content
+     */
+    public makeNginxConfFile(): string {
+        // Create the header
+        let data: string = "";
+
+        // Create the RewriteRule for each CSVRow
+        for (const row of this.csvArray) {
+            data += this.getRewriteRule(row) + "\n";
+        }
+
+        return data;
+    }
+
+    /**
+     * Creates a nginx "RewriteRule" from a CSVRow.
+     *
+     * @param {CSVRow} row The row
+     * @returns The string containing the RewriteRule
+     */
+    private getRewriteRule(row: CSVRow): string {
+        if (row.pid === "" || row.url === "") {
+            return "";
+        }
+
+        // Create redirection
+        let redir: string = "";
+        if (row.docType !== "") {
+            redir = row.docType + "/" + row.pid;
+        } else {
+            redir = row.pid;
+        }
+        return `rewrite ^/${redir}$ ${row.url} redirect`;
     }
 }
 
@@ -315,7 +365,7 @@ export class CSVRow {
  * process from a CSVRow[]
  */
 export class HTAccessCreator {
-    csvArray: CSVRow[];
+    private csvArray: CSVRow[];
 
     /**
      * @constructor
@@ -334,7 +384,7 @@ export class HTAccessCreator {
         let data: string = this.getHeader() + "\n\n";
 
         // Create the RewriteRule for each CSVRow
-        for(let row of this.csvArray) {
+        for (const row of this.csvArray) {
             data += this.getRewriteRule(row) + "\n";
         }
 
@@ -361,35 +411,38 @@ export class HTAccessCreator {
         }
 
         // Create options
-        let options : string = "R=" + HTAccessConf.redirectionCode;
-        if(HTAccessConf.caseInsensitiveRedirs)
+        let options: string = "R=" + HTAccessConf.redirectionCode;
+        if (HTAccessConf.caseInsensitiveRedirs) {
             options += ",NC";
-        if(HTAccessConf.noEscape)
+        }
+        if (HTAccessConf.noEscape) {
             options += ",NE";
+        }
         options += ",L";
 
         // Create redirection
-        let redir : string = "";
-        if(row.docType != "")
-            redir = row.docType + '/' + row.pid;
-        else
+        let redir: string = "";
+        if (row.docType !== "") {
+            redir = row.docType + "/" + row.pid;
+        } else {
             redir = row.pid;
+        }
         return `RewriteRule ^${redir}$ ${row.url} [${options}]`;
     }
 }
 
 /**
- * This class encapsulates the result of a HTAccess conversion process.
+ * This class encapsulates the result of a conversion process.
  * This essentially contains the data (the string) as well as some statistics
  * on how the process went.
  */
-export class HTAccessConversionResult {
+export class ConversionResult {
     // The file content
-    file: string;
+    public file: string;
 
     // Stats
-    numLinesRejected: number;
-    numLinesAccepted: number;
+    public numLinesRejected: number;
+    public numLinesAccepted: number;
 
     /**
      * @constructor
@@ -407,14 +460,15 @@ export class HTAccessConversionResult {
 /**
  * This function orchestrates the conversion process. You give it
  * a path to a .csv file as input ("filepath"), and if everything
- * goes right it'll return back a response object (HTAccessConversionResult)
+ * goes right it'll return back a response object (ConversionResult)
  * containing the .htaccess file content.
  * @param {string} filepath The path to the .csv rile
- * @returns a Promise of a HTAccessConversionResult, resolved on success, rejected with an error message
+ * @param {boolean} forApache Flag to see if configuration for apache or nginx is requested
+ * @returns a Promise of a ConversionResult, resolved on success, rejected with an error message
  * on error.
  */
-export function convertCSVtoHTACCESS(filepath: string): Promise<HTAccessConversionResult> {
-    return new Promise<HTAccessConversionResult>((resolve, reject) => {
+export function convertCSVtoWebConfig(filepath: string, forApache: boolean): Promise<ConversionResult> {
+    return new Promise<ConversionResult>((resolve, reject) => {
         // Counters
         let numAccepted: number = 0;
         let numRejected: number = 0;
@@ -430,8 +484,13 @@ export function convertCSVtoHTACCESS(filepath: string): Promise<HTAccessConversi
             numRejected ++;
         })
         .then((value: CSVRow[]) => {
-                const creator = new HTAccessCreator(value);
-                resolve(new HTAccessConversionResult(creator.makeHTAccessFile(),numRejected,numAccepted));
+                if (forApache) {
+                    const creator = new HTAccessCreator(value);
+                    resolve(new ConversionResult(creator.makeHTAccessFile(), numRejected, numAccepted));
+                } else {
+                    const creator = new NginxConfCreator(value);
+                    resolve(new ConversionResult(creator.makeNginxConfFile(), numRejected, numAccepted));
+                }
             })
         .catch((error: string) => {
             reject(error);

@@ -1,261 +1,349 @@
+/*
+contents:
+- fonts and background
+- navigation bar
+  - profile
+  - buttons
+- main screen:
+  - form
+  - tooltips
+  - buttons
+- feedback screen
+*/
+
+
+/* fonts and backgrounds */
+
+@font-face {
+    font-family: "montserrat-medium";
+    src: url("../assets/font/montserrat/montserrat-medium.woff") format("woff"), url("../assets/font/montserrat/montserrat-medium.woff") format("woff");
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "montserrat-semibold";
+    src: url("../assets/font/montserrat/montserrat-semibold.woff") format("woff"), url("../assets/font/montserrat/montserrat-semibold.woff") format("woff");
+}
+
+body {
+    background-image: url("../assets/bg.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
 html {
-  font-size: 62.5%;
-  box-sizing: border-box;
+    font-size: 62.5%;
+    box-sizing: border-box;
+    font-family: 'montserrat-medium', 'Karla', sans-serif;
 }
 
-*, *::before, *::after {
-  box-sizing: inherit;
+*,
+*::before,
+*::after {
+    box-sizing: inherit;
+    font-family: 'montserrat-medium', 'Karla', sans-serif;
 }
 
-body{
 
-  background-image: url("../assets/bg.png");
-  background-size: cover;
-  background-repeat: no-repeat;
+/* navigation bar - profile */
+
+.profile-div {
+    opacity: 0.9;
+    height: 7rem;
+    background-color: #F2F4F2;
 }
 
-.main-div{
-  position: fixed;
-    top: 50%;
+.profile {
+    width: 95%;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 6rem;
+    text-align: left;
+    width: 20rem;
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+.pf-name {
+    color: #727D85;
+    font-size: 2.3rem;
+    font-weight: bolder;
+    text-align: left !important;
+    margin-left: 0 !important;
+}
+
+.pf-pic {
+    border-radius: 100rem;
+    margin-right: 1rem;
+}
+
+
+/* navigation bar - buttons right */
+
+.pf-menu-right {
+    color: #9CA1A4;
+    font-size: 1.4rem;
+    border-bottom: 0.2rem solid #F2F7F7;
+    padding-bottom: 0.2rem;
+    font-size: 2rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.pf-menu-right button:hover {
+    border-bottom: 0.2rem solid #15B28E;
+}
+
+.button-menu {
+    background-color: #F2F4F2;
+    padding: 1rem;
+    font-size: 1.4rem;
+    border: none;
+}
+
+.button-menu:hover {
+    color: white;
+    border-radius: 6rem;
+    cursor: pointer;
+}
+
+.button-menu:hover .tooltiptext {
+    font-size: 1rem !important;
+    width: 10rem !important;
+}
+
+
+/* main screen - form */
+
+.main-div {
+    position: fixed;
+    top: 55%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
 
-.kader{
-  margin-top: 7rem;
-  background-color: #F3F4F3;
-  width: 80rem;
-  height: 55rem;
-  display: flex;
-  justify-content: flex-start;
-  /* margin: 0 auto; */
-
-  border-radius: 6rem;
-  flex-direction: column;
-
-  padding: 8rem;
-  box-shadow: 0px 0px 130px #8E8F92;
+.kader {
+    margin-top: 7rem;
+    background-color: #F3F4F3;
+    width: 80rem;
+    max-height: 55rem;
+    display: flex;
+    justify-content: flex-start;
+    /* margin: 0 auto; */
+    border-radius: 6rem;
+    flex-direction: column;
+    padding: 8rem 8rem 3rem 8rem;
+    box-shadow: 0px 0px 10px #8E8F92;
 }
 
-#feedback-div{
-  margin-top: 3rem;
-  background-color: #F3F4F3;
-  height: 8rem;
-  border-radius: 3.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0px 0px 50px rgba(142, 143, 146, 0.5);
+.formrow {
+    padding: 1rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
 }
 
-.formrow{
-  padding:1rem;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+.label-info {
+    min-width: 30%;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: baseline;
 }
 
-form{
-  width: 70rem;
-  height: 130rem;
+.p-form {
+    color: #667E86;
+    font-size: 1.4rem;
+    margin-right: 0.2rem;
 }
 
-.p-form{
-  color:#667E86;
-  font-family: 'Karla', sans-serif;
-  font-size: 1.6rem;
-  margin-right: 2rem;
+.input-form {
+    background-color: #FEFFFE;
+    border-radius: 0.6rem;
+    border: none;
+    height: 2.5rem;
+    width: 80%;
+    outline: none;
 }
 
-#opts_more{
-  margin:0;
-  padding:0;
+
+/* main screen - form - radio buttons*/
+
+.radio-group {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-content: center;
+    font-size: 1.4rem;
+    background-color: #F3F4F3;
 }
 
-.input-form{
-  background-color: #FEFFFE;
-  border-radius: 0.6rem;
-  border: none;
-  height: 2.5rem;
-  width: 20rem;
-  outline: none;
+.server {
+    margin-right: 5rem;
 }
 
-.input-form-large{
-  background-color: #FEFFFE;
-  border-radius: 0.6rem;
-  border: none;
-  height: 2.5rem;
-  width: 50rem;
-  outline: none;
+.server input[type='radio'] {
+    margin-right: 1.2rem;
 }
 
-.input-submit{
-  border-radius: 1.5rem;
-  color: white;
-  background-color: #1CD2A7;
-  border: none;
-  height: 2.5rem;
-  margin-left: 2rem;
-  width: 7rem;
-  outline: none;
-  transition: background-color 0.5s ease;
-
+.server input[type='radio']:checked + label {
+    font-family: 'montserrat-semibold';
 }
 
-.input-submit:hover{
-  background-color: #15B28E;
+#opts_more {
+    margin: 0;
+    padding: 0;
 }
 
-.submit-p{
-  font-size: 1.3rem;
-  font-family: 'Karla', sans-serif;
+
+/* main screen - tooltips */
+
+.info {
+    background-color: #E4E6EB;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: none;
+    border-radius: 2rem;
+    color: #9CA1A4;
+    transition: background-color 0.5s ease !important;
+    outline: none;
 }
 
-.button{
-  font-family: 'Karla', sans-serif;
-  position: relative;
-  color:white;
-  font-size: 1.8rem;
-  height: 3rem;
-  background-color: #1CD2A7;
-  border-radius: 8rem;
-  padding: 3rem;
-  outline: none;
-  transition: all 0.5s ease;
-  border: none;
+.info:hover {
+    color: #DDE0EB;
 }
 
-.button.extra{
-  transform:scale(0.75);
-  height:5rem;
-  width:5rem;
-  font-size:5rem;
-  background-color: rgb(39, 163, 134);
+.info .tooltiptext,
+.button-menu .tooltiptext {
+    visibility: hidden;
+    display: none;
+    width: 0;
+    margin: 0;
+    padding: 0;
 }
 
-.button.extra:enabled:hover{
-  background-color: rgb(81, 180, 157);
-  transform:scale(0.85);
-}
-
-.button.extra:enabled:active{
-  background-color: rgb(81, 180, 157);
-  transition: all 0.15s ease;
-  transform:scale(0.75);
-}
-
-.button:enabled:hover{
-  background-color: #15B28E;
-  transform:scale(1.05);
-}
-
-.button:disabled{
-  background-color: rgb(11, 90, 72);
-}
-
-button#publish_button {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-button#extra_button {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  outline: none;
-}
-
-.buttons{
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  margin-top: 6rem;
-  bottom: 0 !important;
-}
-
-.info{
-  background-color: #E4E6EB;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: none;
-  border-radius: 2rem;
-  margin-left: 1.5rem;
-  color:#9CA1A4;
-  font-family: 'Karla', sans-serif;
-  transition: background-color 0.5s ease;
-  outline: none;
-}
-
-.info:hover{
-  background-color: #DDE0EB;
-
-}
-
-.profile-div{
-  opacity: 0.9;
-  height: 8rem;
-  background-color: #F2F4F2;
-}
-
-.pf-pic{
-  border-radius: 100rem;
-}
-
-.profile{
-  width: 96rem;
-  margin: auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.pf-menu-right{
-  font-family: 'Karla', sans-serif;
-  color:#9CA1A4;
-  font-size: 1.4rem;
-  text-decoration: none;
-  border-bottom: 0.2rem solid #F2F7F7;
-  padding-bottom: 0.2rem;
-  font-size:2rem;
-  cursor: pointer;
-}
-
-.pf-menu-right a:hover{
-  border-bottom: 0.2rem solid #15B28E;
-}
-
-.profile-info{
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  height: 6rem;
-  text-align:left;
-  width:20rem;
-  justify-content: space-between;
-  margin-top: 1rem;
-}
-
-.pf-name{
-  font-family: 'Karla', sans-serif;
-  color:#727D85;
-  font-size: 2.3rem;
-  font-weight:bolder;
-  text-align: left !important;
-  margin-left: 0 !important;
-}
 
 /* Show the tooltip text when you mouse over the tooltip container */
-.tooltip:hover .tooltiptext {
+
+.info:hover .tooltiptext,
+.button-menu:hover .tooltiptext {
+    display: inline-block;
     visibility: visible;
+    width: 30rem;
+    padding: 0.5rem;
+    background-color: black;
+    position: absolute;
+    z-index: 1000;
+    text-align: start;
+    opacity: 0.8;
+    border-radius: 0.5rem;
+    border: none;
 }
 
-#feedback{
-  font-size:2.33rem;
-  font-family: 'Karla', sans-serif;
-  font-weight:bolder;
+.tooltiptext a {
+    color: rgb(81, 180, 157);
+}
+
+.tooltiptext a:hover {
+    color: pink;
+}
+
+
+/* main screen - buttons */
+
+.choose-csv {
+    border-radius: 1.5rem;
+    color: white;
+    background-color: #1CD2A7;
+    border: none;
+    height: 2.5rem;
+    margin-left: 2rem;
+    width: 7rem;
+    outline: none;
+    transition: background-color 0.5s ease;
+    font-size: 1.3rem;
+}
+
+.choose-csv:hover {
+    background-color: #15B28E;
+}
+
+.button {
+    position: relative;
+    color: white;
+    font-size: 1.6rem;
+    height: 2.5rem;
+    background-color: #1CD2A7;
+    border-radius: 8rem;
+    padding: 2rem;
+    outline: none;
+    transition: all 0.5s ease;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.button.extra:enabled:hover {
+    background-color: rgb(81, 180, 157);
+    transform: scale(0.85);
+}
+
+.button.extra:enabled:active {
+    background-color: rgb(81, 180, 157);
+    transition: all 0.15s ease;
+    transform: scale(0.75);
+}
+
+button:enabled:hover {
+    background-color: #15B28E;
+    transform: scale(1.05);
+}
+
+#extra_button:enabled:hover {
+    transform: scale(0.85);
+}
+
+.button:disabled {
+    background-color: rgb(11, 90, 72);
+}
+
+.buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 4rem;
+    bottom: 0 !important;
+}
+
+
+/* feedback screen */
+
+#feedback-div {
+    margin-top: 3rem;
+    background-color: #F3F4F3;
+    height: 8rem;
+    border-radius: 3.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0px 0px 10px rgba(142, 143, 146, 0.5);
+}
+
+#feedback {
+    font-size: 2.33rem;
+    font-family: 'Karla', sans-serif !important;
+    font-weight: bolder;
 }

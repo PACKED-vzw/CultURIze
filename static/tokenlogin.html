@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/tokenlogin.css">
+    <title>Culturize - Sign in</title>
+</head>
+
+<body>
+    <main>
+        <div class="box">
+            <header> <img src="assets/logo-culturize.png" alt="" width="238" height="102">
+                <h1>Welcome</h1>
+            </header>
+            <form onsubmit="actOnSubmit(); return false">
+                <p class="sign-in-p">Get a <a href="https://github.com/settings/tokens/new" class="link"
+                        target="_blank">Github access token</a> to sign in</p>
+                <p id="login-error-feedback">(feedback placeholder)</p>
+                <input class="input-form" id="github-pat" required placeholder="Enter access token"
+                    onfocus="this.placeholder = ''" onblur="this.placeholder='Enter access token'">
+                <button id="validate_button" class="button" type="submit"><span>Sign in</span></button>
+            </form>
+            <p class="no-account">No GitHub account? <a class="link" href="https://github.com/join" target="_blank">
+                    Create one!</a></p>
+            <!-- <p class="no-account">Having issues ? <a class="link" onclick="actOnHardReset()">
+        Hard reset</a> the app.</p> -->
+        </div>
+    </main>
+    <footer>
+        <div class="footer-logos-div">
+            <a href="https://packed.be" target="_blank" class="footer-logo"> <img src="assets/logo-packed.svg"
+                    alt="logo-packed" width="130" height="70"> </a>
+            <a href="https://2018.summerofcode.be/culturize.html" target="_blank" class="footer-logo"> <img
+                    src="assets/logo-osoc.svg" alt="logo-osoc" width="70" height="80"> </a>
+            <a href="https://github.com/PACKED-vzw/CultURIze" target="_blank" class="footer-logo"> <img id="github"
+                    src="assets/logo-github.png" alt="logo-github" height="40"> </a>
+        </div>
+    </footer>
+</body>
+<script>
+    const electron = require('electron')
+    const shell = electron.shell
+    const ipc = electron.ipcRenderer
+    const loginToken = document.getElementById('github-pat')
+    const validateBtn = document.getElementById('validate_button')
+    const loginFeedback = document.getElementById('login-error-feedback')
+    loginFeedback.style.visibility = 'hidden'
+
+    function actOnSubmit() {
+        ipc.send('validate-token', loginToken.value)
+        validateBtn.setAttribute('disabled', 'disabled')
+    }
+
+    function actOnHardReset() {
+        ipc.send('hard-reset');
+    }
+    ipc.on('login-failure', (event, arg) => {
+        validateBtn.removeAttribute('disabled')
+        loginFeedback.style.visibility = 'visible'
+        loginFeedback.innerHTML = 'Token seems to be invalid or doesn\' have the correct scope'
+    })
+    ipc.on('token-expired', (event) => {
+        validateBtn.removeAttribute('disabled')
+        loginFeedback.style.visibility = 'visible'
+        loginFeedback.innerHTML = 'Token seems to be expired, please provide a new one'
+    })
+</script>
+
+</html>

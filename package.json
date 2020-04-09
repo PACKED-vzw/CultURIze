@@ -32,7 +32,7 @@
     "dependencies": {
         "@octokit/rest": "^16.28.2",
         "csv-parse": "^4.6.3",
-        "electron-lo": "^3.0.6",
+        "electron-log": "^3.0.6",
         "git-url-parse": "^11.1.2",
         "is-github-url": "^1.2.2",
         "rimraf": "^2.6.3",

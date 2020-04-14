@@ -20,7 +20,7 @@ def construct_webserver_rules(entries, webserver):
     if webserver == 'nginx':
         prefix = ""
         for row in entries:
-            lst.append(f"rewrite /{row['docType']}/{row['pid']}$ {row['url']} redirect")
+            lst.append(f"rewrite /{row['docType']}/{row['pid']}$ {row['url']} redirect ;")
     else:
         prefix = "Options +FollowSymLinks\nRewriteEngine on\n\n"
         for row in entries:

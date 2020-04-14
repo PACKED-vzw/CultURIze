@@ -356,7 +356,7 @@ export class NginxConfCreator {
         } else {
             redir = row.pid;
         }
-        return `rewrite ^/${redir}$ ${row.url} redirect`;
+        return `rewrite ^/${redir}$ ${row.url} redirect ;`;
     }
 }
 

@@ -89,7 +89,7 @@ export async function publish(request: PublishRequest) {
         notifyStep("Converting file");
         await sleep(10);
         log.info("generation config file for" + request.forApache ? "apache" : "nginx");
-        const response = await convertCSVtoWebConfig(request.csvPath, request.forApache);
+        const response = await convertCSVtoWebConfig(request.csvPath, request.forApache, request.subdir);
         log.info("Conversion result: " + response.file.length + " characters in the configuration, generated from "
                  + response.numLinesAccepted + " rows (" + response.numLinesRejected + ")");
 

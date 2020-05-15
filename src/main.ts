@@ -4,15 +4,12 @@
  */
 import { app, BrowserWindow, dialog, globalShortcut, ipcMain } from "electron";
 import { PublishRequest } from "./common/Objects/PublishObjects";
-// import { LoginAssistant } from "./main/Api/Auth";
-import { publish } from "./main/Publishing/Publishing";
 import { User } from "./common/Objects/UserObject";
 import { getUserInfo } from "./main/Api/User";
-import { mainCLI } from "./cli";
+import { publish } from "./main/Publishing/Publishing";
 
-import fs = require("fs");
 import log = require("electron-log");
-import octokit = require("@octokit/rest");
+import fs = require("fs");
 const rimraf = require("rimraf");
 
 

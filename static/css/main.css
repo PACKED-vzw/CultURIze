@@ -141,7 +141,7 @@ html {
     /* margin: 0 auto; */
     border-radius: 6rem;
     flex-direction: column;
-    padding: 8rem 8rem 3rem 8rem;
+    padding: 6rem 8rem 3rem 8rem;
     box-shadow: 0px 0px 10px #8E8F92;
 }
 
@@ -323,7 +323,7 @@ button:enabled:hover {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    margin-top: 4rem;
+    margin-top: 1.5rem;
     bottom: 0 !important;
 }
 

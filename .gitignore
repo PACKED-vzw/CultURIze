@@ -4,5 +4,4 @@ dist
 test.csv
 .idea/*
 .env
-/release-builds/*
-
+release-builds

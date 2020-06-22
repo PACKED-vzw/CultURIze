@@ -313,13 +313,16 @@ export class CSVRow {
  */
 export class NginxConfCreator {
     private csvArray: CSVRow[];
+    private subdir: string;
 
     /**
      * @constructor
      * @param {CSVRow[]} csvArray The array that will be converted to nginx config
+     * @param {string} subdir sub directory to be used in nginx rewrite rule
      */
-    constructor(csvArray: CSVRow[]) {
+    constructor(csvArray: CSVRow[], subdir: string) {
         this.csvArray = csvArray;
+        this.subdir = subdir;
     }
 
     /**
@@ -351,12 +354,14 @@ export class NginxConfCreator {
 
         // Create redirection
         let redir: string = "";
-        if (row.docType !== "") {
-            redir = row.docType + "/" + row.pid;
-        } else {
-            redir = row.pid;
+        if (this.subdir !== "") {
+            redir = `${this.subdir}/`;
         }
-        return `rewrite ^/${redir}$ ${row.url} redirect ;`;
+        if (row.docType !== "") {
+            redir = `${redir}${row.docType}/`;
+        }
+        redir = `${redir}${row.pid}`;
+        return `rewrite /${redir}$ ${row.url} redirect ;`;
     }
 }
 
@@ -427,7 +432,7 @@ export class HTAccessCreator {
         } else {
             redir = row.pid;
         }
-        return `RewriteRule ^${redir}$ ${row.url} [${options}]`;
+        return `RewriteRule ${redir}$ ${row.url} [${options}]`;
     }
 }
 
@@ -464,10 +469,11 @@ export class ConversionResult {
  * containing the .htaccess file content.
  * @param {string} filepath The path to the .csv rile
  * @param {boolean} forApache Flag to see if configuration for apache or nginx is requested
+ * @param {string} subdir subdir to be used in nginx rewrite rules
  * @returns a Promise of a ConversionResult, resolved on success, rejected with an error message
  * on error.
  */
-export function convertCSVtoWebConfig(filepath: string, forApache: boolean): Promise<ConversionResult> {
+export function convertCSVtoWebConfig(filepath: string, forApache: boolean, subdir: string): Promise<ConversionResult> {
     return new Promise<ConversionResult>((resolve, reject) => {
         // Counters
         let numAccepted: number = 0;
@@ -488,7 +494,7 @@ export function convertCSVtoWebConfig(filepath: string, forApache: boolean): Pro
                     const creator = new HTAccessCreator(value);
                     resolve(new ConversionResult(creator.makeHTAccessFile(), numRejected, numAccepted));
                 } else {
-                    const creator = new NginxConfCreator(value);
+                    const creator = new NginxConfCreator(value, subdir);
                     resolve(new ConversionResult(creator.makeNginxConfFile(), numRejected, numAccepted));
                 }
             })

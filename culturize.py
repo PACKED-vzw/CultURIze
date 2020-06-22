@@ -14,17 +14,27 @@ def construct_file_path(directory, file_name):
     """Given a directory and a file_name, construct a full file_path."""
     return path.join(directory, file_name)
 
-def construct_webserver_rules(entries, webserver):
+def construct_webserver_rules(entries, webserver, subdir):
     """Construct webserver redirect rules based on webserver."""
     lst = []
     if webserver == 'nginx':
         prefix = ""
         for row in entries:
-            lst.append(f"rewrite /{row['docType']}/{row['pid']}$ {row['url']} redirect ;")
+            redir = ""
+            if subdir:
+                redir = f"{subdir}/"
+            if row['docType']:
+                redir = f"{redir}{row['docType']}/"
+            redir = f"{redir}{row['pid']}"
+            lst.append(f"rewrite /{redir}$ {row['url']} redirect ;")
     else:
         prefix = "Options +FollowSymLinks\nRewriteEngine on\n\n"
         for row in entries:
-            lst.append(f"RewriteRule ^{row['docType']}/{row['pid']}$ {row['url']} [R=302,NC,NE,L]")
+            redir = ""
+            if row['docType']:
+                redir = f"{row['docType']}/"
+            redir = f"{redir}{row['pid']}"
+            lst.append(f"RewriteRule {redir}$ {row['url']} [R=302,NC,NE,L]")
     return prefix + '\n'.join(lst) + '\n'
 
 def is_valid_row(row):
@@ -55,7 +65,7 @@ def main(args):
     file_name = NGINX_CONF_FILE if args.target == 'nginx' else APACHE_CONF_FILE
     directory = args.dest if args.dest else ''
 
-    result = construct_webserver_rules(rows, args.target)
+    result = construct_webserver_rules(rows, args.target, args.subdir)
     destination_file_path = construct_file_path(directory, file_name)
 
     with open(destination_file_path, 'w') as d:
@@ -68,5 +78,7 @@ if __name__ == "__main__":
                         help="target web server")
     parser.add_argument('-d', '--dest',
                         help="destination directory")
+    parser.add_argument('-s', '--subdir', default="")
+                        help="subdirectory to be used in nginx rewrite rules")
     args = parser.parse_args()
     main(args)

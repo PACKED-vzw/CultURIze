@@ -24,7 +24,7 @@
     "author": "oSoC18 Resolver Team; Deuze, Douwe De Bock and PACKED",
     "license": "MIT",
     "devDependencies": {
-        "electron": "^6.0.3",
+        "electron": "^9.1.1",
         "electron-packager": "^14.0.4",
         "tslint": "^5.18.0",
         "typescript": "^3.5.2"

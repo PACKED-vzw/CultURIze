@@ -129,7 +129,7 @@ ipcMain.on("validate-token", (event: Event, token: string) => {
  */
 ipcMain.on("logout-user", () => {
     // Clear the cookies
-    mainWindow.webContents.session.clearStorageData(null, () => {});
+    mainWindow.webContents.session.clearStorageData();
     writeToken("");
     loadTokenLoginpage();
 });
@@ -140,7 +140,7 @@ ipcMain.on("logout-user", () => {
  */
 ipcMain.on("hard-reset", () => {
     // Clear the cookies
-    mainWindow.webContents.session.clearStorageData(null, () => {});
+    mainWindow.webContents.session.clearStorageData();
     loadTokenLoginpage();
 
     // removes the repositories

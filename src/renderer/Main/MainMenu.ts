@@ -34,19 +34,22 @@ export async function lookForFile(callback: FileFoundCallback) {
                 },
             ],
             properties: ["openFile"],
-        },
-        (files: string[]) => {
-            if (files) {
-                if (files.length > 1) {
-                    callback(null, "Too many files selected!");
-                } else if (files.length === 1) {
-                    callback(files[0], "");
-                }
-            } else {
+        }).then((result) => {
+            if (result.canceled) {
                 callback(null, "No file selected!");
+            } else {
+               const files = result.filePaths;
+               if (files) {
+                  if (files.length > 1) {
+                     callback(null, "Too many files selected!");
+                  } else if (files.length === 1) {
+                     callback(files[0], "");
+                  }
+               } else {
+                  callback(null, "No file selected!");
+               }
             }
-        },
-    );
+      });
 }
 
 /**

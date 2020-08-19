@@ -56,6 +56,7 @@ export class CSVRow {
             // See all options at http://csv.adaltas.com/parse/#parser-options
             const parser = csv_parser(
                 {
+                    delimiter: [",", ";"],
                     // Set columns to true, which makes the parser treat
                     // the first row of the .csv as the column names.
                     columns: true,

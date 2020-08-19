@@ -85,18 +85,6 @@ function createWindow() {
         }
     });
 
-    globalShortcut.register("f5", () => {
-        console.log("f5 is pressed");
-        mainWindow.reload();
-    });
-    globalShortcut.register("f4", () => {
-        console.log("f4 is pressed");
-        mainWindow.webContents.openDevTools();
-    });
-    globalShortcut.register("CommandOrControl+R", () => {
-        console.log("CommandOrControl+R is pressed");
-        mainWindow.reload();
-    });
 }
 
 /**

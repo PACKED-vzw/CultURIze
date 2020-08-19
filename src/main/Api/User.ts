@@ -2,7 +2,7 @@
  * @file This file is tasked with retrieving the user information
  * using the GitHub API.
  */
-import Octokit = require("@octokit/rest");
+const { Octokit } = require("@octokit/rest");
 import log = require("electron-log");
 import { User } from "../../common/Objects/UserObject";
 

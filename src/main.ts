@@ -5,6 +5,8 @@
 import { app, BrowserWindow, dialog, globalShortcut, ipcMain } from "electron";
 import { PublishRequest } from "./common/Objects/PublishObjects";
 import { User } from "./common/Objects/UserObject";
+import { Version } from "./common/Objects/VersionObject";
+import { getLatestRelease } from "./main/Api/Release";
 import { getUserInfo } from "./main/Api/User";
 import { publish } from "./main/Publishing/Publishing";
 
@@ -25,6 +27,11 @@ export let mainWindow: BrowserWindow;
  * It is null if the user is not connected.
  */
 let currentUser: User = null;
+
+/**
+ * The application version
+ */
+let version: Version = null;
 
 /**
  * This function is called when the app is ready, and is tasked with
@@ -55,6 +62,8 @@ function createWindow() {
         // validating token
         validateToken(settings["github-key"]);
     }
+
+    version = new Version(app.getVersion());
 
     // loadLoginpage();
 
@@ -99,8 +108,13 @@ function loadTokenLoginpage() {
  * This function set the current active page of the mainwindow
  * to the main menu (/static/main.html)
  */
-function loadMainMenu() {
+async function loadMainMenu() {
     mainWindow.loadFile(__dirname + "/../static/main.html");
+    const latestVersion = await getLatestRelease(currentUser.token);
+    console.log(latestVersion, version);
+    if (version.isNewer(latestVersion)) {
+        mainWindow.webContents.send("show-update");
+    }
 }
 
 ipcMain.on("validate-token", (event: Event, token: string) => {

@@ -347,3 +347,7 @@ button:enabled:hover {
     font-family: 'Karla', sans-serif !important;
     font-weight: bolder;
 }
+
+#update {
+	color: #FF4C4C;
+}

@@ -88,25 +88,25 @@ export class CSVConf {
    * The name of the column which contains the PID.
    * @static
    */
-  static COL_PID = "PID";
+  public static COL_PID = "PID";
 
   /**
    * The name of the column which contains the URL.
    * @static
    */
-  static COL_URL: string = "URL";
+  public static COL_URL: string = "URL";
 
   /**
    * The name of the column which contains the (optional) enabled flag.
    * @static
    */
-  static COL_ENABLED: string = "enabled";
+  public static COL_ENABLED: string = "enabled";
 
   /**
    * The name of the column which contains the (maybe optional) document type.
    * @static
    */
-  static COL_DOCTYPE: string = "document type";
+  public static COL_DOCTYPE: string = "document type";
 
   /**
    * If this is set to true, the converter will
@@ -114,14 +114,14 @@ export class CSVConf {
    * a missing document type) instead of stopping and reporting the error to the user.
    * @static
    */
-  static IGNORE_ON_INVALID_DATA: boolean = true;
+  public static IGNORE_ON_INVALID_DATA: boolean = true;
 
   /**
    * If this is set to true, the converter will accept rows where the doctype is
    * null/empty.
    * @static
    */
-  static ALLOW_NO_DOCTYPE: boolean = true;
+  public static ALLOW_NO_DOCTYPE: boolean = true;
 }
 
 /**

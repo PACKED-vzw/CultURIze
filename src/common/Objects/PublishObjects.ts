@@ -50,7 +50,7 @@ export class PublishRequest {
      * @returns true if this.user is not null
      */
     public hasUser(): boolean {
-        return (this.user != null);
+        return (this.user !== undefined && this.user != null);
     }
 
     /**

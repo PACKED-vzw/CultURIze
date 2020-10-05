@@ -28,6 +28,10 @@ export class Version {
         console.log(this.major, this.minor, this.micro);
     }
 
+    public getVersion(): number[] {
+        return [this.major, this.minor, this.micro];
+    }
+
     public isNewer(other: Version): boolean {
         if (other.major > this.major) {
             return true;

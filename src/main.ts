@@ -2,6 +2,7 @@
  * @file This file contains the entry point of the app, and handles most ipc events sent
  * the main process.
  */
+import { Octokit } from "@octokit/rest";
 import { app, BrowserWindow, dialog, globalShortcut, ipcMain } from "electron";
 import { PublishRequest } from "./common/Objects/PublishObjects";
 import { User } from "./common/Objects/UserObject";
@@ -12,6 +13,7 @@ import { publish } from "./main/Publishing/Publishing";
 
 import log = require("electron-log");
 import fs = require("fs");
+import path = require("path");
 const rimraf = require("rimraf");
 
 
@@ -29,9 +31,20 @@ export let mainWindow: BrowserWindow;
 let currentUser: User = null;
 
 /**
+ * An initiated octokit object
+ * It is null if not yes initiated
+ */
+let octokit: Octokit = null;
+
+/**
  * The application version
  */
 let version: Version = null;
+
+/**
+ * The application settings
+ */
+let settings: { [id: string]: any } = {"github-key": "", "input-history": []};
 
 /**
  * This function is called when the app is ready, and is tasked with
@@ -48,11 +61,21 @@ function createWindow() {
     mainWindow.setMenu(null);
     mainWindow.maximize();
 
-    let settings = {"github-key": ""};
     try {
-        const path = app.getPath("userData") + "/culturize.json";
-        console.log(path);
-        settings = JSON.parse(fs.readFileSync(path, {encoding: "utf8"}));
+        const appPath = app.getPath("userData") + "/culturize";
+        const filename = path + "/culturize.json";
+        const oldFilename = app.getPath("userData") + "/culturize.json";
+        if (!fs.existsSync(appPath)) {
+            fs.mkdirSync(appPath);
+        }
+        if (fs.existsSync(filename)) {
+            settings = JSON.parse(fs.readFileSync(filename, {encoding: "utf8"}));
+        } else if (fs.existsSync(oldFilename)) {
+            settings = JSON.parse(fs.readFileSync(oldFilename, {encoding: "utf8"}));
+            settings["input-history"] = [];
+        }
+        console.log(settings["input-history"].length);
+
     } catch (e) {/* */}
 
     if (!settings["github-key"]) {
@@ -110,7 +133,7 @@ function loadTokenLoginpage() {
  */
 async function loadMainMenu() {
     mainWindow.loadFile(__dirname + "/../static/main.html");
-    const latestVersion = await getLatestRelease(currentUser.token);
+    const latestVersion = await getLatestRelease(octokit);
     console.log(latestVersion, version);
     if (version.isNewer(latestVersion)) {
         mainWindow.webContents.send("show-update");
@@ -132,7 +155,8 @@ ipcMain.on("validate-token", (event: Event, token: string) => {
 ipcMain.on("logout-user", () => {
     // Clear the cookies
     mainWindow.webContents.session.clearStorageData();
-    writeToken("");
+    settings["github-key"] = "";
+    writeSettings();
     loadTokenLoginpage();
 });
 
@@ -146,23 +170,23 @@ ipcMain.on("hard-reset", () => {
     loadTokenLoginpage();
 
     // removes the repositories
-    const workingDir = app.getPath("userData") + "/repo";
+    const workingDir = app.getPath("userData") + "/culturize/repo";
     rimraf(workingDir, () => { log.info(`Folder repo deleted ${workingDir}`); });
 });
 
-function writeToken(token: string) {
-    const path = app.getPath("userData") + "/culturize.json";
-    console.log(path);
-    const settings = {"github-key": token};
-    fs.writeFileSync(path, JSON.stringify(settings));
+function writeSettings() {
+    const settingsPath = app.getPath("userData") + "/culturize/culturize.json";
+    fs.writeFileSync(settingsPath, JSON.stringify(settings));
 }
 
 async function validateToken(token: string) {
     try {
         log.info("validating user token");
-        currentUser = await getUserInfo(token);
+        octokit = new Octokit({ auth: `token ${token}`});
+        currentUser = await getUserInfo(token, octokit);
         loadMainMenu();
-        writeToken(token);
+        settings["github-key"] = token;
+        writeSettings();
     } catch (error) {
         log.error("Token isn't valid " + error);
         const url: string = mainWindow.webContents.getURL();
@@ -176,6 +200,25 @@ async function validateToken(token: string) {
             mainWindow.webContents.send("login-failure", error);
         }
     }
+}
+
+/**
+ * Save input settings for restore on next convertion
+ */
+function saveInputSettings(request: PublishRequest) {
+    const input: { [index: string]: any} = {};
+    input["csvPath"] = request.csvPath;
+    input["subdir"] = request.subdir;
+    input["repoUrl"] = request.repoUrl;
+    input["branch"] = request.branch;
+    input["commitMsg"] = request.commitMsg;
+    input["prTitle"] = request.prTitle;
+    input["prBody"] = request.prBody;
+    input["forApache"] = request.forApache;
+
+    settings["input-history"].unshift(input);
+    settings["input-history"] = settings["input-history"].slice(0, 5);
+    writeSettings();
 }
 
 /**
@@ -193,8 +236,10 @@ ipcMain.on("request-publishing", (event: Event, request: PublishRequest) => {
         log.info("Current user is valid, calling publish().");
         // Complete the request with the user
         request.user = currentUser;
+        // save input settings
+        saveInputSettings(request);
         // Proceed
-        publish(request);
+        publish(request, path.join(app.getPath("userData"), "culturize", "repo"));
     } else {
         log.error("Aborting publishing process because the current user is invalid.");
         // Else, the user is not valid, request him to login again

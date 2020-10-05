@@ -59,8 +59,9 @@ const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
  * It will execute the request!
  * @async
  * @param {PublishRequest} request The request that will be processed
+ * @param {string} path to sync git repositories to
  */
-export async function publish(request: PublishRequest) {
+export async function publish(request: PublishRequest, repoPath: string) {
     notifyStep("Preparing");
     // Prepare the Subdirectory by inserting the baseSubdir if applicable.
     const baseSubdir: string = PublishOptions.baseSubdir ? PublishOptions.baseSubdir : "";
@@ -78,7 +79,9 @@ export async function publish(request: PublishRequest) {
         log.info(`Request Data: ${JSON.stringify(request)}`);
         // Check the request for incorrect input
         notifyStep("Checking input");
-        await checkRequestInput(request);
+        if (!checkRequestInput(request)) {
+            throw new Error("invalid input");
+        }
 
         // Get user
         const user = request.user;
@@ -124,7 +127,7 @@ export async function publish(request: PublishRequest) {
         // Prepare the repoManager
         notifyStep("Preparing Git");
         log.info("Preparing GitRepoManager instance");
-        const manager = await prepareGitRepoManager(repoURL, request.branch, user);
+        const manager = await prepareGitRepoManager(repoURL, request.branch, user, repoPath);
 
         // Save the file
         notifyStep("Saving the configuration file to the desired location");
@@ -186,20 +189,19 @@ function sendRequestResult(result: PublishRequestResult) {
  * @param {string} repoURL The URL of the repo that'll be cloned
  * @param {string} branch  The branch of the repo that'll be checked out
  * @param {string} token   The user token (used to push/pull).
+ * @param {string} repoPath   Path to sync git repositories to
  */
-function prepareGitRepoManager(repoURL: string, branch: string, user: User): Promise<GitRepoManager> {
-    return new Promise<GitRepoManager>((resolve, reject) => {
-        const grm = new GitRepoManager(repoURL, branch, user);
-        log.info("Updating local copy");
-        grm.updateLocalCopy()
-        .then(() => {
-            resolve(grm);
-        })
-        .catch((err: any) => {
-            log.error(err);
-            reject(err);
-        });
-    });
+async function prepareGitRepoManager(repoURL: string, branch: string,
+                                     user: User, repoPath: string): Promise<GitRepoManager> {
+    const grm = new GitRepoManager(repoURL, branch, user, repoPath);
+    log.info("Updating local copy");
+    try {
+        await grm.updateLocalCopy();
+    } catch (error) {
+        log.error(error);
+        throw error;
+    }
+    return grm;
 }
 
 /**
@@ -212,37 +214,35 @@ type StringProvider = () => string;
  * Checks a request for incorrect/invalid/illegal inputs.
  * @param {PublishRequest} request The request that will be checked
  */
-function checkRequestInput(request: PublishRequest): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        const repoUrl = request.repoUrl;
+function checkRequestInput(request: PublishRequest): boolean {
+    const repoUrl = request.repoUrl;
 
-        // Check if the repo URL is a GitHub URL
-        if (!isGithubUrl(repoUrl)) {
-            reject('"' + repoUrl + '" is not a valid GitHub repository');
-            return;
-        }
+    // Check if the repo URL is a GitHub URL
+    if (!isGithubUrl(repoUrl)) {
+        log.error('"' + repoUrl + '" is not a valid GitHub repository');
+        return false;
+    }
 
-        // Check if the subdir is a valid path.
-        const subdir = request.subdir;
-        if ((subdir.length > 0) && (!dirRegex.test(subdir))) {
-            reject('"' + subdir + '" is not a valid path');
-            return;
-        }
+    // Check if the subdir is a valid path.
+    const subdir = request.subdir;
+    if ((subdir.length > 0) && (!dirRegex.test(subdir))) {
+        log.error('"' + subdir + '" is not a valid path');
+        return false;
+    }
 
-        // Check if the path to the csv exists.
-        const path = request.csvPath;
-        if (!fs.existsSync(path)) {
-            reject("The file \"" + path + "\" does not exists.");
-            return;
-        }
+    // Check if the path to the csv exists.
+    const path = request.csvPath;
+    if (!fs.existsSync(path)) {
+        log.error("The file \"" + path + "\" does not exists.");
+        return false;
+    }
 
-        // Check if the path ends with .csv
-        if (!path.endsWith(".csv")) {
-            reject("The file \"" + path + "\" is not a .csv file.");
-            return;
-        }
+    // Check if the path ends with .csv
+    if (!path.endsWith(".csv")) {
+        log.error("The file \"" + path + "\" is not a .csv file.");
+        return false;
+    }
 
-        // If we passed every check, resolve the promise.
-        resolve();
-    });
+    // If we passed every check, resolve the promise.
+    return true;
 }

@@ -1,0 +1,19 @@
+import { expect } from "chai";
+import { User } from "../../../src/common/Objects/UserObject";
+
+describe("UserObject", () => {
+    it("user construction", () => {
+        const user = new User("token", "user", "URL");
+        expect(user.userName).to.eql("user");
+        expect(user.avatar_url).to.eql("URL");
+        expect(user.token).to.eql("token");
+    });
+
+    it("user without token", () => {
+        const user = new User("token", "user", "URL");
+        const nUser = user.withoutToken();
+        expect(nUser.userName).to.eql("user");
+        expect(nUser.avatar_url).to.eql("URL");
+        expect(nUser.token).to.be.null;
+    });
+});

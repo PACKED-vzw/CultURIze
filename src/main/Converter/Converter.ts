@@ -3,9 +3,12 @@
  * file from a .csv file.
  */
 
-const csv_parser = require("csv-parse");
-const fs = require("fs");
-const log = require('electron-log');
+// const csv_parser = require("csv-parse");
+// const fs = require("fs");
+// const log = require('electron-log');
+import * as csv_parser from "csv-parse";
+import * as log from "electron-log";
+import * as fs from "fs";
 
 import { CSVConf, HTAccessConf } from "./../../culturize.conf";
 
@@ -100,7 +103,7 @@ export class CSVRow {
 
             // Sets the function that finishes the parsing
             // process
-            parser.on("finish", () => {
+            parser.on("end", () => {
                 if (array.length === 0) {
                     log.error("No valid row found in the CSV File.");
                     reject("No valid row found in the CSV File.");
@@ -217,12 +220,12 @@ export class CSVRow {
          * @param {string} key The key to be checked in the row
          * @returns True if the key is valid, false otherwise
          */
-        const isValid = (key: string): boolean => {
+        const isNotEmpty = (key: string): boolean => {
             const data = row[key];
             return (data != null) && (data !== "");
         };
-        return isValid(CSVConf.COL_PID) && isValid(CSVConf.COL_URL)
-                && (isValid(CSVConf.COL_DOCTYPE) || CSVConf.ALLOW_NO_DOCTYPE);
+        return isNotEmpty(CSVConf.COL_PID) && isNotEmpty(CSVConf.COL_URL)
+                && (isNotEmpty(CSVConf.COL_DOCTYPE) || CSVConf.ALLOW_NO_DOCTYPE);
     }
 
     /**

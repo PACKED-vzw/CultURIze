@@ -11,6 +11,7 @@ import * as log from "electron-log";
 import * as fs from "fs";
 
 import { CSVConf, HTAccessConf } from "./../../culturize.conf";
+var validUrl = require("valid-url");
 
 /**
  * This is a function type used by createArrayFromCSV which is
@@ -72,26 +73,27 @@ export class CSVRow {
             // Set the functions that handles the parsing process
             parser.on("readable", () => {
                 let data: any;
-                while (data = parser.read()) {
+                data = parser.read();
+                while (data) {
                     const row: CSVRow = CSVRow.createRow(data);
                     if (row != null) {
                         // If it isn't null, check the 'legality'/validity of the row
-                        const validity = row.isValid();
-                        if (validity != null) {
+                        if (!row.isValidAndEnabled()) {
                             rowReject(row);
                             if (!CSVConf.IGNORE_ON_INVALID_DATA) {
-                                log.warn("The CSV file contains invalid data:" + validity);
-                                reject(validity);
+                                log.warn("The CSV file contains invalid data:" + row.error);
+                                reject(row.error);
                                 break;
                             }
                         } else {
                             // We're good, push
                             rowAccept(row);
-                            array.push(row);
                         }
+                        array.push(row);
                     } else {
                         rowReject(row);
                     }
+                    data = parser.read();
                 }
             });
 
@@ -134,15 +136,17 @@ export class CSVRow {
      * @returns The instance, or null if the row of data is invalid/incomplete or disabled.
      */
     public static createRow(row: any): CSVRow {
-        if (this.satisfiesMinimumRequirements(row) && this.isEnabled(row)) {
+        if (this.checkColumns(row)) {
             return new CSVRow(
                 row[CSVConf.COL_PID],
                 row[CSVConf.COL_DOCTYPE],
                 row[CSVConf.COL_URL],
+                row[CSVConf.COL_ENABLED],
             );
         }
         return null;
     }
+
 
     /**
      *
@@ -204,51 +208,28 @@ export class CSVRow {
     }
 
     /**
-     * Checks if a row of data satisfies the minimum requirements to form a
-     * valid CSVRow instance.
-     *
-     * A Row is considered valid if the PID, URL and document type aren't null or empty.
-     * Note that document type may be null/empty if the ALLOW_NO_DOCTYPE is set to true.
+     * Checks if a row contains the necessary columns.
+     * PID, URL and enabled are always required, doctype can be configured to not be
+     * required.
      *
      * @static
      * @param {any} row The row of data to be checked
      * @returns True if the row is valid, false otherwise.
      */
-    private static satisfiesMinimumRequirements(row: any): boolean {
-        /**
-         * Helper function that checks if a key in the row is not null or empty.
-         * @param {string} key The key to be checked in the row
-         * @returns True if the key is valid, false otherwise
-         */
-        const isNotEmpty = (key: string): boolean => {
-            const data = row[key];
-            return (data != null) && (data !== "");
-        };
-        return isNotEmpty(CSVConf.COL_PID) && isNotEmpty(CSVConf.COL_URL)
-                && (isNotEmpty(CSVConf.COL_DOCTYPE) || CSVConf.ALLOW_NO_DOCTYPE);
-    }
-
-    /**
-     * Checks if a row of data should be enabled or not.
-     *
-     * A row is enabled in all cases, except if the COL_ENABLED field is
-     * present and set to 0.
-     * @static
-     * @param {any} row The row to be checked
-     * @returns true if the row should be enabled, false otherwise.
-     */
-    private static isEnabled(row: any): boolean {
-        const value: string = row[CSVConf.COL_ENABLED];
-        if ((value != null) && (value === "0")) {
-            return false;
-        }
-        return true;
+    private static checkColumns(row: any): boolean {
+        return CSVConf.COL_PID in row &&
+            CSVConf.COL_URL in row &&
+            (CSVConf.COL_DOCTYPE in row || CSVConf.ALLOW_NO_DOCTYPE) &&
+            CSVConf.COL_ENABLED in row;
     }
 
     // Members
     public pid: string;
     public docType: string;
     public url: string;
+    public enabled: string;
+    public valid: boolean;
+    public error: string[];
 
     /**
      * The constructor of the class, which is private so it can
@@ -258,7 +239,7 @@ export class CSVRow {
      * @param {string} docType The value of the Document Type field
      * @param {string} url The value of the URL Field
      */
-    private constructor(pid: string, docType: string, url: string) {
+    private constructor(pid: string, docType: string, url: string, enabled: string) {
         this.pid = pid.trim();
         if (docType != null) {
             this.docType = docType.trim();
@@ -268,15 +249,32 @@ export class CSVRow {
         // Replace "%" with "\%" to prohibit apache from
         // recognizing it as a regex substitution argument.
         this.url = url.trim().replace("%", "\\%");
+        this.enabled = enabled.trim();
+
+        this.error = [];
+        this.valid = this.isValid();
+    }
+
+    /**
+     * Checks if a row should be converted
+     *
+     * A row is enabled in all cases, except if the COL_ENABLED field is
+     * present and set to 0.
+     * @static
+     * @param {any} row The row to be checked
+     * @returns true if the row should be enabled, false otherwise.
+     */
+    public isValidAndEnabled(): boolean {
+        return this.valid && this.enabled === "1";
     }
 
     /**
      * Helper function that checks if a CSVRow instance contains
      * valid data.
      *
-     * @returns null if the row is valid, or an error message if it isn't.
+     * @returns true if the row is valid, false if not valid, sets the error codes
      */
-    private isValid(): string {
+    private isValid(): boolean {
         /**
          * Checks if a string obeys the "^([a-z]|[A-Z]|[0-9]|-|_)+$"
          * regular expression.
@@ -289,25 +287,45 @@ export class CSVRow {
             return /^([a-z]|[A-Z]|[0-9]|-|_)+$/.test(text);
         };
 
+        let retval: boolean = true;
+
+        // Check the PID.
+        if (!fn(this.pid)) {
+            // E01 document type has invalid characters
+            this.error.push("E01");
+            retval = false;
+        }
+
         // Check if the doctype isn't empty
         if (this.docType !== "") {
             // If the document type is not empty, check if it's recognized by the Regular Expression.
             // If it isn't, we have an error.
             if (!fn(this.docType)) {
-                return "The document type \"" + this.docType + "\" contains invalid characters";
+                // E02 document type has invalid characters
+                this.error.push("E02");
+                retval = false;
             }
         // If the doctype is empty, check if it's allowed. If it isn't -> error.
         } else if (!CSVConf.ALLOW_NO_DOCTYPE) {
-            return "No document type in row";
+            // E03 : No document type in row
+            this.error.push("E03");
+            retval = false;
         }
 
-        // Check the PID.
-        if (!fn(this.pid)) {
-            return "The PID \"" + this.pid + "\" contains invalid characters";
+        if (!validUrl.isWebUri(this.url)) {
+            // E04 : invalid URL
+            this.error.push("E04");
+            retval = false;
+        }
+
+        if (this.enabled !== "1" && this.enabled !== "0") {
+            // E05 : invalid enabled column
+            this.error.push("E05");
+            retval = false;
         }
 
         // If we passed all the checks, return "null" (for success)
-        return null;
+        return retval;
     }
 }
 
@@ -339,7 +357,9 @@ export class NginxConfCreator {
 
         // Create the RewriteRule for each CSVRow
         for (const row of this.csvArray) {
-            data += this.getRewriteRule(row) + "\n";
+            if (row.isValidAndEnabled()) {
+                data += this.getRewriteRule(row) + "\n";
+            }
         }
 
         return data;
@@ -394,7 +414,9 @@ export class HTAccessCreator {
 
         // Create the RewriteRule for each CSVRow
         for (const row of this.csvArray) {
-            data += this.getRewriteRule(row) + "\n";
+            if (row.isValidAndEnabled()) {
+                data += this.getRewriteRule(row) + "\n";
+            }
         }
 
         return data;
@@ -477,33 +499,29 @@ export class ConversionResult {
  * @returns a Promise of a ConversionResult, resolved on success, rejected with an error message
  * on error.
  */
-export function convertCSVtoWebConfig(filepath: string, forApache: boolean, subdir: string): Promise<ConversionResult> {
-    return new Promise<ConversionResult>((resolve, reject) => {
-        // Counters
-        let numAccepted: number = 0;
-        let numRejected: number = 0;
+export async function convertCSVtoWebConfig(filepath: string,
+                                            forApache: boolean,
+                                            subdir: string): Promise<ConversionResult> {
+    // Counters
+    let numAccepted: number = 0;
+    let numRejected: number = 0;
 
-        // Create the array
-        CSVRow.createArrayFromCSV(filepath,
-        // Acceptation
-        () => {
-            numAccepted++;
-        },
-        // Rejection
-        (row: CSVRow) => {
-            numRejected ++;
-        })
-        .then((value: CSVRow[]) => {
-                if (forApache) {
-                    const creator = new HTAccessCreator(value);
-                    resolve(new ConversionResult(creator.makeHTAccessFile(), numRejected, numAccepted));
-                } else {
-                    const creator = new NginxConfCreator(value, subdir);
-                    resolve(new ConversionResult(creator.makeNginxConfFile(), numRejected, numAccepted));
-                }
-            })
-        .catch((error: string) => {
-            reject(error);
-        });
-    });
+    // Create the array
+    try {
+        const rows = await CSVRow.createArrayFromCSV(filepath,
+                                                    () => { numAccepted++; },
+                                                    (row: CSVRow) => { numRejected ++; });
+
+        if (forApache) {
+            const creator = new HTAccessCreator(rows);
+            return new ConversionResult(creator.makeHTAccessFile(), numRejected, numAccepted);
+        } else {
+            const creator = new NginxConfCreator(rows, subdir);
+            return new ConversionResult(creator.makeNginxConfFile(), numRejected, numAccepted);
+        }
+    } catch (error) {
+        log.error(error);
+        throw error;
+    }
+
 }

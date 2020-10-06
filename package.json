@@ -54,6 +54,7 @@
         "rimraf": "^2.7.1",
         "shelljs": "^0.8.4",
         "simple-git": "^2.20.1",
-        "valid-url": "^1.0.9"
+        "valid-url": "^1.0.9",
+        "@types/valid-url": "^1.0.3"
     }
 }

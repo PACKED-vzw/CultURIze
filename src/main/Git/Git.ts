@@ -23,6 +23,7 @@ import { User } from "./../../common/Objects/UserObject";
  */
 export class GitRepoManager {
     public repoURL: string;
+    public HTTPSRepoURL: string;
     public workingDir: string;
     public repoName: string;
     public ownerName: string;
@@ -49,6 +50,7 @@ export class GitRepoManager {
         this.repoName = parsedURL.name;
         this.ownerName = parsedURL.owner;
         this.repoDir = path.join(this.workingDir, this.repoName);
+        this.HTTPSRepoURL = this.makeGitHTTPSUrl();
 
         // If it doesn't exists, create the working directory.
         this.createFoldersIfNeeded(this.workingDir);
@@ -92,7 +94,7 @@ export class GitRepoManager {
             log.info("No local copy detected - Cloning");
             let git = simpleGit(this.workingDir);
             try {
-                await git.clone(this.repoURL);
+                await git.clone(this.HTTPSRepoURL);
                 log.info(`Cloning success of repo located at ${this.repoDir}`);
             } catch (error) {
                 log.error(`Failed to clone ${this.repoURL}, error messag: ${error}`);
@@ -133,12 +135,11 @@ export class GitRepoManager {
      * @returns A Promise, which is resolved on success, rejected (with an error message) on error.
      */
     public async pushChanges(commitMessage: string): Promise<void> {
-        const url = this.makeGitHTTPSUrl();
         try {
             const git = simpleGit(this.repoDir);
             await git.add("./*");
             await git.commit(commitMessage);
-            await git.push(url, this.branch);
+            await git.push(this.HTTPSRepoURL, this.branch);
         } catch (error) {
             log.error(`Failed to push changes. ${error}`);
             throw error;

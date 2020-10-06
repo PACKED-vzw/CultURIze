@@ -11,35 +11,48 @@ import * as sinon from "sinon";
 
 describe("CSVRow", () => {
     it("row creation", () => {
-        const row: { [id: string]: string } = {"test ": "test"};
-        row[CSVConf.COL_PID] = "pid";
-        row[CSVConf.COL_DOCTYPE] = "doctype";
-        row[CSVConf.COL_URL] = "https://test.test";
-        row[CSVConf.COL_ENABLED] = "0";
+        const rowData: { [id: string]: string } = {"test ": "test"};
+        rowData[CSVConf.COL_PID] = "pid";
+        rowData[CSVConf.COL_DOCTYPE] = "doctype";
+        rowData[CSVConf.COL_URL] = "https://test.test";
+        rowData[CSVConf.COL_ENABLED] = "0";
 
-        expect(CSVRow.createRow(row)).to.be.null;
+        let row = CSVRow.createRow(rowData);
+        expect(row).to.be.not.null;
+        expect(row.isValidAndEnabled()).to.be.false;
 
-        row[CSVConf.COL_ENABLED] = "1";
-        row[CSVConf.COL_PID] = "";
-        expect(CSVRow.createRow(row)).to.be.null;
+        rowData[CSVConf.COL_ENABLED] = "1";
+        rowData[CSVConf.COL_PID] = "";
+        row = CSVRow.createRow(rowData);
+        expect(row).to.be.not.null;
+        expect(row.isValidAndEnabled()).to.be.false;
 
-        row[CSVConf.COL_PID] = "pid";
-        row[CSVConf.COL_URL] = "";
-        expect(CSVRow.createRow(row)).to.be.null;
+        rowData[CSVConf.COL_PID] = "pid";
+        rowData[CSVConf.COL_URL] = "";
+        row = CSVRow.createRow(rowData);
+        expect(row).to.be.not.null;
+        expect(row.isValidAndEnabled()).to.be.false;
 
-        row[CSVConf.COL_URL] = "https://test.test";
-        let csvrow = CSVRow.createRow(row);
-        expect(csvrow).to.be.not.null;
-        expect(csvrow.pid).to.eql("pid");
-        expect(csvrow.docType).to.eql("doctype");
-        expect(csvrow.url).to.eql("https://test.test");
+        rowData[CSVConf.COL_URL] = "blabla";
+        row = CSVRow.createRow(rowData);
+        expect(row).to.be.not.null;
+        expect(row.isValidAndEnabled()).to.be.false;
 
-        row[CSVConf.COL_DOCTYPE] = null;
-        csvrow = CSVRow.createRow(row);
-        expect(csvrow).to.be.not.null;
-        expect(csvrow.pid).to.eql("pid");
-        expect(csvrow.docType).to.eql("");
-        expect(csvrow.url).to.eql("https://test.test");
+        rowData[CSVConf.COL_URL] = "https://test.test";
+        row = CSVRow.createRow(rowData);
+        expect(row).to.be.not.null;
+        expect(row.isValidAndEnabled()).to.be.true;
+        expect(row.pid).to.eql("pid");
+        expect(row.docType).to.eql("doctype");
+        expect(row.url).to.eql("https://test.test");
+
+        rowData[CSVConf.COL_DOCTYPE] = null;
+        row = CSVRow.createRow(rowData);
+        expect(row).to.be.not.null;
+        expect(row.isValidAndEnabled()).to.be.true;
+        expect(row.pid).to.eql("pid");
+        expect(row.docType).to.eql("");
+        expect(row.url).to.eql("https://test.test");
     });
 
     it("row creation from csv", async function() {
@@ -200,10 +213,34 @@ describe("CSVRow", () => {
                                                (row: CSVRow) => { numAccepted++; },
                                                (row: CSVRow) => { numRejected++; });
 
-        const nginxConfCreator: NginxConfCreator = new NginxConfCreator(rows, "sub");
-        const nginxConf = nginxConfCreator.makeNginxConfFile();
+        let nginxConfCreator: NginxConfCreator = new NginxConfCreator(rows, "sub");
+        let nginxConf = nginxConfCreator.makeNginxConfFile();
 
         expect(nginxConf).to.eql("rewrite /sub/data/123-E$ http://test.test/123-E redirect ;\nrewrite /sub/representation/124-E$ http://test.test/124-E redirect ;\n");
+
+        // valid data, comma separated, 1 enabled, 1 disabled
+        csvContent = "PID,document type,URL,enabled\n123-E,data,http://test.test/123-E,1\n124-E,representation,http://test.test/124-E,0\n";
+        stub.returns(csvContent);
+        rows = await CSVRow.createArrayFromCSV("filepath",
+                                               (row: CSVRow) => { numAccepted++; },
+                                               (row: CSVRow) => { numRejected++; });
+
+        nginxConfCreator = new NginxConfCreator(rows, "sub");
+        nginxConf = nginxConfCreator.makeNginxConfFile();
+
+        expect(nginxConf).to.eql("rewrite /sub/data/123-E$ http://test.test/123-E redirect ;\n");
+
+        // partially invalid data, comma separated, 1 enabled, 1 invalid
+        csvContent = "PID,document type,URL,enabled\n123-E,data,http://test.test/123-E,1\n124-E,representation,hqdslfttp://test.test/124-E,1\n";
+        stub.returns(csvContent);
+        rows = await CSVRow.createArrayFromCSV("filepath",
+                                               (row: CSVRow) => { numAccepted++; },
+                                               (row: CSVRow) => { numRejected++; });
+
+        nginxConfCreator = new NginxConfCreator(rows, "sub");
+        nginxConf = nginxConfCreator.makeNginxConfFile();
+
+        expect(nginxConf).to.eql("rewrite /sub/data/123-E$ http://test.test/123-E redirect ;\n");
 
         stub.restore();
         for (const lstub of logStubs) {
@@ -229,10 +266,34 @@ describe("CSVRow", () => {
                                                (row: CSVRow) => { numAccepted++; },
                                                (row: CSVRow) => { numRejected++; });
 
-        const htAccessCreator: HTAccessCreator = new HTAccessCreator(rows);
-        const apacheConf = htAccessCreator.makeHTAccessFile();
+        let htAccessCreator: HTAccessCreator = new HTAccessCreator(rows);
+        let apacheConf = htAccessCreator.makeHTAccessFile();
 
         expect(apacheConf).to.eql("Options +FollowSymLinks\nRewriteEngine on\n\nRewriteRule data/123-E$ http://test.test/123-E [R=302,NC,NE,L]\nRewriteRule representation/124-E$ http://test.test/124-E [R=302,NC,NE,L]\n");
+
+        // valid data, comma separated, 1 enabled, 1 disabled
+        csvContent = "PID,document type,URL,enabled\n123-E,data,http://test.test/123-E,1\n124-E,representation,http://test.test/124-E,0\n";
+        stub.returns(csvContent);
+        rows = await CSVRow.createArrayFromCSV("filepath",
+                                               (row: CSVRow) => { numAccepted++; },
+                                               (row: CSVRow) => { numRejected++; });
+
+        htAccessCreator = new HTAccessCreator(rows);
+        apacheConf = htAccessCreator.makeHTAccessFile();
+
+        expect(apacheConf).to.eql("Options +FollowSymLinks\nRewriteEngine on\n\nRewriteRule data/123-E$ http://test.test/123-E [R=302,NC,NE,L]\n");
+
+        // partially invalid data, comma separated, 1 enabled, 1 invalid
+        csvContent = "PID,document type,URL,enabled\n123-E,data,http://test.test/123-E,1\n124-E,representation,httqldflp://test.test/124-E,1\n";
+        stub.returns(csvContent);
+        rows = await CSVRow.createArrayFromCSV("filepath",
+                                               (row: CSVRow) => { numAccepted++; },
+                                               (row: CSVRow) => { numRejected++; });
+
+        htAccessCreator = new HTAccessCreator(rows);
+        apacheConf = htAccessCreator.makeHTAccessFile();
+
+        expect(apacheConf).to.eql("Options +FollowSymLinks\nRewriteEngine on\n\nRewriteRule data/123-E$ http://test.test/123-E [R=302,NC,NE,L]\n");
 
         stub.restore();
         for (const lstub of logStubs) {

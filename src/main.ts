@@ -63,14 +63,16 @@ function createWindow() {
 
     try {
         const appPath = app.getPath("userData") + "/culturize";
-        const filename = path + "/culturize.json";
+        const filename = appPath + "/culturize.json";
         const oldFilename = app.getPath("userData") + "/culturize.json";
         if (!fs.existsSync(appPath)) {
             fs.mkdirSync(appPath);
         }
         if (fs.existsSync(filename)) {
+            console.log("reading from " + filename);
             settings = JSON.parse(fs.readFileSync(filename, {encoding: "utf8"}));
         } else if (fs.existsSync(oldFilename)) {
+            console.log("reading from " + oldFilename);
             settings = JSON.parse(fs.readFileSync(oldFilename, {encoding: "utf8"}));
             settings["input-history"] = [];
         }
@@ -78,17 +80,14 @@ function createWindow() {
 
     } catch (e) {/* */}
 
+    version = new Version(app.getVersion());
+
     if (!settings["github-key"]) {
         console.log("retreiving github pa token");
         loadTokenLoginpage();
     } else {
-        // validating token
         validateToken(settings["github-key"]);
     }
-
-    version = new Version(app.getVersion());
-
-    // loadLoginpage();
 
     mainWindow.on("closed", () => {
         mainWindow = null;
@@ -217,6 +216,7 @@ function saveInputSettings(request: PublishRequest) {
     input["forApache"] = request.forApache;
 
     settings["input-history"].unshift(input);
+    console.log(settings["input-history"]);
     settings["input-history"] = settings["input-history"].slice(0, 5);
     writeSettings();
 }

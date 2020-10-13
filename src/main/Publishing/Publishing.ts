@@ -23,15 +23,19 @@
 
 import { PublishRequest, PublishRequestResult } from "./../../common/Objects/PublishObjects";
 import { User } from "./../../common/Objects/UserObject";
-import { mainWindow, toggleTransformation } from "./../../main";
-import { convertCSVtoWebConfig } from "./../Converter/Converter";
+import { PublishOptions } from "./../../culturize.conf";
+import { mainWindow, showResultWindow, toggleTransformation } from "./../../main";
+import { ConversionResult, convertCSVtoWebConfig, CSVRow } from "./../Converter/Converter";
 import { GitRepoManager } from "./../Git/Git";
-import { PublishOptions } from "./../../culturize.conf"
+
+import log = require("electron-log");
 import fs = require("fs");
 const isGithubUrl = require("is-github-url");
-const octokit = require("@octokit/rest")();
-const GitUrlParse = require("git-url-parse");
-const log = require("electron-log");
+import octokit = require("@octokit/rest");
+import GitUrlParse = require("git-url-parse");
+import path = require("path");
+
+import { shell } from "electron";
 
 /**
  * This is the regular expression used to check the
@@ -92,9 +96,17 @@ export async function publish(request: PublishRequest, repoPath: string) {
         notifyStep("Converting file");
         await sleep(10);
         log.info("generation config file for" + request.forApache ? "apache" : "nginx");
-        const response = await convertCSVtoWebConfig(request.csvPath, request.forApache, request.subdir);
+        const response: ConversionResult = await convertCSVtoWebConfig(request.csvPath,
+                                                                       request.forApache,
+                                                                       request.subdir);
         log.info("Conversion result: " + response.file.length + " characters in the configuration, generated from "
                  + response.numLinesAccepted + " rows (" + response.numLinesRejected + ")");
+        if (request.checkUrl) {
+            notifyStep("Checking URLs");
+            await checkURLs(response.rows);
+        }
+        notifyStep("Writing report");
+        const reportFilename = writeReport(request.csvPath, response, request);
 
         // Parse the url
         notifyStep("Parsing URL");
@@ -142,6 +154,10 @@ export async function publish(request: PublishRequest, repoPath: string) {
         await manager.pushChanges(request.commitMsg);
 
         notifyStep("Done !");
+        if (!request.checkUrl) {
+            const resultWindow = showResultWindow();
+            resultWindow.loadURL("file://" + reportFilename);
+        }
 
         // set the end of the transformations
         toggleTransformation(false);
@@ -205,12 +221,6 @@ async function prepareGitRepoManager(repoURL: string, branch: string,
 }
 
 /**
- * This is a function called by "createPullRequest" to generate a
- * title/body for the PullRequest
- */
-type StringProvider = () => string;
-
-/**
  * Checks a request for incorrect/invalid/illegal inputs.
  * @param {PublishRequest} request The request that will be checked
  */
@@ -231,18 +241,123 @@ function checkRequestInput(request: PublishRequest): boolean {
     }
 
     // Check if the path to the csv exists.
-    const path = request.csvPath;
-    if (!fs.existsSync(path)) {
+    const csvPath = request.csvPath;
+    if (!fs.existsSync(csvPath)) {
         log.error("The file \"" + path + "\" does not exists.");
         return false;
     }
 
     // Check if the path ends with .csv
-    if (!path.endsWith(".csv")) {
+    if (!csvPath.endsWith(".csv")) {
         log.error("The file \"" + path + "\" is not a .csv file.");
         return false;
     }
 
     // If we passed every check, resolve the promise.
     return true;
+}
+
+/**
+ * check csv rows URL's
+ * @param {CSVRow[]} rows csv rows
+ */
+async function checkURLs(rows: CSVRow[]) {
+    const resultWindow = showResultWindow();
+    console.log(__dirname);
+    await resultWindow.loadFile(__dirname + "/../../../static/report.html");
+    let numAccepted = 0;
+    let numRejected = 0;
+
+    for (const row of rows) {
+        await row.checkURL();
+        if (row.isValidAndEnabled()) {
+            numAccepted += 1;
+        } else {
+            numRejected += 1;
+        }
+        const data = {
+            html: row.createHTMLRow(),
+            accepted: numAccepted,
+            rejected: numRejected,
+        };
+        resultWindow.webContents.send("new-data", data);
+    }
+}
+
+/**
+ * Write conversion result report
+ * @param {string} csvPath location of the csv file, -report.html will be appended
+ * @param {CSVRow[]} rows csv rows
+ */
+function writeReport(csvPath: string, result: ConversionResult, request: PublishRequest) {
+    const filename: string = path.join(path.dirname(csvPath), path.basename(csvPath) + "-report.html");
+
+    const header: string = `<html>\n` +
+        `<head>\n` +
+        `<title>CultURIze conversion report</title>\n` +
+        `<style type=text/css>` +
+            `#tresults, th, td {border: 1px solid black;}` +
+            `.invalid {background-color: #efd1d1;}` +
+            `.error {background-color: #db9898;}` +
+            `#tresults tr > *:nth-child(1) {display: none;}` +
+            `${request.checkUrl ? "" : "#tresults tr > *:nth-child(7) {display: none;}"}` +
+        `</style>\n` +
+        `</head>\n` +
+        `<body>\n` +
+        `<div id="hcontainer">\n` +
+            `<h1>CultURIze conversion result\n</h1>` +
+            `<div id="rcontainer">\n` +
+                `Converted <span id="accepted">${result.numLinesAccepted}</span> rows and ` +
+                `rejected <span id="rejected">${result.numLinesRejected}</span>.` +
+            `</div>\n` +
+            `<div id="bcontainer">\n` +
+                `<button id="show-errors" class="filter-button">\n` +
+                    `Only show errors` +
+                `</button>\n` +
+                `<button id="show-all" class="filter-button">\n` +
+                    `Show all` +
+                `</button>\n` +
+            `</div>\n` +
+        `</div>\n` +
+        `<script type="text/javascript">\n` +
+            `document.getElementById("show-errors").onclick = function showErrors() {` +
+                `var lst = document.getElementsByClassName("valid");` +
+                `for (var i=0; i < lst.length; i++) {` +
+                    `lst[i].style.display = "none";` +
+                `}` +
+            `};` +
+            `document.getElementById("show-all").onclick = function showAll() {` +
+                `var lst = document.getElementsByClassName("valid");` +
+                `for (var i=0; i < lst.length; i++) {` +
+                    `lst[i].style.display = "";` +
+                `}` +
+            `};` +
+        `</script>\n` +
+        `<div id="tcontainer">\n` +
+            `<table id="tresults">\n` +
+                `<tr id="theader">` +
+                    `<td>id</td>` +
+                    `<td>enabled</td>` +
+                    `<td>document Type</td>` +
+                    `<td>PID</td>` +
+                    `<td>URL</td>` +
+                    `<td>affected cels</td>` +
+                    `<td>URL check</td>` +
+                `</tr>\n`;
+
+    fs.writeFileSync(filename, header);
+
+    let data: string = "";
+    for (const row of result.rows) {
+        data += row.createHTMLRow();
+    }
+    fs.appendFileSync(filename, data);
+    const footer: string = `</table>\n` +
+        `</div>\n` +
+        `</body>\n` +
+        `</html>`;
+
+    fs.appendFileSync(filename, footer);
+
+    return filename;
 }

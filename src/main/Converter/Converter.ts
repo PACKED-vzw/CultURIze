@@ -11,7 +11,9 @@ import * as log from "electron-log";
 import * as fs from "fs";
 
 import { CSVConf, HTAccessConf } from "./../../culturize.conf";
-var validUrl = require("valid-url");
+const validUrl = require("valid-url");
+
+import got, { Got } from "got";
 
 /**
  * This is a function type used by createArrayFromCSV which is
@@ -45,7 +47,7 @@ export class CSVRow {
                                      rowReject: OnRejectRow): Promise<CSVRow[]> {
         return new Promise<CSVRow[]>((resolve, reject) => {
             // Read the file to a buffer
-            const str: string = fs.readFileSync(filepath, "utf8");
+            const str: string = fs.readFileSync(filepath, "utf8").replace("\r\n", "\n");
 
             // Create the array
             const array: CSVRow[] = new Array<CSVRow>();
@@ -137,16 +139,24 @@ export class CSVRow {
      */
     public static createRow(row: any): CSVRow {
         if (this.checkColumns(row)) {
+            const columns: number[] = [];
+            columns.push(Reflect.ownKeys(row).indexOf(CSVConf.COL_PID));
+            columns.push(Reflect.ownKeys(row).indexOf(CSVConf.COL_DOCTYPE));
+            columns.push(Reflect.ownKeys(row).indexOf(CSVConf.COL_URL));
+            columns.push(Reflect.ownKeys(row).indexOf(CSVConf.COL_ENABLED));
             return new CSVRow(
                 row[CSVConf.COL_PID],
                 row[CSVConf.COL_DOCTYPE],
                 row[CSVConf.COL_URL],
                 row[CSVConf.COL_ENABLED],
+                columns,
             );
         }
         return null;
     }
 
+
+    private static count: number = 0;
 
     /**
      *
@@ -224,12 +234,17 @@ export class CSVRow {
     }
 
     // Members
+    public index: number;
+    public columns: string[];
     public pid: string;
     public docType: string;
     public url: string;
     public enabled: string;
     public valid: boolean;
     public error: string[];
+    public affectedCels: string[];
+    public urlChecked: boolean;
+    public urlWorking: boolean;
 
     /**
      * The constructor of the class, which is private so it can
@@ -238,21 +253,31 @@ export class CSVRow {
      * @param {string} pid The value of the PID field
      * @param {string} docType The value of the Document Type field
      * @param {string} url The value of the URL Field
+     * @param {string} enabled The value of the enabled Field
+     * @param {number[]} Column number for the different inputs
      */
-    private constructor(pid: string, docType: string, url: string, enabled: string) {
+    private constructor(pid: string, docType: string, url: string, enabled: string, columns: number[]) {
+        this.index = CSVRow.count;
+        CSVRow.count += 1;
+        this.columns = [];
+        for (const index of columns) {
+            this.columns.push(String.fromCharCode(65 + index));
+        }
+
         this.pid = pid.trim();
         if (docType != null) {
             this.docType = docType.trim();
         } else {
             this.docType = "";
         }
-        // Replace "%" with "\%" to prohibit apache from
-        // recognizing it as a regex substitution argument.
-        this.url = url.trim().replace("%", "\\%");
+        this.url = url.trim();
         this.enabled = enabled.trim();
 
         this.error = [];
+        this.affectedCels = [];
         this.valid = this.isValid();
+        this.urlChecked = false;
+        this.urlWorking = false;
     }
 
     /**
@@ -266,6 +291,48 @@ export class CSVRow {
      */
     public isValidAndEnabled(): boolean {
         return this.valid && this.enabled === "1";
+    }
+
+    /**
+     * Check is URL is reachable
+     *
+     * @returns boolean
+     */
+    public async checkURL() {
+        if (!this.valid) {
+            return;
+        }
+        try {
+            const result = await got(this.url, {method: "HEAD", throwHttpErrors: false, timeout: 2000});
+            if (result.statusCode !== 200) {
+                this.urlWorking = false;
+                this.error.push("E06");
+            } else {
+                this.urlWorking = true;
+            }
+            this.urlChecked = true;
+        } catch (error) {
+            console.log("error");
+            console.log(error);
+        }
+    }
+    /**
+     * Convert the row data to an HTML table row for report generation
+     *
+     * @returns HTML string for a table row
+     */
+    public createHTMLRow(): string {
+        return `<tr class="${this.error.length > 0 ? "invalid" : "valid"}">` +
+            `<td>${this.index}</td>` +
+            `<td class="${this.error.indexOf("E05") !== -1 ? "error" : ""}">${this.enabled}</td>` +
+            `<td class="${this.error.indexOf("E02") !== -1 ||
+                this.error.indexOf("E03") !== -1 ? "error" : ""}">${this.docType}</td>` +
+            `<td class="${this.error.indexOf("E01") !== -1 ? "error" : ""}">${this.pid}</td>` +
+            `<td class="${this.error.indexOf("E04") !== -1 ? "error" : ""}">` +
+                `<a href="${this.url}" title="${this.url}">item URL</a></td>` +
+            `<td>${this.affectedCels.join(",")}</td>` +
+            `<td class="${this.error.indexOf("E06") !== -1 ? "error" : ""}">${this.urlWorking ? "OK" : "NOK"}</td>` +
+            `</tr>\n`;
     }
 
     /**
@@ -293,6 +360,7 @@ export class CSVRow {
         if (!fn(this.pid)) {
             // E01 document type has invalid characters
             this.error.push("E01");
+            this.affectedCels.push(`${this.columns[0]}${this.index}`);
             retval = false;
         }
 
@@ -303,24 +371,28 @@ export class CSVRow {
             if (!fn(this.docType)) {
                 // E02 document type has invalid characters
                 this.error.push("E02");
+                this.affectedCels.push(`${this.columns[1]}${this.index}`);
                 retval = false;
             }
         // If the doctype is empty, check if it's allowed. If it isn't -> error.
         } else if (!CSVConf.ALLOW_NO_DOCTYPE) {
             // E03 : No document type in row
             this.error.push("E03");
+            this.affectedCels.push(`${this.columns[1]}${this.index}`);
             retval = false;
         }
 
         if (!validUrl.isWebUri(this.url)) {
             // E04 : invalid URL
             this.error.push("E04");
+            this.affectedCels.push(`${this.columns[2]}${this.index}`);
             retval = false;
         }
 
         if (this.enabled !== "1" && this.enabled !== "0") {
             // E05 : invalid enabled column
             this.error.push("E05");
+            this.affectedCels.push(`${this.columns[3]}${this.index}`);
             retval = false;
         }
 
@@ -458,7 +530,10 @@ export class HTAccessCreator {
         } else {
             redir = row.pid;
         }
-        return `RewriteRule ${redir}$ ${row.url} [${options}]`;
+        // Replace "%" with "\%" to prohibit apache from
+        // recognizing it as a regex substitution argument.
+        const url = row.url.replace("%", "\\%");
+        return `RewriteRule ${redir}$ ${url} [${options}]`;
     }
 }
 
@@ -475,16 +550,20 @@ export class ConversionResult {
     public numLinesRejected: number;
     public numLinesAccepted: number;
 
+    // data
+    public rows: CSVRow[];
+
     /**
      * @constructor
      * @param {string} file  The data (file CONTENT)
      * @param {number} rejected The number of rows rejected in the original CSV
      * @param {number} accepted The number of rows used/accepted in the original CSV
      */
-    constructor(file: string, rejected: number, accepted: number) {
+    constructor(file: string, rejected: number, accepted: number, rows: CSVRow[]) {
         this.file = file;
         this.numLinesAccepted = accepted;
         this.numLinesRejected = rejected;
+        this.rows = rows;
     }
 }
 
@@ -509,15 +588,15 @@ export async function convertCSVtoWebConfig(filepath: string,
     // Create the array
     try {
         const rows = await CSVRow.createArrayFromCSV(filepath,
-                                                    () => { numAccepted++; },
-                                                    (row: CSVRow) => { numRejected ++; });
+                                                    (row: CSVRow) => { numAccepted++; },
+                                                    (row: CSVRow) => { numRejected++; });
 
         if (forApache) {
             const creator = new HTAccessCreator(rows);
-            return new ConversionResult(creator.makeHTAccessFile(), numRejected, numAccepted);
+            return new ConversionResult(creator.makeHTAccessFile(), numRejected, numAccepted, rows);
         } else {
             const creator = new NginxConfCreator(rows, subdir);
-            return new ConversionResult(creator.makeNginxConfFile(), numRejected, numAccepted);
+            return new ConversionResult(creator.makeNginxConfFile(), numRejected, numAccepted, rows);
         }
     } catch (error) {
         log.error(error);

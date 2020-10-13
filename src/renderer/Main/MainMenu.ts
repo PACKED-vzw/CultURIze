@@ -64,8 +64,9 @@ export async function lookForFile(callback: FileFoundCallback) {
  * @param {string} prBody   GitHub Pull Request body.
  */
 export function publish(filepath: string, subdir: string, repoUrl: string, branch: string,
-                        commitMsg: string, prTitle: string, prBody: string, forApache: boolean) {
+                        commitMsg: string, prTitle: string, prBody: string, forApache: boolean,
+                        checkUrl: boolean) {
    ipcRenderer.send("request-publishing",
                     new PublishRequest(filepath, subdir, repoUrl, branch,
-                                       commitMsg, prTitle, prBody, forApache));
+                                       commitMsg, prTitle, prBody, forApache, checkUrl));
 }

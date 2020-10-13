@@ -101,6 +101,12 @@
                     </span>
                     <input class="input-form" type="text" id="pr_body" required> </div>
                 <div class="formrow"> <span class="label-info">
+                        <span class="p-form">Check URLs</span>
+                        <button class="info" type="button">? <span class="tooltiptext">Check if URL still points to an existing resource and add it to the report
+                            </span> </button>
+                    </span>
+                    <input class="input-form" type="checkbox" id="check_url"> </div>
+                <div class="formrow"> <span class="label-info">
                         <span class="p-form">No subdirectory </span>
                         <button class="info" type="button">? <span class="tooltiptext">It's very dangerous otherwise!
                             </span> </button>
@@ -138,9 +144,11 @@
     const commitMsgField = document.getElementById('commit_msg')
     const prTitleField = document.getElementById('pr_title')
     const prBodyField = document.getElementById('pr_body')
-    document.getElementById('no-subdir').addEventListener('change', function () {
+    const noSubDir = document.getElementById('no-subdir')
+    noSubDir.addEventListener('change', function () {
         subdirField.required = !this.checked;
     })
+    const checkUrl = document.getElementById('check_url')
     // Divs
     const feedback = document.getElementById('feedback')
     const feedbackDiv = document.getElementById('feedback-div')
@@ -209,7 +217,7 @@
         submitButton.setAttribute('disabled', 'disabled')
         disableLogout();
         MainMenu.publish(csvPathField.value, subdirField.value, githubUrlField.value, branch.value, commitMsgField
-            .value, prTitleField.value, prBodyField.value, webserverApache.checked)
+            .value, prTitleField.value, prBodyField.value, webserverApache.checked, checkUrl.checked)
     }
 
     function actOnShowMore() {
@@ -237,6 +245,23 @@
     })
     ipc.on('show-update', (event) => {
         updateButton.style.display = 'block'
+    })
+    ipc.on('input-values', (event, data) => {
+        csvPathField.value = data.csvPath
+        subdirField.value = data.subdir
+        githubUrlField.value = data.repoUrl
+        webserverNginx.checked = !data.forApache
+        webserverApache.checked = data.forApache
+        if (data.advanced && !optionsAreRevealed) {
+            actOnShowMore()
+        }
+        branchField.value = data.branch
+        commitMsgField.value = data.commitMsg
+        prTitleField.value = data.prTitle
+        prBodyField.value = data.prBody
+        checkUrl.checked = data.checkUrl
+        noSubDir.checked = data.noSubDir
+        subdirField.required = !data.noSubDir;
     })
 </script>
 

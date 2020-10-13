@@ -18,6 +18,7 @@ export class PublishRequest {
     public prBody: string;
     public user: User;
     public forApache: boolean;
+    public checkUrl: boolean;
 
     /**
      * Note: this constructor doesn't take the user object, because it's
@@ -34,7 +35,7 @@ export class PublishRequest {
      * @param {string} prBody The body of the pull request, if one is made.
      */
     constructor(csv: string, dir: string, url: string, branch: string, commitMsg: string,
-                prTitle: string, prBody: string, forApache: boolean) {
+                prTitle: string, prBody: string, forApache: boolean, checkUrl: boolean) {
         this.csvPath = csv;
         this.subdir = dir;
         this.repoUrl = url;
@@ -43,6 +44,7 @@ export class PublishRequest {
         this.prTitle = prTitle;
         this.prBody = prBody;
         this.forApache = forApache;
+        this.checkUrl = checkUrl;
     }
 
     /**

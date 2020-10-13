@@ -55,6 +55,7 @@
         "shelljs": "^0.8.4",
         "simple-git": "^2.20.1",
         "valid-url": "^1.0.9",
-        "@types/valid-url": "^1.0.3"
+        "@types/valid-url": "^1.0.3",
+        "got": "^11.7.0"
     }
 }

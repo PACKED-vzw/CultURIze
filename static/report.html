@@ -1,0 +1,76 @@
+<html>
+<head>
+    <title>CultURIze conversion report</title>
+    <style type=text/css>
+        #tresults, th, td {
+            border: 1px solid black;
+        }
+        .invalid {
+            background-color: #efd1d1;
+        }
+        .error {
+            background-color: #db9898;
+        }
+        #tresults tr > *:nth-child(1) {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="hcontainer">
+        <h1>CultURIze conversion result </h1>
+        <div id="rcontainer">
+            Converted <span id="accepted">0</span> rows and rejected <span id="rejected">0</span>
+        </div>
+        <div id="bcontainer">
+            <button id="show-errors" class="filter-button">
+                Only show errors
+            </button>
+            <button id="show-all" class="filter-button">
+                Show all
+            </button>
+        </div>
+    </div>
+    <script type="text/javascript">
+        document.getElementById("show-errors").onclick = function showErrors() {
+            var lst = document.getElementsByClassName("valid");
+            for (var i=0; i < lst.length; i++) {
+                lst[i].style.display = "none";
+            }
+        };
+        document.getElementById("show-all").onclick = function showAll() {
+            var lst = document.getElementsByClassName("valid");
+            for (var i=0; i < lst.length; i++) {
+                lst[i].style.display = "";
+            }
+        };
+    </script>
+    <div id="tcontainer">
+        <table id="tresults">
+            <tr id="theader">
+                <td>id</td>
+                <td>enabled</td>
+                <td>document Type</td>
+                <td>PID</td>
+                <td>URL</td>
+                <td>affected cels</td>
+                <td>URL check</td>
+            </tr>
+        </table>
+    </div>
+</body>
+<script>
+    const electron = require('electron')
+    const ipc = electron.ipcRenderer
+    const resultsTable = document.getElementById('tresults')
+    const numAccepted = document.getElementById('accepted')
+    const numRejected = document.getElementById('rejected')
+
+    ipc.on('new-data', (event, data) => {
+        console.log(data);
+        resultsTable.insertAdjacentHTML('beforeend', data.html);
+        numAccepted.textContent = data.accepted;
+        numRejected.textContent = data.rejected;
+    })
+</script>
+</html>

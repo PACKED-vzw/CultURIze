@@ -11,6 +11,8 @@ import { getLatestRelease } from "./main/Api/Release";
 import { getUserInfo } from "./main/Api/User";
 import { publish } from "./main/Publishing/Publishing";
 
+import { PublishFormDefaults } from "./culturize.conf";
+
 import log = require("electron-log");
 import fs = require("fs");
 import path = require("path");
@@ -131,12 +133,35 @@ function loadTokenLoginpage() {
  * to the main menu (/static/main.html)
  */
 async function loadMainMenu() {
-    mainWindow.loadFile(__dirname + "/../static/main.html");
+    await mainWindow.loadFile(__dirname + "/../static/main.html");
+    preloadInputFields();
     const latestVersion = await getLatestRelease(octokit);
     console.log(latestVersion, version);
     if (version.isNewer(latestVersion)) {
         mainWindow.webContents.send("show-update");
     }
+}
+
+function preloadInputFields() {
+    if (settings["input-history"].length === 0) {
+        return;
+    }
+    const lastSettings = settings["input-history"][0];
+    const preload: { [index: string]: any} = {};
+    preload.csvPath = lastSettings.csvPath;
+    preload.subdir = lastSettings.subdir;
+    preload.repoUrl = lastSettings.repoUrl;
+    preload.branch = lastSettings.branch;
+    preload.commitMsg = lastSettings.commitMsg;
+    preload.prTitle = lastSettings.prTitle;
+    preload.prBody = lastSettings.prBody;
+    preload.forApache = lastSettings.forApache;
+    preload.checkUrl = lastSettings.checkUrl;
+    preload.advanced = lastSettings.advanced;
+    preload.checkUrl = lastSettings.checkUrl;
+    preload.noSubDir = lastSettings.noSubDir;
+
+    mainWindow.webContents.send("input-values", preload);
 }
 
 ipcMain.on("validate-token", (event: Event, token: string) => {
@@ -206,17 +231,38 @@ async function validateToken(token: string) {
  */
 function saveInputSettings(request: PublishRequest) {
     const input: { [index: string]: any} = {};
+    input["advanced"] = false;
     input["csvPath"] = request.csvPath;
     input["subdir"] = request.subdir;
+    if (request.subdir === "") {
+        input["noSubDir"] = true;
+        input["advanced"] = true;
+    }
     input["repoUrl"] = request.repoUrl;
     input["branch"] = request.branch;
     input["commitMsg"] = request.commitMsg;
     input["prTitle"] = request.prTitle;
     input["prBody"] = request.prBody;
     input["forApache"] = request.forApache;
+    input["checkUrl"] = request.checkUrl;
+
+    if (request.branch !== PublishFormDefaults.branch) {
+        input["advanced"] = true;
+    }
+    if (request.commitMsg !== PublishFormDefaults.commitMessage) {
+        input["advanced"] = true;
+    }
+    if (request.prTitle !== PublishFormDefaults.pullrequestTitle) {
+        input["advanced"] = true;
+    }
+    if (request.prBody !== PublishFormDefaults.pullrequestBody) {
+        input["advanced"] = true;
+    }
+    if (request.checkUrl !== PublishFormDefaults.checkUrl) {
+        input["advanced"] = true;
+    }
 
     settings["input-history"].unshift(input);
-    console.log(settings["input-history"]);
     settings["input-history"] = settings["input-history"].slice(0, 5);
     writeSettings();
 }
@@ -324,3 +370,17 @@ export function toggleTransformation(toggle: boolean) {
     }
 }
 toggleTransformation(false);
+
+export function showResultWindow() {
+    console.log("showing results window");
+    const resultWindow = new BrowserWindow({
+        useContentSize: true,
+        webPreferences: {
+            nodeIntegration: true,
+        },
+        parent: mainWindow,
+    });
+    resultWindow.setMenu(null);
+    //resultWindow.maximize();
+    return resultWindow;
+}

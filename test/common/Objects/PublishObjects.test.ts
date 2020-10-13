@@ -4,7 +4,7 @@ import { User } from "../../../src/common/Objects/UserObject";
 
 describe("PublishRequest", () => {
     it("PublishRequest construction", () => {
-        const pr = new PublishRequest("csv", "dir", "url", "branch", "commitmsg", "prtitle", "prbody", true);
+        const pr = new PublishRequest("csv", "dir", "url", "branch", "commitmsg", "prtitle", "prbody", true, true);
         expect(pr.csvPath).to.eql("csv");
         expect(pr.subdir).to.eql("dir");
         expect(pr.repoUrl).to.eql("url");
@@ -17,7 +17,7 @@ describe("PublishRequest", () => {
     });
 
     it("PublishRequest functions", () => {
-        const pr = new PublishRequest("csv", "dir", "url", "branch", "commitmsg", "prtitle", "prbody", true);
+        const pr = new PublishRequest("csv", "dir", "url", "branch", "commitmsg", "prtitle", "prbody", true, true);
         expect(pr.hasUser()).to.be.false;
         pr.user = new User("token", "user", "URL");
         expect(pr.hasUser()).to.be.true;

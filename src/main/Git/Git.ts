@@ -6,7 +6,7 @@ import fs = require("fs");
 import GitUrlParse = require("git-url-parse");
 import path = require("path");
 import simpleGit, {ResetMode, SimpleGit} from "simple-git";
-import { User } from "./../../common/Objects/UserObject";
+import { User } from "./../../common/Objects/User";
 
 
 /**

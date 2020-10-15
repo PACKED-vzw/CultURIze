@@ -1,12 +1,5 @@
-/**
- * @file This file is tasked with retrieving the user information
- * using the GitHub API.
- */
-//const { Octokit } = require("@octokit/rest");
 import { Octokit } from "@octokit/rest";
-import log = require("electron-log");
-import { User } from "../../common/Objects/UserObject";
-import { Version } from "../../common/Objects/VersionObject";
+import { Version } from "../../common/Objects/Version";
 
 /**
  * Uses the token to query the GitHub API to retreive latest release

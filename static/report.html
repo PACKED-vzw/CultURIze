@@ -47,6 +47,7 @@
     </script>
     <div id="tcontainer">
         <table id="tresults">
+            <tbody id="tbody">
             <tr id="theader">
                 <td>id</td>
                 <td>enabled</td>
@@ -56,18 +57,18 @@
                 <td>affected cels</td>
                 <td>URL check</td>
             </tr>
+            </tbody>
         </table>
     </div>
 </body>
 <script>
     const electron = require('electron')
     const ipc = electron.ipcRenderer
-    const resultsTable = document.getElementById('tresults')
+    const resultsTable = document.getElementById('tbody')
     const numAccepted = document.getElementById('accepted')
     const numRejected = document.getElementById('rejected')
 
     ipc.on('new-data', (event, data) => {
-        console.log(data);
         resultsTable.insertAdjacentHTML('beforeend', data.html);
         numAccepted.textContent = data.accepted;
         numRejected.textContent = data.rejected;

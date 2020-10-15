@@ -3,8 +3,7 @@
  * using the GitHub API.
  */
 import { Octokit } from "@octokit/rest";
-import log = require("electron-log");
-import { User } from "../../common/Objects/UserObject";
+import { User } from "../../common/Objects/User";
 
 /**
  * Uses the token to query the GitHub API to create User object

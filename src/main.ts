@@ -4,12 +4,13 @@
  */
 import { Octokit } from "@octokit/rest";
 import { app, BrowserWindow, dialog, globalShortcut, ipcMain } from "electron";
-import { PublishRequest } from "./common/Objects/PublishObjects";
-import { User } from "./common/Objects/UserObject";
-import { Version } from "./common/Objects/VersionObject";
+import { Action, ActionRequest } from "./common/Objects/ActionRequest";
+import { User } from "./common/Objects/User";
+import { Version } from "./common/Objects/Version";
+import { publish } from "./main/Actions/Publishing";
+import { validate } from "./main/Actions/Validating";
+import { getUserInfo } from "./main/Api/GithubUser";
 import { getLatestRelease } from "./main/Api/Release";
-import { getUserInfo } from "./main/Api/User";
-import { publish } from "./main/Publishing/Publishing";
 
 import { PublishFormDefaults } from "./culturize.conf";
 
@@ -117,6 +118,10 @@ function createWindow() {
             }
         }
     });
+    globalShortcut.register("f4", () => {
+        console.log("f4 is pressed");
+        mainWindow.webContents.openDevTools();
+    });
 
 }
 
@@ -147,21 +152,24 @@ function preloadInputFields() {
         return;
     }
     const lastSettings = settings["input-history"][0];
-    const preload: { [index: string]: any} = {};
-    preload.csvPath = lastSettings.csvPath;
-    preload.subdir = lastSettings.subdir;
-    preload.repoUrl = lastSettings.repoUrl;
-    preload.branch = lastSettings.branch;
-    preload.commitMsg = lastSettings.commitMsg;
-    preload.prTitle = lastSettings.prTitle;
-    preload.prBody = lastSettings.prBody;
-    preload.forApache = lastSettings.forApache;
-    preload.checkUrl = lastSettings.checkUrl;
-    preload.advanced = lastSettings.advanced;
-    preload.checkUrl = lastSettings.checkUrl;
-    preload.noSubDir = lastSettings.noSubDir;
+    const prevData: Array<{ [index: string]: any}> = [];
+    for (const input of settings["input-history"]) {
+        const data: { [index: string]: any} = {};
+        data.csvPath = input.csvPath;
+        data.subdir = input.subdir;
+        data.repoUrl = input.repoUrl;
+        data.branch = input.branch;
+        data.commitMsg = input.commitMsg;
+        data.prTitle = input.prTitle;
+        data.prBody = input.prBody;
+        data.forApache = input.forApache;
+        data.advanced = input.advanced;
+        data.noSubDir = input.noSubDir;
 
-    mainWindow.webContents.send("input-values", preload);
+        prevData.push(data);
+    }
+
+    mainWindow.webContents.send("input-values", prevData);
 }
 
 ipcMain.on("validate-token", (event: Event, token: string) => {
@@ -229,11 +237,12 @@ async function validateToken(token: string) {
 /**
  * Save input settings for restore on next convertion
  */
-function saveInputSettings(request: PublishRequest) {
+function saveInputSettings(request: ActionRequest) {
     const input: { [index: string]: any} = {};
     input["advanced"] = false;
     input["csvPath"] = request.csvPath;
     input["subdir"] = request.subdir;
+    input["noSubDir"] = false;
     if (request.subdir === "") {
         input["noSubDir"] = true;
         input["advanced"] = true;
@@ -243,8 +252,7 @@ function saveInputSettings(request: PublishRequest) {
     input["commitMsg"] = request.commitMsg;
     input["prTitle"] = request.prTitle;
     input["prBody"] = request.prBody;
-    input["forApache"] = request.forApache;
-    input["checkUrl"] = request.checkUrl;
+    input["forApache"] = request.target;
 
     if (request.branch !== PublishFormDefaults.branch) {
         input["advanced"] = true;
@@ -256,9 +264,6 @@ function saveInputSettings(request: PublishRequest) {
         input["advanced"] = true;
     }
     if (request.prBody !== PublishFormDefaults.pullrequestBody) {
-        input["advanced"] = true;
-    }
-    if (request.checkUrl !== PublishFormDefaults.checkUrl) {
         input["advanced"] = true;
     }
 
@@ -276,24 +281,18 @@ function saveInputSettings(request: PublishRequest) {
  * If the user is not valid, authError is called and a error is logged to the console
  * using console.error()
  */
-ipcMain.on("request-publishing", (event: Event, request: PublishRequest) => {
+ipcMain.on("request-action", (event: Event, request: ActionRequest) => {
     // If the current logged in user is valid, proceed.
-    if (isCurrentUserValid()) {
-        log.info("Current user is valid, calling publish().");
-        // Complete the request with the user
-        request.user = currentUser;
-        // save input settings
-        saveInputSettings(request);
-        // Proceed
+    log.info("Current user is valid, calling publish().");
+    // Complete the request with the user
+    request.user = currentUser;
+    // save input settings
+    saveInputSettings(request);
+    // Proceed
+    if (request.action === Action.publish) {
         publish(request, path.join(app.getPath("userData"), "culturize", "repo"));
-    } else {
-        log.error("Aborting publishing process because the current user is invalid.");
-        // Else, the user is not valid, request him to login again
-        loadTokenLoginpage();
-        mainWindow.webContents.once("dom-ready", () => {
-            log.info("sending login failure");
-            mainWindow.webContents.send("token-expired");
-        });
+    } else if (request.action === Action.validate) {
+        validate(request);
     }
 });
 
@@ -308,11 +307,11 @@ function isCurrentUserValid(): boolean {
         return false;
     }
 
-    if ((currentUser.userName == null) || (currentUser.avatar_url == null) || (currentUser.token == null)) {
+    if ((currentUser.userName == null) || (currentUser.avatarURL == null) || (currentUser.token == null)) {
         return false;
     }
 
-    return (currentUser.avatar_url !== "") && (currentUser.userName !== "") && (currentUser.token !== "");
+    return (currentUser.avatarURL !== "") && (currentUser.userName !== "") && (currentUser.token !== "");
 }
 
 /**
@@ -371,7 +370,7 @@ export function toggleTransformation(toggle: boolean) {
 }
 toggleTransformation(false);
 
-export function showResultWindow() {
+export function showResultWindow(hide: boolean = false) {
     console.log("showing results window");
     const resultWindow = new BrowserWindow({
         useContentSize: true,
@@ -379,8 +378,8 @@ export function showResultWindow() {
             nodeIntegration: true,
         },
         parent: mainWindow,
+        show: !hide,
     });
     resultWindow.setMenu(null);
-    //resultWindow.maximize();
     return resultWindow;
 }

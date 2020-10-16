@@ -55,7 +55,57 @@ describe("CSVRow", () => {
         expect(row.url).to.eql("https://test.test");
     });
 
-    it("row creation from csv", async function() {
+    it("row HTML string", () => {
+        const rowData: { [id: string]: string } = {};
+        rowData[CSVConf.COL_PID] = "pid";
+        rowData[CSVConf.COL_DOCTYPE] = "doctype";
+        rowData[CSVConf.COL_URL] = "https://test.test";
+        rowData[CSVConf.COL_ENABLED] = "1";
+
+        CSVRow.count = 0;
+        let row = CSVRow.createRow(rowData);
+        expect(row.isValidAndEnabled()).to.be.true;
+        let html = row.createHTMLRow();
+        expect(html).to.eql(`<tr class="valid"><td>0</td><td class="">1</td><td class="">doctype</td><td class="">pid</td><td class=""><a href="https://test.test" title="https://test.test">item URL</a></td><td></td><td class="">NOK</td></tr>\n`);
+
+        rowData[CSVConf.COL_ENABLED] = "x";
+
+        CSVRow.count = 0;
+        row = CSVRow.createRow(rowData);
+        expect(row.isValidAndEnabled()).to.be.false;
+        html = row.createHTMLRow();
+        expect(html).to.eql(`<tr class="invalid"><td>0</td><td class="error">x</td><td class="">doctype</td><td class="">pid</td><td class=""><a href="https://test.test" title="https://test.test">item URL</a></td><td>D0</td><td class="">NOK</td></tr>\n`);
+
+        rowData[CSVConf.COL_ENABLED] = "1";
+        rowData[CSVConf.COL_DOCTYPE] = "..invalid";
+
+        CSVRow.count = 0;
+        row = CSVRow.createRow(rowData);
+        expect(row.isValidAndEnabled()).to.be.false;
+        html = row.createHTMLRow();
+        expect(html).to.eql(`<tr class="invalid"><td>0</td><td class="">1</td><td class="error">..invalid</td><td class="">pid</td><td class=""><a href="https://test.test" title="https://test.test">item URL</a></td><td>B0</td><td class="">NOK</td></tr>\n`);
+
+        rowData[CSVConf.COL_DOCTYPE] = "doctype";
+        rowData[CSVConf.COL_PID] = "..invalid";
+
+        CSVRow.count = 0;
+        row = CSVRow.createRow(rowData);
+        expect(row.isValidAndEnabled()).to.be.false;
+        html = row.createHTMLRow();
+        expect(html).to.eql(`<tr class="invalid"><td>0</td><td class="">1</td><td class="">doctype</td><td class="error">..invalid</td><td class=""><a href="https://test.test" title="https://test.test">item URL</a></td><td>A0</td><td class="">NOK</td></tr>\n`);
+
+        rowData[CSVConf.COL_PID] = "pid";
+        rowData[CSVConf.COL_URL] = "..invalid";
+
+        CSVRow.count = 0;
+        row = CSVRow.createRow(rowData);
+        expect(row.isValidAndEnabled()).to.be.false;
+        html = row.createHTMLRow();
+        expect(html).to.eql(`<tr class="invalid"><td>0</td><td class="">1</td><td class="">doctype</td><td class="">pid</td><td class="error"><a href="..invalid" title="..invalid">item URL</a></td><td>C0</td><td class="">NOK</td></tr>\n`);
+        console.log(html);
+    });
+
+    it("row creation from csv", async () => {
         let numAccepted: number = 0;
         let numRejected: number = 0;
 
@@ -161,7 +211,7 @@ describe("CSVRow", () => {
         }
     });
 
-    it("duplicate rows", async function() {
+    it("duplicate rows", async () => {
         let numAccepted: number = 0;
         let numRejected: number = 0;
 
@@ -195,7 +245,7 @@ describe("CSVRow", () => {
         }
     });
 
-    it("Nginx conversion", async function() {
+    it("Nginx conversion", async () => {
         let numAccepted: number = 0;
         let numRejected: number = 0;
 
@@ -248,7 +298,7 @@ describe("CSVRow", () => {
         }
     });
 
-    it("Apache conversion", async function() {
+    it("Apache conversion", async () => {
         let numAccepted: number = 0;
         let numRejected: number = 0;
 
@@ -301,7 +351,7 @@ describe("CSVRow", () => {
         }
     });
 
-    it("convertCSVtoWebConfig", async function() {
+    it("convertCSVtoWebConfig", async () => {
 
         // electron-log can give errors if run outside electron scope, so stubbing
         const logStubs = [sinon.stub(log, "error"), sinon.stub(log, "info"), sinon.stub(log, "warn")];

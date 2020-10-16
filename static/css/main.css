@@ -311,10 +311,6 @@ button:enabled:hover {
     transform: scale(1.05);
 }
 
-#extra_button:enabled:hover {
-    transform: scale(0.85);
-}
-
 .button:disabled {
     background-color: rgb(11, 90, 72);
 }
@@ -325,6 +321,14 @@ button:enabled:hover {
     justify-content: space-between;
     margin-top: 1.5rem;
     bottom: 0 !important;
+}
+#button-right {
+    display: flex;
+    flex-direction: row;
+}
+#button-left {
+    display: flex;
+    flex-direction: row;
 }
 
 

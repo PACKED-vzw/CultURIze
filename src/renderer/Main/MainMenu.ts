@@ -2,7 +2,7 @@
  * @file This file contains function used by the main.html
  */
 import { ipcRenderer, remote } from "electron";
-import { PublishRequest } from "./../../common/Objects/PublishObjects";
+import { Action, ActionRequest, Target } from "./../../common/Objects/ActionRequest";
 const dialog = remote.dialog;
 
 /**
@@ -66,7 +66,16 @@ export async function lookForFile(callback: FileFoundCallback) {
 export function publish(filepath: string, subdir: string, repoUrl: string, branch: string,
                         commitMsg: string, prTitle: string, prBody: string, forApache: boolean,
                         checkUrl: boolean) {
-   ipcRenderer.send("request-publishing",
-                    new PublishRequest(filepath, subdir, repoUrl, branch,
-                                       commitMsg, prTitle, prBody, forApache, checkUrl));
+   ipcRenderer.send("request-action",
+                    new ActionRequest(Action.publish, filepath, subdir, repoUrl, branch,
+                                      commitMsg, prTitle, prBody,
+                                      forApache ? Target.apache : Target.nginx));
+}
+
+export function validate(filepath: string, subdir: string, repoUrl: string, branch: string,
+                         commitMsg: string, prTitle: string, prBody: string, forApache: boolean) {
+   ipcRenderer.send("request-action",
+                    new ActionRequest(Action.validate, filepath, subdir, repoUrl, branch,
+                                      commitMsg, prTitle, prBody,
+                                      forApache ? Target.apache : Target.nginx));
 }

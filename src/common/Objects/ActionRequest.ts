@@ -1,14 +1,19 @@
-/**
- * @file This files contain Objects related to the Publishing process :
- * The PublishRequest object and the PublishRequestResult object.
- */
+import { User } from "./User";
 
-import { User } from "./UserObject";
+export enum Action {
+    publish,
+    validate,
+}
 
+export enum Target {
+    nginx,
+    apache,
+}
 /**
  * Encapsulates a request to publish a CSV file
  */
-export class PublishRequest {
+export class ActionRequest {
+    public action: Action;
     public csvPath: string;
     public subdir: string;
     public repoUrl: string;
@@ -17,8 +22,8 @@ export class PublishRequest {
     public prTitle: string;
     public prBody: string;
     public user: User;
-    public forApache: boolean;
-    public checkUrl: boolean;
+    public target: Target;
+    public timestamp: string;
 
     /**
      * Note: this constructor doesn't take the user object, because it's
@@ -34,8 +39,9 @@ export class PublishRequest {
      * @param {string} prTitle The title of the pull request, if one is made
      * @param {string} prBody The body of the pull request, if one is made.
      */
-    constructor(csv: string, dir: string, url: string, branch: string, commitMsg: string,
-                prTitle: string, prBody: string, forApache: boolean, checkUrl: boolean) {
+    constructor(action: Action, csv: string, dir: string, url: string, branch: string,
+                commitMsg: string, prTitle: string, prBody: string, target: Target) {
+        this.action = action;
         this.csvPath = csv;
         this.subdir = dir;
         this.repoUrl = url;
@@ -43,8 +49,8 @@ export class PublishRequest {
         this.commitMsg = commitMsg;
         this.prTitle = prTitle;
         this.prBody = prBody;
-        this.forApache = forApache;
-        this.checkUrl = checkUrl;
+        this.target = target;
+        this.timestamp = new Date().toISOString().replace(/T/, " ").replace(/\..+/, "");
     }
 
     /**
@@ -61,29 +67,5 @@ export class PublishRequest {
      */
     public hasSelectedFile(): boolean {
         return (this.csvPath != null) && (this.csvPath !== "");
-    }
-}
-
-/**
- * This class encapsulates the result of a Publish request.
- */
-export class PublishRequestResult {
-    public successful: boolean;
-    public error: string;
-    public numLinesAccepted: number;
-    public numLinesRejected: number;
-
-    /**
-     * @constructor
-     * @param {boolean} successful Set to true to indicate that the process was successful, false otherwise
-     * @param {string} error Set to null if no error (successful = true), else, this should contain the error message
-     * @param {number} numLinesAccepted The number of lines that were used (to create the .htaccess) in the csv file
-     * @param {number} numLinesRejected The number of lines that were rejected from the csv file
-     */
-    constructor(successful: boolean, error: string = null, numLinesAccepted: number = 0, numLinesRejected: number = 0) {
-        this.successful = successful;
-        this.error = error;
-        this.numLinesAccepted = numLinesAccepted;
-        this.numLinesRejected = numLinesRejected;
     }
 }

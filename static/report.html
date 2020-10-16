@@ -196,6 +196,7 @@
     </div>
     <div id="tcontainer">
         <table id="tresults">
+            <tbody id="tbody">
             <tr id="theader">
                 <th>ID</th>
                 <th>Enabled</th>
@@ -206,6 +207,7 @@
                 <th>URL check</th>
                 <!-- cell 'URL check' needs to have class='check' to load the icons -->
             </tr>
+            </tbody>
         </table>
     </div>
     <script>
@@ -239,12 +241,11 @@
 <script>
     const electron = require('electron')
     const ipc = electron.ipcRenderer
-    const resultsTable = document.getElementById('tresults')
+    const resultsTable = document.getElementById('tbody')
     const numAccepted = document.getElementById('accepted')
     const numRejected = document.getElementById('rejected')
 
     ipc.on('new-data', (event, data) => {
-        console.log(data);
         resultsTable.insertAdjacentHTML('beforeend', data.html);
         numAccepted.textContent = data.accepted;
         numRejected.textContent = data.rejected;

@@ -21,11 +21,14 @@
  *  9.  We make a pull request to ask the owner of the target repo to accept the changes.
  */
 
-import { PublishRequest, PublishRequestResult } from "./../../common/Objects/PublishObjects";
-import { User } from "./../../common/Objects/UserObject";
+import { Action, ActionRequest, Target } from "./../../common/Objects/ActionRequest";
+import { ActionRequestResult } from "./../../common/Objects/ActionRequestResult";
+import { ConversionResult } from "./../../common/Objects/ConversionResult";
+import { CSVRow } from "./../../common/Objects/CSVRow";
+import { User } from "./../../common/Objects/User";
 import { PublishOptions } from "./../../culturize.conf";
 import { mainWindow, showResultWindow, toggleTransformation } from "./../../main";
-import { ConversionResult, convertCSVtoWebConfig, CSVRow } from "./../Converter/Converter";
+import { convertCSVtoWebConfig } from "./../Converter/Converter";
 import { GitRepoManager } from "./../Git/Git";
 
 import log = require("electron-log");
@@ -65,7 +68,7 @@ const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
  * @param {PublishRequest} request The request that will be processed
  * @param {string} path to sync git repositories to
  */
-export async function publish(request: PublishRequest, repoPath: string) {
+export async function publish(request: ActionRequest, repoPath: string) {
     notifyStep("Preparing");
     // Prepare the Subdirectory by inserting the baseSubdir if applicable.
     const baseSubdir: string = PublishOptions.baseSubdir ? PublishOptions.baseSubdir : "";
@@ -95,18 +98,12 @@ export async function publish(request: PublishRequest, repoPath: string) {
         // touching the remote repos.
         notifyStep("Converting file");
         await sleep(10);
-        log.info("generation config file for" + request.forApache ? "apache" : "nginx");
+        log.info("generation config file for" + request.target);
         const response: ConversionResult = await convertCSVtoWebConfig(request.csvPath,
-                                                                       request.forApache,
+                                                                       request.target,
                                                                        request.subdir);
         log.info("Conversion result: " + response.file.length + " characters in the configuration, generated from "
                  + response.numLinesAccepted + " rows (" + response.numLinesRejected + ")");
-        if (request.checkUrl) {
-            notifyStep("Checking URLs");
-            await checkURLs(response.rows);
-        }
-        notifyStep("Writing report");
-        const reportFilename = writeReport(request.csvPath, response, request);
 
         // Parse the url
         notifyStep("Parsing URL");
@@ -143,7 +140,7 @@ export async function publish(request: PublishRequest, repoPath: string) {
 
         // Save the file
         notifyStep("Saving the configuration file to the desired location");
-        if (request.forApache) {
+        if (request.target === Target.apache) {
             manager.saveStringToFile(response.file, ".htaccess", request.subdir);
         } else {
             manager.saveStringToFile(response.file, "nginx_redirect.conf", request.subdir);
@@ -153,17 +150,18 @@ export async function publish(request: PublishRequest, repoPath: string) {
         notifyStep("Pushing changes");
         await manager.pushChanges(request.commitMsg);
 
+        notifyStep("Writing report");
+        const reportFilename = writeReport(request.csvPath, response, request);
+
         notifyStep("Done !");
-        if (!request.checkUrl) {
-            const resultWindow = showResultWindow();
-            resultWindow.loadURL("file://" + reportFilename);
-        }
+
+        // TODO show report path
 
         // set the end of the transformations
         toggleTransformation(false);
 
         sendRequestResult(
-            new PublishRequestResult(true, null, response.numLinesAccepted, response.numLinesRejected),
+            new ActionRequestResult(Action.publish, true, null, response.numLinesAccepted, response.numLinesRejected),
         );
     } catch (error) {
         // set the end of the transformations
@@ -171,7 +169,7 @@ export async function publish(request: PublishRequest, repoPath: string) {
 
         log.error(error as string);
         sendRequestResult(
-            new PublishRequestResult(false, error as string),
+            new ActionRequestResult(Action.publish, false, error as string),
         );
     }
 }
@@ -191,7 +189,7 @@ function notifyStep(stepDesc: string) {
  * Notifies the renderer process that we are done processing the request.
  * @param {PublishRequestResult} result The result of the request
  */
-function sendRequestResult(result: PublishRequestResult) {
+function sendRequestResult(result: ActionRequestResult) {
     mainWindow.webContents.send("publish-done", result);
 }
 
@@ -224,7 +222,7 @@ async function prepareGitRepoManager(repoURL: string, branch: string,
  * Checks a request for incorrect/invalid/illegal inputs.
  * @param {PublishRequest} request The request that will be checked
  */
-function checkRequestInput(request: PublishRequest): boolean {
+function checkRequestInput(request: ActionRequest): boolean {
     const repoUrl = request.repoUrl;
 
     // Check if the repo URL is a GitHub URL
@@ -257,39 +255,13 @@ function checkRequestInput(request: PublishRequest): boolean {
     return true;
 }
 
-/**
- * check csv rows URL's
- * @param {CSVRow[]} rows csv rows
- */
-async function checkURLs(rows: CSVRow[]) {
-    const resultWindow = showResultWindow();
-    console.log(__dirname);
-    await resultWindow.loadFile(__dirname + "/../../../static/report.html");
-    let numAccepted = 0;
-    let numRejected = 0;
-
-    for (const row of rows) {
-        await row.checkURL();
-        if (row.isValidAndEnabled()) {
-            numAccepted += 1;
-        } else {
-            numRejected += 1;
-        }
-        const data = {
-            html: row.createHTMLRow(),
-            accepted: numAccepted,
-            rejected: numRejected,
-        };
-        resultWindow.webContents.send("new-data", data);
-    }
-}
 
 /**
  * Write conversion result report
  * @param {string} csvPath location of the csv file, -report.html will be appended
  * @param {CSVRow[]} rows csv rows
  */
-function writeReport(csvPath: string, result: ConversionResult, request: PublishRequest) {
+function writeReport(csvPath: string, result: ConversionResult, request: ActionRequest) {
     const filename: string = path.join(path.dirname(csvPath), path.basename(csvPath) + "-report.html");
 
     const header: string = `<html>\n` +
@@ -300,7 +272,7 @@ function writeReport(csvPath: string, result: ConversionResult, request: Publish
             `.invalid {background-color: #efd1d1;}` +
             `.error {background-color: #db9898;}` +
             `#tresults tr > *:nth-child(1) {display: none;}` +
-            `${request.checkUrl ? "" : "#tresults tr > *:nth-child(7) {display: none;}"}` +
+            `#tresults tr > *:nth-child(7) {display: none;}` +
         `</style>\n` +
         `</head>\n` +
         `<body>\n` +

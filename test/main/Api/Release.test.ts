@@ -6,7 +6,7 @@ import * as sinon from "sinon";
 
 
 describe("Release", () => {
-    it("retrieve version info", async function() {
+    it("retrieve version info", async () => {
         const octokit = new octo.Octokit();
 
         const mock = sinon.mock(octokit.repos).expects("getLatestRelease");

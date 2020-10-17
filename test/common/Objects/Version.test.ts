@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Version } from "../../../src/common/Objects/VersionObject";
+import { Version } from "../../../src/common/Objects/Version";
 
 describe("VersionObject", () => {
     it("version construction", () => {

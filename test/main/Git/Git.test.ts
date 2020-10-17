@@ -1,12 +1,12 @@
 import * as octo from "@octokit/rest";
 import { expect } from "chai";
 import * as path from "path";
-import { User } from "../../../src/common/Objects/UserObject";
+import { User } from "../../../src/common/Objects/User";
 import { GitRepoManager } from "../../../src/main/Git/Git";
 
 import * as log from "electron-log";
 import * as fs from "fs";
-//import { Git } from "simple-git/src/git";
+// import { Git } from "simple-git/src/git";
 import * as sinon from "sinon";
 
 
@@ -37,7 +37,7 @@ describe("GitRepoManager", () => {
         fsmock.restore();
     });
 
-    xit("updateLocalCopy", async function() {
+    xit("updateLocalCopy", async () => {
         const user = new User("token", "user", "URL");
         const fsstub = sinon.stub(fs, "existsSync").returns(true);
         const logStubs = [sinon.stub(log, "error"), sinon.stub(log, "info"), sinon.stub(log, "warn")];
@@ -68,11 +68,11 @@ describe("GitRepoManager", () => {
         }
     });
 
-    xit("saveStringToFile", async function() {
+    xit("saveStringToFile", async () => {
         // fs writeFileSync mock
     });
 
-    xit("pushChanges", async function() {
+    xit("pushChanges", async () => {
         // simplegit mock add commit push
     });
 

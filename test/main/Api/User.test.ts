@@ -1,12 +1,12 @@
 import * as octo from "@octokit/rest";
 import { expect } from "chai";
-import { getUserInfo } from "../../../src/main/Api/User";
+import { getUserInfo } from "../../../src/main/Api/GithubUser";
 
 import * as sinon from "sinon";
 
 
 describe("gitlab user", () => {
-    it("Authenticate gitlab user", async function() {
+    it("Authenticate gitlab user", async () => {
         const octokit = new octo.Octokit();
 
         const rmock = sinon.mock(octokit).expects("request");
@@ -25,7 +25,7 @@ describe("gitlab user", () => {
         rmock.verify();
         umock.verify();
         expect(user.userName).to.eql("testuser");
-        expect(user.avatar_url).to.eql("testURL");
+        expect(user.avatarURL).to.eql("testURL");
     });
 
 });

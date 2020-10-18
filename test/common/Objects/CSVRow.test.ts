@@ -2,6 +2,8 @@ import { expect } from "chai";
 import { CSVRow } from "../../../src/common/Objects/CSVRow";
 import { CSVConf } from "./../../../src/culturize.conf";
 
+import * as got from "got";
+import * as sinon from "sinon";
 
 describe("CSVRow", () => {
     it("row creation", () => {
@@ -100,6 +102,8 @@ describe("CSVRow", () => {
     });
 
     xit("check URL", () => {
+        // Mocking problems
         expect(true).to.be.true;
+        // const stub = sinon.stub(got).returns(csvContent);
     });
 });

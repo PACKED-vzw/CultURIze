@@ -151,7 +151,7 @@ export async function publish(request: ActionRequest, repoPath: string) {
         await manager.pushChanges(request.commitMsg);
 
         notifyStep("Writing report");
-        const reportFilename = writeReport(request.csvPath, response, request);
+        const reportFilename = await writeReport(request.csvPath, response, request);
 
         notifyStep("Done !");
 
@@ -161,7 +161,12 @@ export async function publish(request: ActionRequest, repoPath: string) {
         toggleTransformation(false);
 
         sendRequestResult(
-            new ActionRequestResult(Action.publish, true, null, response.numLinesAccepted, response.numLinesRejected),
+            new ActionRequestResult(Action.publish,
+                                    true,
+                                    null,
+                                    reportFilename,
+                                    response.numLinesAccepted,
+                                    response.numLinesRejected),
         );
     } catch (error) {
         // set the end of the transformations
@@ -176,21 +181,21 @@ export async function publish(request: ActionRequest, repoPath: string) {
 
 /**
  * Notifies the user that a certain step is occuring. This
- * will fire a "update-publish-step" event, and also log
+ * will fire a "update-action-step" event, and also log
  * the step to the console.
  * @param {string} stepDesc Description of the step that'll be displayed to the user
  */
 function notifyStep(stepDesc: string) {
     log.info(stepDesc);
-    mainWindow.webContents.send("update-publish-step", stepDesc);
+    mainWindow.webContents.send("update-action-step", stepDesc);
 }
 
 /**
  * Notifies the renderer process that we are done processing the request.
- * @param {PublishRequestResult} result The result of the request
+ * @param {ActionRequestResult} result The result of the request
  */
 function sendRequestResult(result: ActionRequestResult) {
-    mainWindow.webContents.send("publish-done", result);
+    mainWindow.webContents.send("action-done", result);
 }
 
 /**
@@ -261,75 +266,30 @@ function checkRequestInput(request: ActionRequest): boolean {
  * @param {string} csvPath location of the csv file, -report.html will be appended
  * @param {CSVRow[]} rows csv rows
  */
-function writeReport(csvPath: string, result: ConversionResult, request: ActionRequest) {
-    const filename: string = path.join(path.dirname(csvPath), path.basename(csvPath) + "-report.html");
+async function writeReport(csvPath: string, result: ConversionResult, request: ActionRequest) {
+    const resultWindow = showResultWindow(true);
+    await resultWindow.loadFile(__dirname + "/../../../static/report.html");
 
-    const header: string = `<html>\n` +
-        `<head>\n` +
-        `<title>CultURIze conversion report</title>\n` +
-        `<style type=text/css>` +
-            `#tresults, th, td {border: 1px solid black;}` +
-            `.invalid {background-color: #efd1d1;}` +
-            `.error {background-color: #db9898;}` +
-            `#tresults tr > *:nth-child(1) {display: none;}` +
-            `#tresults tr > *:nth-child(7) {display: none;}` +
-        `</style>\n` +
-        `</head>\n` +
-        `<body>\n` +
-        `<div id="hcontainer">\n` +
-            `<h1>CultURIze conversion result\n</h1>` +
-            `<div id="rcontainer">\n` +
-                `Converted <span id="accepted">${result.numLinesAccepted}</span> rows and ` +
-                `rejected <span id="rejected">${result.numLinesRejected}</span>.` +
-            `</div>\n` +
-            `<div id="bcontainer">\n` +
-                `<button id="show-errors" class="filter-button">\n` +
-                    `Only show errors` +
-                `</button>\n` +
-                `<button id="show-all" class="filter-button">\n` +
-                    `Show all` +
-                `</button>\n` +
-            `</div>\n` +
-        `</div>\n` +
-        `<script type="text/javascript">\n` +
-            `document.getElementById("show-errors").onclick = function showErrors() {` +
-                `var lst = document.getElementsByClassName("valid");` +
-                `for (var i=0; i < lst.length; i++) {` +
-                    `lst[i].style.display = "none";` +
-                `}` +
-            `};` +
-            `document.getElementById("show-all").onclick = function showAll() {` +
-                `var lst = document.getElementsByClassName("valid");` +
-                `for (var i=0; i < lst.length; i++) {` +
-                    `lst[i].style.display = "";` +
-                `}` +
-            `};` +
-        `</script>\n` +
-        `<div id="tcontainer">\n` +
-            `<table id="tresults">\n` +
-                `<tr id="theader">` +
-                    `<td>id</td>` +
-                    `<td>enabled</td>` +
-                    `<td>document Type</td>` +
-                    `<td>PID</td>` +
-                    `<td>URL</td>` +
-                    `<td>affected cels</td>` +
-                    `<td>URL check</td>` +
-                `</tr>\n`;
+    let numAccepted = 0;
+    let numRejected = 0;
 
-    fs.writeFileSync(filename, header);
-
-    let data: string = "";
     for (const row of result.rows) {
-        data += row.createHTMLRow();
+        if (row.isValidAndEnabled()) {
+            numAccepted += 1;
+        } else {
+            numRejected += 1;
+        }
+        const data = {
+            html: row.createHTMLRow(),
+            accepted: numAccepted,
+            rejected: numRejected,
+        };
+        resultWindow.webContents.send("new-data", data);
     }
-    fs.appendFileSync(filename, data);
-    const footer: string = `</table>\n` +
-        `</div>\n` +
-        `</body>\n` +
-        `</html>`;
-
-    fs.appendFileSync(filename, footer);
-
+    const filename: string = path.join(path.dirname(csvPath),
+                                       path.basename(csvPath) + "-" +
+                                       request.timestamp.replace(/ /, "_") + "-report.html");
+    await resultWindow.webContents.savePage(filename, "HTMLComplete");
+    resultWindow.close();
     return filename;
 }

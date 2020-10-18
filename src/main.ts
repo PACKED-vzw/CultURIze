@@ -139,7 +139,7 @@ function loadTokenLoginpage() {
  */
 async function loadMainMenu() {
     await mainWindow.loadFile(__dirname + "/../static/main.html");
-    preloadInputFields();
+    passInputHistory();
     const latestVersion = await getLatestRelease(octokit);
     console.log(latestVersion, version);
     if (version.isNewer(latestVersion)) {
@@ -147,7 +147,7 @@ async function loadMainMenu() {
     }
 }
 
-function preloadInputFields() {
+function passInputHistory() {
     if (settings["input-history"].length === 0) {
         return;
     }
@@ -156,6 +156,7 @@ function preloadInputFields() {
     for (const input of settings["input-history"]) {
         const data: { [index: string]: any} = {};
         data.csvPath = input.csvPath;
+        data.filename = path.basename(input.csvPath);
         data.subdir = input.subdir;
         data.repoUrl = input.repoUrl;
         data.branch = input.branch;
@@ -165,6 +166,7 @@ function preloadInputFields() {
         data.forApache = input.forApache;
         data.advanced = input.advanced;
         data.noSubDir = input.noSubDir;
+        data.timestamp = input.timestamp;
 
         prevData.push(data);
     }
@@ -239,6 +241,7 @@ async function validateToken(token: string) {
  */
 function saveInputSettings(request: ActionRequest) {
     const input: { [index: string]: any} = {};
+    input["timestamp"] = request.timestamp;
     input["advanced"] = false;
     input["csvPath"] = request.csvPath;
     input["subdir"] = request.subdir;
@@ -270,6 +273,7 @@ function saveInputSettings(request: ActionRequest) {
     settings["input-history"].unshift(input);
     settings["input-history"] = settings["input-history"].slice(0, 5);
     writeSettings();
+    passInputHistory();
 }
 
 /**
@@ -373,7 +377,8 @@ toggleTransformation(false);
 export function showResultWindow(hide: boolean = false) {
     console.log("showing results window");
     const resultWindow = new BrowserWindow({
-        useContentSize: true,
+        height: 820,
+        width: 1000,
         webPreferences: {
             nodeIntegration: true,
         },

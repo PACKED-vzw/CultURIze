@@ -330,6 +330,34 @@ button:enabled:hover {
     display: flex;
     flex-direction: row;
 }
+#hist-div {
+    position: relative;
+    display: inline-block;
+}
+
+#hist-items {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 360px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    padding: 12px 16px;
+    z-index: 1;
+}
+#hist-items p {
+    color: black;
+    font-size: 1.6rem;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+#hist-items p:hover {background-color: #f1f1f1}
+
+#hist-div:hover #hist-items {
+    display: block;
+}
+
 
 
 /* feedback screen */

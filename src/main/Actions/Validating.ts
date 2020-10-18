@@ -5,6 +5,7 @@
  *
  */
 
+import { BrowserWindow } from "electron";
 import { Action, ActionRequest } from "./../../common/Objects/ActionRequest";
 import { ActionRequestResult } from "./../../common/Objects/ActionRequestResult";
 import { ConversionResult } from "./../../common/Objects/ConversionResult";
@@ -74,10 +75,18 @@ export async function validate(request: ActionRequest) {
                                               () => { numAccepted++; },
                                               (row: CSVRow) => { numRejected++; });
         notifyStep("Checking URLs");
-        await checkURLs(rows);
+        const resultWindow = showResultWindow();
+        await resultWindow.loadFile(__dirname + "/../../../static/report.html");
+
+        await checkURLs(rows, resultWindow);
 
         notifyStep("Writing report");
         // TODO writing report. Can we save html from window?
+
+        const reportFilename: string = path.join(path.dirname(request.csvPath),
+                                                 path.basename(request.csvPath) + "-" +
+                                                 request.timestamp.replace(/ /, "_") + "-report.html");
+        await resultWindow.webContents.savePage(reportFilename, "HTMLComplete");
 
         notifyStep("Done !");
 
@@ -85,7 +94,12 @@ export async function validate(request: ActionRequest) {
         toggleTransformation(false);
 
         sendRequestResult(
-            new ActionRequestResult(Action.validate, true, null, numAccepted, numRejected),
+            new ActionRequestResult(Action.validate,
+                                    true,
+                                    null,
+                                    reportFilename,
+                                    numAccepted,
+                                    numRejected),
         );
     } catch (error) {
         // set the end of the transformations
@@ -100,21 +114,21 @@ export async function validate(request: ActionRequest) {
 
 /**
  * Notifies the user that a certain step is occuring. This
- * will fire a "update-publish-step" event, and also log
+ * will fire a "update-action-step" event, and also log
  * the step to the console.
  * @param {string} stepDesc Description of the step that'll be displayed to the user
  */
 function notifyStep(stepDesc: string) {
     log.info(stepDesc);
-    mainWindow.webContents.send("update-publish-step", stepDesc);
+    mainWindow.webContents.send("update-action-step", stepDesc);
 }
 
 /**
  * Notifies the renderer process that we are done processing the request.
- * @param {PublishRequestResult} result The result of the request
+ * @param {ActionRequestResult} result The result of the request
  */
 function sendRequestResult(result: ActionRequestResult) {
-    mainWindow.webContents.send("publish-done", result);
+    mainWindow.webContents.send("action-done", result);
 }
 
 /**
@@ -123,19 +137,6 @@ function sendRequestResult(result: ActionRequestResult) {
  */
 function checkRequestInput(request: ActionRequest): boolean {
     const repoUrl = request.repoUrl;
-
-    // Check if the repo URL is a GitHub URL
-    if (!isGithubUrl(repoUrl)) {
-        log.error('"' + repoUrl + '" is not a valid GitHub repository');
-        return false;
-    }
-
-    // Check if the subdir is a valid path.
-    const subdir = request.subdir;
-    if ((subdir.length > 0) && (!dirRegex.test(subdir))) {
-        log.error('"' + subdir + '" is not a valid path');
-        return false;
-    }
 
     // Check if the path to the csv exists.
     const csvPath = request.csvPath;
@@ -158,10 +159,7 @@ function checkRequestInput(request: ActionRequest): boolean {
  * check csv rows URL's
  * @param {CSVRow[]} rows csv rows
  */
-async function checkURLs(rows: CSVRow[]) {
-    const resultWindow = showResultWindow();
-    await resultWindow.loadFile(__dirname + "/../../../static/report.html");
-
+async function checkURLs(rows: CSVRow[], resultWindow: BrowserWindow) {
     let numAccepted = 0;
     let numRejected = 0;
 
@@ -180,5 +178,4 @@ async function checkURLs(rows: CSVRow[]) {
         };
         resultWindow.webContents.send("new-data", data);
     }
-    // resultWindow.webContents.savePage("/tmp/culturizetest", "HTMLComplete");
 }

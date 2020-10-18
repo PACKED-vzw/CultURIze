@@ -133,6 +133,9 @@ function checkArrayForDuplicates(array: CSVRow[]): Promise<void> {
         // Iterate over the array, and populate the "redirs" array
         // with strings of the form element.docType + '/' + element.pid
         for (const element of array) {
+            if (!element.isValidAndEnabled()) {
+                continue;
+            }
             let tmp: string = element.docType + "/" + element.pid;
 
             // If the redirections are going to be case insensitive,

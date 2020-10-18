@@ -113,7 +113,11 @@
                     &nbsp;
                     &nbsp;
                     &nbsp;
-                    <button id="history_button" class="button" type="button" onclick="showHistory()"> <span>History</span> </button>
+                    <div id="hist-div">
+                        <button id="history_button" class="button" type="button" onclick="showHistory()"> <span>History</span> </button>
+                        <div id="hist-items">
+                        </div>
+                    </div>
                 </div>
                 <div id="button-right">
                     <button id="validate_button" class="button" type="button" onclick="actOnValidate()"> <span>validate</span> </button>
@@ -176,6 +180,7 @@
     const showMoreButton = document.getElementById('extra_button')
     const validateButton = document.getElementById('validate_button')
     const historyButton = document.getElementById('history_button')
+    const historyItems = document.getElementById('hist-items')
     const logoutButton = document.getElementById('logout')
     enableLogout();
     const hardReset = document.getElementById('hard-reset')
@@ -230,9 +235,20 @@
         ipc.send('hard-reset');
     }
 
-    function showFeedback(str) {
-        if (feedbackDiv.style.visibility === 'hidden') feedbackDiv.style.visibility = 'visible'
-        feedback.innerHTML = str
+    function showFeedback(str, secondLine="", path="") {
+        if (feedbackDiv.style.visibility === 'hidden') {
+            feedbackDiv.style.visibility = 'visible';
+        }
+        if (secondLine != "") {
+            feedback.innerHTML = str + '<br>' + secondLine;
+            document.getElementById("report").onclick = function(event) {
+                event.preventDefault();
+                console.log("open external");
+                electron.shell.openExternal(path);
+            }
+        } else {
+            feedback.innerHTML = str;
+        }
     }
 
     function actOnUpload() {
@@ -257,52 +273,41 @@
         }
         if (validatePossible) {
             validateButton.removeAttribute('disabled');
+            validateButton.removeAttribute('title');
         } else {
             validateButton.setAttribute('disabled', 'disabled');
+            validateButton.setAttribute('title', 'CSV file is required');
         }
         if (uploadPossible) {
             uploadButton.removeAttribute('disabled');
+            uploadButton.removeAttribute('title');
         } else {
             uploadButton.setAttribute('disabled', 'disabled');
+            uploadButton.setAttribute('title', 'CSV file, subdirectory and "upload to" are required');
         }
     }
 
-    function showHistory() {
-        console.log(curIndex);
-        if (prevData.length === 0) {
+    function showHistory(index) {
+        console.log(index);
+        if (index < 0 || index >= prevData.length) {
             return;
         }
-        curIndex += 1;
-        if (curIndex === prevData.length) {
-            curIndex = -1;
-            csvPathField.value = "";
-            subdirField.value = PublishFormDefaults.subdir;
-            githubUrlField.value = PublishFormDefaults.repo;
-            branchField.value = PublishFormDefaults.branch;
-            commitMsgField.value = PublishFormDefaults.commitMessage;
-            prTitleField.value = PublishFormDefaults.pullrequestTitle;
-            prBodyField.value = PublishFormDefaults.pullrequestBody;
-            noSubDir.checked = false;
-            subdirField.required = true;
-            webserverNginx.checked = false;
-            webserverApache.checked = true;
-
-            checkActionPossible();
-        } else {
-            csvPathField.value = prevData[curIndex].csvPath;
-            subdirField.value = prevData[curIndex].subdir;
-            githubUrlField.value = prevData[curIndex].repoUrl;
-            branchField.value = prevData[curIndex].branch;
-            commitMsgField.value = prevData[curIndex].commitMsg;
-            prTitleField.value = prevData[curIndex].prTitle;
-            prBodyField.value = prevData[curIndex].prBody;
-            noSubDir.checked = prevData[curIndex].noSubDir;
-            subdirField.required = !prevData[curIndex].noSubDir;
-            webserverNginx.checked = !prevData[curIndex].forApache;
-            webserverApache.checked = prevData[curIndex].forApache;
-
-            checkActionPossible();
+        csvPathField.value = prevData[index].csvPath;
+        subdirField.value = prevData[index].subdir;
+        githubUrlField.value = prevData[index].repoUrl;
+        branchField.value = prevData[index].branch;
+        commitMsgField.value = prevData[index].commitMsg;
+        prTitleField.value = prevData[index].prTitle;
+        prBodyField.value = prevData[index].prBody;
+        noSubDir.checked = prevData[index].noSubDir;
+        subdirField.required = !prevData[index].noSubDir;
+        webserverNginx.checked = !prevData[index].forApache;
+        webserverApache.checked = prevData[index].forApache;
+        if (prevData[index].advanced && !optionsAreRevealed) {
+            actOnShowMore();
         }
+
+        checkActionPossible();
     }
 
     function actOnValidate() {
@@ -326,16 +331,17 @@
         }
     }
 
-    ipc.on('publish-done', (event, result) => {
+    ipc.on('action-done', (event, result) => {
         if (result.successful == true) {
-            showFeedback('Success! (' + result.numLinesAccepted + ' rows used, ' + result.numLinesRejected + ' rejected)')
+            showFeedback('Success! (' + result.numLinesAccepted + ' rows used, ' + result.numLinesRejected + ' rejected)',
+                '<a href="' + result.reportPath +'" title="' + result.reportPath + '" id="report">Report</a> saved in CSV file directory', result.reportPath)
         } else {
             showFeedback(result.error)
         }
         enableLogout();
         uploadButton.removeAttribute('disabled')
     })
-    ipc.on('update-publish-step', (event, step) => {
+    ipc.on('update-action-step', (event, step) => {
         showFeedback(step)
     })
     ipc.on('show-update', (event) => {
@@ -344,6 +350,15 @@
     ipc.on('input-values', (event, data) => {
         console.log(data);
         prevData = data;
+        historyItems.innerHTML = "";
+        for (let i=0; i<data.length; i++) {
+            let row = data[i];
+            let item = document.createElement("p");
+            item.innerHTML = row.filename + " - " + row.timestamp;
+            item.onclick = function() {showHistory(i);};
+            
+            historyItems.appendChild(item);
+        }
     })
 </script>
 

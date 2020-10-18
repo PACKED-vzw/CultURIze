@@ -2,7 +2,6 @@
  * @file This file contains the CSVRow object
  */
 
-import * as fs from "fs";
 import got, { Got } from "got";
 
 import { CSVConf, HTAccessConf } from "./../../culturize.conf";
@@ -14,7 +13,7 @@ const validUrl = require("valid-url");
  * used in arrays.
  */
 export class CSVRow {
-    public static count: number = 0;
+    public static count: number = 1;
 
 
     /**
@@ -25,10 +24,10 @@ export class CSVRow {
     public static createRow(row: any): CSVRow {
         if (this.checkColumns(row)) {
             const columns: number[] = [];
-            columns.push(Reflect.ownKeys(row).indexOf(CSVConf.COL_PID));
-            columns.push(Reflect.ownKeys(row).indexOf(CSVConf.COL_DOCTYPE));
-            columns.push(Reflect.ownKeys(row).indexOf(CSVConf.COL_URL));
-            columns.push(Reflect.ownKeys(row).indexOf(CSVConf.COL_ENABLED));
+            columns.push(1 + Reflect.ownKeys(row).indexOf(CSVConf.COL_PID));
+            columns.push(1 + Reflect.ownKeys(row).indexOf(CSVConf.COL_DOCTYPE));
+            columns.push(1 + Reflect.ownKeys(row).indexOf(CSVConf.COL_URL));
+            columns.push(1 + Reflect.ownKeys(row).indexOf(CSVConf.COL_ENABLED));
             return new CSVRow(
                 row[CSVConf.COL_PID],
                 row[CSVConf.COL_DOCTYPE],
@@ -84,8 +83,20 @@ export class CSVRow {
         this.index = CSVRow.count;
         CSVRow.count += 1;
         this.columns = [];
-        for (const index of columns) {
-            this.columns.push(String.fromCharCode(65 + index));
+        for (let index of columns) {
+            let column: string = "";
+            if (index > 26) {
+                column += String.fromCharCode(64 + Math.floor(index / 26));
+            }
+            if (index % 26 === 0) {
+                column += "Z";
+            }
+            index %= 26;
+            if (index > 0) {
+                column += String.fromCharCode(64 + index);
+            }
+
+            this.columns.push(column);
         }
 
         this.pid = pid.trim();
@@ -127,6 +138,7 @@ export class CSVRow {
             return;
         }
         try {
+            this.urlChecked = true;
             const result = await got(this.url, {method: "HEAD", throwHttpErrors: false, timeout: 2000});
             if (result.statusCode !== 200) {
                 this.urlWorking = false;
@@ -134,7 +146,6 @@ export class CSVRow {
             } else {
                 this.urlWorking = true;
             }
-            this.urlChecked = true;
         } catch (error) {
             this.urlWorking = false;
             this.error.push("E06");
@@ -175,11 +186,22 @@ export class CSVRow {
         } else {
             urlCel = `<td title="${this.url}">valid URL</td>`;
         }
+
+        let urlCheckCel: string;
+        if (this.urlChecked) {
+            if (this.urlWorking) {
+                urlCheckCel = `<td class="check">OK</td>`;
+            } else {
+                urlCheckCel = `<td class="check error" title="URL unavailable">NOK</td>`;
+            }
+        } else {
+            urlCheckCel = `<td class="check" title="URL not tested">?</td>`;
+        }
         return `<tr class="${this.error.length > 0 ? "invalid" : "valid"}">` +
             `<td>${this.index}</td>` +
             enabledCel + doctypeCel + pidCel + urlCel +
             `<td>${this.affectedCels.join(",")}</td>` +
-            `<td class="${this.error.indexOf("E06") !== -1 ? "error" : ""}">${this.urlWorking ? "OK" : "NOK"}</td>` +
+            urlCheckCel +
             `</tr>\n`;
     }
 

@@ -77,6 +77,7 @@ export async function validate(request: ActionRequest) {
         notifyStep("Checking URLs");
         const resultWindow = showResultWindow();
         await resultWindow.loadFile(__dirname + "/../../../static/report.html");
+        resultWindow.webContents.send("start-validation");
 
         await checkURLs(rows, resultWindow);
 

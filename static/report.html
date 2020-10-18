@@ -187,7 +187,7 @@
         </div>
         <h1>CSV Validation report</h1>
         <div id="rcontainer">
-            <p>Converted <span id="accepted">30</span> rows and rejected <span id="rejected">4</span>.</p>
+            <p>Converted <span id="accepted">0</span> rows and rejected <span id="rejected">0</span>.</p>
         </div>
         <div id="bcontainer">
             <button id="show-errors" class="filter-button"> <span>Only show errors</span></button>
@@ -248,8 +248,17 @@
     const electron = require('electron')
     const ipc = electron.ipcRenderer
     const resultsTable = document.getElementById('tbody')
-    const numAccepted = document.getElementById('accepted')
-    const numRejected = document.getElementById('rejected')
+    const resultHeader = document.getElementById('rcontainer')
+    let numAccepted = document.getElementById('accepted')
+    let numRejected = document.getElementById('rejected')
+    let validating = false;
+    
+    ipc.on('start-validation', (event, data) => {
+        resultHeader.innerHTML = '<p>Checked <span id="accepted">0</span> rows and found <span id="rejected">0</span> errors.</p>';
+        numAccepted = document.getElementById('accepted')
+        numRejected = document.getElementById('rejected')
+        validating = true;
+    });
 
     ipc.on('new-data', (event, data) => {
         var template = document.createElement('template');
@@ -258,7 +267,9 @@
         resultsTable.insertAdjacentElement('beforeend', template.content.firstChild);
         // lazy solution, there should be a way to change ajust it in the element before inserting
         changeText();
-        numAccepted.textContent = data.accepted;
+        if (validating) {
+            numAccepted.textContent = data.accepted + data.rejected;
+        }
         numRejected.textContent = data.rejected;
     })
 </script>

@@ -2,21 +2,18 @@
  * @file This file is tasked with retrieving the user information
  * using the GitHub API.
  */
-import Octokit = require("@octokit/rest");
-import log = require("electron-log");
-import { User } from "../../common/Objects/UserObject";
+import { Octokit } from "@octokit/rest";
+import { User } from "../../common/Objects/User";
 
 /**
  * Uses the token to query the GitHub API to create User object
  * containing the user's relevant information, such as his username
  * and profile picture.
  * @param {string} token The access token
+ * @param {Octokit} initiated octokit object
  * @returns a Promise of a User object, resolved on success, rejected with an error message on failure.
  */
-export async function getUserInfo(token: string): Promise<User> {
-    const octokit = new Octokit({
-        auth: `token ${token}`,
-    });
+export async function getUserInfo(token: string, octokit: Octokit): Promise<User> {
     const data: {[index: string]: any} = await octokit.request("HEAD /");
     const scopes = data.headers["x-oauth-scopes"].split(", ");
 

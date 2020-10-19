@@ -1,14 +1,12 @@
 /**
  * @file This file is reponsible for interacting with the Git command line tool.
  */
-import { User } from "./../../common/Objects/UserObject";
-import { app } from "electron";
+import log = require("electron-log");
 import fs = require("fs");
-const GitUrlParse = require("git-url-parse");
-const shellJs = require("shelljs");
-const simpleGit = require("simple-git");
-const path = require("path")
-const log = require('electron-log');
+import GitUrlParse = require("git-url-parse");
+import path = require("path");
+import simpleGit, {ResetMode, SimpleGit} from "simple-git";
+import { User } from "./../../common/Objects/User";
 
 
 /**
@@ -25,6 +23,7 @@ const log = require('electron-log');
  */
 export class GitRepoManager {
     public repoURL: string;
+    public HTTPSRepoURL: string;
     public workingDir: string;
     public repoName: string;
     public ownerName: string;
@@ -40,24 +39,18 @@ export class GitRepoManager {
      * @param {string} workingDir (optional) The working directory where we'll operate
      * If "workingDir" is not provided, the default directory will be localed in %appdata%/(application name)/repo/
      */
-    constructor(repoURL: string, branch: string, user: User, workingDir: string = "") {
+    constructor(repoURL: string, branch: string, user: User, workingDir: string) {
         this.repoURL = repoURL;
         this.user = user;
         this.branch = branch;
-
-        // Default to "userData" folder if no working dir is provided.
-        // TODO should be defined in a config file located at culturize.conf.ts instead of in the git class.
-        if (workingDir === "") {
-            this.workingDir = app.getPath("userData") + "/repo";
-        } else {
-            this.workingDir = workingDir;
-        }
+        this.workingDir = workingDir;
 
         // Parse the URL to retrieve the repoName & username
         const parsedURL = GitUrlParse(this.repoURL);
         this.repoName = parsedURL.name;
         this.ownerName = parsedURL.owner;
         this.repoDir = path.join(this.workingDir, this.repoName);
+        this.HTTPSRepoURL = this.makeGitHTTPSUrl();
 
         // If it doesn't exists, create the working directory.
         this.createFoldersIfNeeded(this.workingDir);
@@ -72,66 +65,50 @@ export class GitRepoManager {
      * Else, it'll clone the repo and checkout the correct branch.
      * @returns A Promise, which is resolved once the operation is completed, rejected (with an error message) on error.
      */
-    public updateLocalCopy(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            this.hasRepo().then((result) => {
-                // The user has a local copy
-                if (result) {
-                    log.info("Local copy detected, pulling changes");
-                    // TODO if the git repository is empty and does not have an initial commit
-                    // then this does not work.  we get a crash with user
-                    // message "Preparing GIT" which is not helpfull at all for
-                    // an enduser. this error is due to there not being a
-                    // master until we make the initial commit.
+    public async updateLocalCopy(): Promise<void> {
+        const result: boolean = await this.hasRepo();
+        if (result) {
+            log.info("Local copy detected, pulling changes");
+            // TODO if the git repository is empty and does not have an initial commit
+            // then this does not work.  we get a crash with user
+            // message "Preparing GIT" which is not helpfull at all for
+            // an enduser. this error is due to there not being a
+            // master until we make the initial commit.
 
-                    // TODO Personal opinion: it may be better to remove the folder with repo,
-                    // then clone, change and push.
-                    // otherwise we sometimes have some bugs, where the repo breaks because of
-                    // multiple local transformations
-                    // and an enduser has no way of getting it to work again.
-                    simpleGit(this.repoDir)
-                    .checkout(this.branch)
-                    .reset([ "--hard" ], (err: any) => {
-                        if (err != null) {
-                            log.error(`Failed to reset local copy of the repo. Error msg: ${err}`);
-                            reject("Failed to reset local copy of the repo.");
-                        }
-                    }).pull((err: any) => {
-                        if (err == null) {
-                            log.info("Pull successful");
-                            resolve();
-                        } else {
-                            log.error(err);
-                            reject("Error while pulling");
-                        }
-                    });
-                } else {
-                    // We don't have a local copy, clone.
-                    log.info("No local copy detected - Cloning");
-                    simpleGit(this.workingDir)
-                    .clone(this.repoURL, undefined, (err: any) => {
-                        if (err == null) {
-                            log.info(`Cloning success of repo located at ${this.repoDir}`);
-                            simpleGit(this.repoDir).checkout(this.branch, (err2: any) => {
-                                if (err2 == null) {
-                                    log.info("Checkout Success");
-                                    resolve();
-                                } else {
-                                    log.error(`Failed to checkout branch ${err2}`);
-                                    reject();
-                                }
-                            });
-                        } else {
-                            log.error(`Failed to clone ${this.repoURL}, error messag: ${err}`);
-                            reject('Failed to clone "' + this.repoURL + '"');
-                        }
-                    });
-                }
-            }).catch((error) => {
-                log.error(error);
-                reject('Error while attempting to determine if "' + this.repoDir + '" is a repository');
-            });
-        });
+            const git = simpleGit(this.repoDir);
+            await git.checkout(this.branch);
+            try {
+                await git.reset(ResetMode.HARD);
+            } catch (error) {
+                log.error(`Failed to reset local copy of the repo. Error msg: ${error}`);
+                throw error;
+            }
+            try {
+                await git.pull();
+                log.info("pull successful");
+            } catch (error) {
+                log.error(`Failed to pull. Error msg: ${error}`);
+                throw error;
+            }
+        } else {
+            log.info("No local copy detected - Cloning");
+            let git = simpleGit(this.workingDir);
+            try {
+                await git.clone(this.HTTPSRepoURL);
+                log.info(`Cloning success of repo located at ${this.repoDir}`);
+            } catch (error) {
+                log.error(`Failed to clone ${this.repoURL}, error messag: ${error}`);
+                throw error;
+            }
+            git = simpleGit(this.repoDir);
+            try {
+                await git.checkout(this.branch);
+                log.info("Checkout Success");
+            } catch (error) {
+                log.error(`Failed to checkout branch ${error}`);
+                throw error;
+            }
+        }
     }
 
     /**
@@ -157,26 +134,16 @@ export class GitRepoManager {
      * @param commitMessage The message of the commit that'll be created.
      * @returns A Promise, which is resolved on success, rejected (with an error message) on error.
      */
-    public pushChanges(commitMessage: string): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            const url = this.makeGitHTTPSUrl();
-            try {
-                simpleGit(this.repoDir)
-                .add("./*")
-                .commit(commitMessage)
-                .push(url, this.branch, (err: any) => {
-                    if (err != null) {
-                        log.error(`Failed to push changes. ${err}`);
-                        reject("Failed to push changes. Are you sure you have the permission to push on this repo?");
-                    } else {
-                        resolve();
-                    }
-                });
-            } catch (err) {
-                log.error(`Failed to push changes. ${err}`);
-                reject("Failed to push changes. Are you sure you have the permission to push on this repo?");
-            }
-        });
+    public async pushChanges(commitMessage: string): Promise<void> {
+        try {
+            const git = simpleGit(this.repoDir);
+            await git.add("./*");
+            await git.commit(commitMessage);
+            await git.push(this.HTTPSRepoURL, this.branch);
+        } catch (error) {
+            log.error(`Failed to push changes. ${error}`);
+            throw error;
+        }
     }
 
     /**
@@ -193,35 +160,27 @@ export class GitRepoManager {
     /**
      * Checks if "repoDir" contains a repo. This will check using 1 of 2 ways:
      *
-     * 1st = Check if the "repoDir" folder exists. If it doesn't exists, resolve(false) is
-     * called. (= repo doesn't exist)
+     * 1st = Check if the "repoDir" folder exists. If it doesn't exists, return false
      *
      * 2nd = If "repoDir" exists, use "simpleGit.hasRepo" to check if it contains a valid GitHub repository.
      *
      * @returns a Promise, resolved with a boolean value (true = repo exists, false otherwise) on success,
-     * rejected (with an error message) on error.
+     * throws an exception on error.
      */
-    private hasRepo(): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            if (!fs.existsSync(this.repoDir)) {
-                log.warn(`"${this.repoDir}" does not contain a repository`);
-                resolve(false);
+    private async hasRepo(): Promise<boolean> {
+        if (!fs.existsSync(this.repoDir)) {
+            log.warn(`"${this.repoDir}" does not contain a repository`);
+            return false;
+        } else {
+            const git = simpleGit(this.repoDir);
+            const result: boolean = await git.checkIsRepo();
+            if (result) {
+                log.info(`"${this.repoDir}" is a repository"`);
             } else {
-                simpleGit(this.repoDir).checkIsRepo((error: Error, result: boolean) => {
-                    if (error) {
-                        log.error(error);
-                        reject(`Error while checking if "${this.repoDir}" is a repository`);
-                    } else {
-                        if (result) {
-                            log.info(`"${this.repoDir}" is a repository"`);
-                        } else {
-                            log.info(`"${this.repoDir}" does not contain a repository`);
-                        }
-                        resolve(result);
-                    }
-                });
+                log.info(`"${this.repoDir}" does not contain a repository`);
             }
-        });
+            return result;
+        }
     }
 
     /**
@@ -230,7 +189,7 @@ export class GitRepoManager {
      */
     private createFoldersIfNeeded(filepath: string) {
         if (!fs.existsSync(filepath)) {
-            shellJs.mkdir("-p", filepath);
+            fs.mkdirSync(filepath, {recursive: true});
         }
     }
 

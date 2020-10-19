@@ -6,9 +6,9 @@
   * This encapsulates the data of the GitHub user
   */
 export class User {
-    userName: string;
-    avatar_url: string;
-    token: string;
+    public userName: string;
+    public avatarURL: string;
+    public token: string;
 
     /**
      * @constructor
@@ -19,7 +19,7 @@ export class User {
     constructor(token: string, userName: string, avatarURL: string) {
         this.token = token;
         this.userName = userName;
-        this.avatar_url = avatarURL;
+        this.avatarURL = avatarURL;
     }
 
     /**
@@ -29,6 +29,6 @@ export class User {
      * @returns the new instance
      */
     public withoutToken(): User {
-        return new User(null, this.userName, this.avatar_url);
+        return new User(null, this.userName, this.avatarURL);
     }
 }

@@ -21,17 +21,24 @@
  *  9.  We make a pull request to ask the owner of the target repo to accept the changes.
  */
 
-import { PublishRequest, PublishRequestResult } from "./../../common/Objects/PublishObjects";
-import { User } from "./../../common/Objects/UserObject";
-import { mainWindow, toggleTransformation } from "./../../main";
+import { Action, ActionRequest, Target } from "./../../common/Objects/ActionRequest";
+import { ActionRequestResult } from "./../../common/Objects/ActionRequestResult";
+import { ConversionResult } from "./../../common/Objects/ConversionResult";
+import { CSVRow } from "./../../common/Objects/CSVRow";
+import { User } from "./../../common/Objects/User";
+import { PublishOptions } from "./../../culturize.conf";
+import { mainWindow, showResultWindow, toggleTransformation } from "./../../main";
 import { convertCSVtoWebConfig } from "./../Converter/Converter";
 import { GitRepoManager } from "./../Git/Git";
-import { PublishOptions } from "./../../culturize.conf"
+
+import log = require("electron-log");
 import fs = require("fs");
 const isGithubUrl = require("is-github-url");
-const octokit = require("@octokit/rest")();
-const GitUrlParse = require("git-url-parse");
-const log = require("electron-log");
+import octokit = require("@octokit/rest");
+import GitUrlParse = require("git-url-parse");
+import path = require("path");
+
+import { shell } from "electron";
 
 /**
  * This is the regular expression used to check the
@@ -59,8 +66,9 @@ const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
  * It will execute the request!
  * @async
  * @param {PublishRequest} request The request that will be processed
+ * @param {string} path to sync git repositories to
  */
-export async function publish(request: PublishRequest) {
+export async function publish(request: ActionRequest, repoPath: string) {
     notifyStep("Preparing");
     // Prepare the Subdirectory by inserting the baseSubdir if applicable.
     const baseSubdir: string = PublishOptions.baseSubdir ? PublishOptions.baseSubdir : "";
@@ -78,7 +86,9 @@ export async function publish(request: PublishRequest) {
         log.info(`Request Data: ${JSON.stringify(request)}`);
         // Check the request for incorrect input
         notifyStep("Checking input");
-        await checkRequestInput(request);
+        if (!checkRequestInput(request)) {
+            throw new Error("invalid input");
+        }
 
         // Get user
         const user = request.user;
@@ -88,8 +98,10 @@ export async function publish(request: PublishRequest) {
         // touching the remote repos.
         notifyStep("Converting file");
         await sleep(10);
-        log.info("generation config file for" + request.forApache ? "apache" : "nginx");
-        const response = await convertCSVtoWebConfig(request.csvPath, request.forApache, request.subdir);
+        log.info("generation config file for" + request.target);
+        const response: ConversionResult = await convertCSVtoWebConfig(request.csvPath,
+                                                                       request.target,
+                                                                       request.subdir);
         log.info("Conversion result: " + response.file.length + " characters in the configuration, generated from "
                  + response.numLinesAccepted + " rows (" + response.numLinesRejected + ")");
 
@@ -124,11 +136,11 @@ export async function publish(request: PublishRequest) {
         // Prepare the repoManager
         notifyStep("Preparing Git");
         log.info("Preparing GitRepoManager instance");
-        const manager = await prepareGitRepoManager(repoURL, request.branch, user);
+        const manager = await prepareGitRepoManager(repoURL, request.branch, user, repoPath);
 
         // Save the file
         notifyStep("Saving the configuration file to the desired location");
-        if (request.forApache) {
+        if (request.target === Target.apache) {
             manager.saveStringToFile(response.file, ".htaccess", request.subdir);
         } else {
             manager.saveStringToFile(response.file, "nginx_redirect.conf", request.subdir);
@@ -138,13 +150,23 @@ export async function publish(request: PublishRequest) {
         notifyStep("Pushing changes");
         await manager.pushChanges(request.commitMsg);
 
+        notifyStep("Writing report");
+        const reportFilename = await writeReport(request.csvPath, response, request);
+
         notifyStep("Done !");
+
+        // TODO show report path
 
         // set the end of the transformations
         toggleTransformation(false);
 
         sendRequestResult(
-            new PublishRequestResult(true, null, response.numLinesAccepted, response.numLinesRejected),
+            new ActionRequestResult(Action.publish,
+                                    true,
+                                    null,
+                                    reportFilename,
+                                    response.numLinesAccepted,
+                                    response.numLinesRejected),
         );
     } catch (error) {
         // set the end of the transformations
@@ -152,28 +174,28 @@ export async function publish(request: PublishRequest) {
 
         log.error(error as string);
         sendRequestResult(
-            new PublishRequestResult(false, error as string),
+            new ActionRequestResult(Action.publish, false, error as string),
         );
     }
 }
 
 /**
  * Notifies the user that a certain step is occuring. This
- * will fire a "update-publish-step" event, and also log
+ * will fire a "update-action-step" event, and also log
  * the step to the console.
  * @param {string} stepDesc Description of the step that'll be displayed to the user
  */
 function notifyStep(stepDesc: string) {
     log.info(stepDesc);
-    mainWindow.webContents.send("update-publish-step", stepDesc);
+    mainWindow.webContents.send("update-action-step", stepDesc);
 }
 
 /**
  * Notifies the renderer process that we are done processing the request.
- * @param {PublishRequestResult} result The result of the request
+ * @param {ActionRequestResult} result The result of the request
  */
-function sendRequestResult(result: PublishRequestResult) {
-    mainWindow.webContents.send("publish-done", result);
+function sendRequestResult(result: ActionRequestResult) {
+    mainWindow.webContents.send("action-done", result);
 }
 
 /**
@@ -186,63 +208,88 @@ function sendRequestResult(result: PublishRequestResult) {
  * @param {string} repoURL The URL of the repo that'll be cloned
  * @param {string} branch  The branch of the repo that'll be checked out
  * @param {string} token   The user token (used to push/pull).
+ * @param {string} repoPath   Path to sync git repositories to
  */
-function prepareGitRepoManager(repoURL: string, branch: string, user: User): Promise<GitRepoManager> {
-    return new Promise<GitRepoManager>((resolve, reject) => {
-        const grm = new GitRepoManager(repoURL, branch, user);
-        log.info("Updating local copy");
-        grm.updateLocalCopy()
-        .then(() => {
-            resolve(grm);
-        })
-        .catch((err: any) => {
-            log.error(err);
-            reject(err);
-        });
-    });
+async function prepareGitRepoManager(repoURL: string, branch: string,
+                                     user: User, repoPath: string): Promise<GitRepoManager> {
+    const grm = new GitRepoManager(repoURL, branch, user, repoPath);
+    log.info("Updating local copy");
+    try {
+        await grm.updateLocalCopy();
+    } catch (error) {
+        log.error(error);
+        throw error;
+    }
+    return grm;
 }
-
-/**
- * This is a function called by "createPullRequest" to generate a
- * title/body for the PullRequest
- */
-type StringProvider = () => string;
 
 /**
  * Checks a request for incorrect/invalid/illegal inputs.
  * @param {PublishRequest} request The request that will be checked
  */
-function checkRequestInput(request: PublishRequest): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        const repoUrl = request.repoUrl;
+function checkRequestInput(request: ActionRequest): boolean {
+    const repoUrl = request.repoUrl;
 
-        // Check if the repo URL is a GitHub URL
-        if (!isGithubUrl(repoUrl)) {
-            reject('"' + repoUrl + '" is not a valid GitHub repository');
-            return;
+    // Check if the repo URL is a GitHub URL
+    if (!isGithubUrl(repoUrl)) {
+        log.error('"' + repoUrl + '" is not a valid GitHub repository');
+        return false;
+    }
+
+    // Check if the subdir is a valid path.
+    const subdir = request.subdir;
+    if ((subdir.length > 0) && (!dirRegex.test(subdir))) {
+        log.error('"' + subdir + '" is not a valid path');
+        return false;
+    }
+
+    // Check if the path to the csv exists.
+    const csvPath = request.csvPath;
+    if (!fs.existsSync(csvPath)) {
+        log.error("The file \"" + path + "\" does not exists.");
+        return false;
+    }
+
+    // Check if the path ends with .csv
+    if (!csvPath.endsWith(".csv")) {
+        log.error("The file \"" + path + "\" is not a .csv file.");
+        return false;
+    }
+
+    // If we passed every check, resolve the promise.
+    return true;
+}
+
+
+/**
+ * Write conversion result report
+ * @param {string} csvPath location of the csv file, -report.html will be appended
+ * @param {CSVRow[]} rows csv rows
+ */
+async function writeReport(csvPath: string, result: ConversionResult, request: ActionRequest) {
+    const resultWindow = showResultWindow(true);
+    await resultWindow.loadFile(__dirname + "/../../../static/report.html");
+
+    let numAccepted = 0;
+    let numRejected = 0;
+
+    for (const row of result.rows) {
+        if (row.isValidAndEnabled()) {
+            numAccepted += 1;
+        } else {
+            numRejected += 1;
         }
-
-        // Check if the subdir is a valid path.
-        const subdir = request.subdir;
-        if ((subdir.length > 0) && (!dirRegex.test(subdir))) {
-            reject('"' + subdir + '" is not a valid path');
-            return;
-        }
-
-        // Check if the path to the csv exists.
-        const path = request.csvPath;
-        if (!fs.existsSync(path)) {
-            reject("The file \"" + path + "\" does not exists.");
-            return;
-        }
-
-        // Check if the path ends with .csv
-        if (!path.endsWith(".csv")) {
-            reject("The file \"" + path + "\" is not a .csv file.");
-            return;
-        }
-
-        // If we passed every check, resolve the promise.
-        resolve();
-    });
+        const data = {
+            html: row.createHTMLRow(),
+            accepted: numAccepted,
+            rejected: numRejected,
+        };
+        resultWindow.webContents.send("new-data", data);
+    }
+    const filename: string = path.join(path.dirname(csvPath),
+                                       path.basename(csvPath) + "-" +
+                                       request.timestamp.replace(/ /, "_") + "-report.html");
+    await resultWindow.webContents.savePage(filename, "HTMLComplete");
+    resultWindow.close();
+    return filename;
 }

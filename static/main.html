@@ -17,6 +17,8 @@
                 <p class="pf-name" id="p-username"></p>
             </div>
             <div class="pf-menu-right">
+                <button class="button-menu" id="update" style="display: none"
+                    onclick="parent.open('https://github.com/packed-vzw/Culturize/releases', '_blank')">Update available</button>
                 <button class="button-menu" id="docs"
                     onclick="parent.open('https://github.com/packed-vzw/Culturize/wiki', '_blank')">Manual</button>
                 <button class="button-menu" id="hard-reset">Reset <span class="tooltiptext">Empties the cache if you're
@@ -27,7 +29,7 @@
         </div>
     </nav>
     <div class="main-div">
-        <form class="kader" onsubmit="actOnSubmit(); return false">
+        <form class="kader" onsubmit="return false">
             <div class="formrow"> <span class="label-info">
                     <span class="p-form">CSV file*</span>
                     <button class="info" type="button">? <span class="tooltiptext">Choose the CSV in which you defined
@@ -106,9 +108,25 @@
                     <input class="input-form" type="checkbox" id="no-subdir"> </div>
             </div>
             <div class="buttons">
-                <button id="extra_button" class="button" type="button" onclick="actOnShowMore()"> <span
-                        class="hidden">Advanced</span> </button>
-                <button id="publish_button" class="button" type="submit"> <span>Upload</span> </button>
+                <div id="button-left">
+                    <button id="publish_button" class="button" type="button" onclick="actOnUpload()"> <span>Upload</span> </button>
+                    &nbsp;
+                    &nbsp;
+                    &nbsp;
+                    <div id="hist-div">
+                        <button id="history_button" class="button" type="button" onclick="showHistory()"> <span>History</span> </button>
+                        <div id="hist-items">
+                        </div>
+                    </div>
+                </div>
+                <div id="button-right">
+                    <button id="validate_button" class="button" type="button" onclick="actOnValidate()"> <span>validate</span> </button>
+                    &nbsp;
+                    &nbsp;
+                    &nbsp;
+                    <button id="extra_button" class="button" type="button" onclick="actOnShowMore()"> <span
+                            class="hidden">Advanced</span> </button>
+                </div>
             </div>
         </form>
         <div id="feedback-div">
@@ -127,8 +145,17 @@
     const ipc = electron.ipcRenderer
     // Basic fields
     const csvPathField = document.getElementById('csvpath')
+    csvPathField.addEventListener('change', function () {
+        checkActionPossible();
+    })
     const subdirField = document.getElementById('subdir')
+    subdirField.addEventListener('change', function () {
+        checkActionPossible();
+    })
     const githubUrlField = document.getElementById('github')
+    githubUrlField.addEventListener('change', function () {
+        checkActionPossible();
+    })
     const webserverNginx = document.getElementById('nginx')
     const webserverApache = document.getElementById('apache')
     // Extra fields
@@ -136,9 +163,12 @@
     const commitMsgField = document.getElementById('commit_msg')
     const prTitleField = document.getElementById('pr_title')
     const prBodyField = document.getElementById('pr_body')
-    document.getElementById('no-subdir').addEventListener('change', function () {
+    const noSubDir = document.getElementById('no-subdir')
+    noSubDir.addEventListener('change', function () {
         subdirField.required = !this.checked;
+        checkActionPossible();
     })
+    const checkUrl = document.getElementById('check_url')
     // Divs
     const feedback = document.getElementById('feedback')
     const feedbackDiv = document.getElementById('feedback-div')
@@ -146,24 +176,30 @@
     extraOptionsDiv.style.visibility = 'hidden'
     feedbackDiv.style.visibility = 'hidden'
     // Buttons
-    const submitButton = document.getElementById('publish_button')
+    const uploadButton = document.getElementById('publish_button')
     const showMoreButton = document.getElementById('extra_button')
+    const validateButton = document.getElementById('validate_button')
+    const historyButton = document.getElementById('history_button')
+    const historyItems = document.getElementById('hist-items')
     const logoutButton = document.getElementById('logout')
     enableLogout();
     const hardReset = document.getElementById('hard-reset')
     hardReset.onclick = actOnHardReset;
+    const updateButton = document.getElementById('update')
     // Profile
     const userAvatar = document.getElementById('p-avatar')
     const userName = document.getElementById('p-username')
     const profile = document.getElementById('profile-url')
     let optionsAreRevealed = false
+    let prevInput = []
+    let curIndex = -1
     // Fill in the fields with the default values
     const PublishFormDefaults = require('./../dist/culturize.conf.js').PublishFormDefaults
     let user = ipc.sendSync('get-user-object')
     if (!user) // If the user is null, redirect to the login page
         ipc.send("request-logout", "Couldn't retrieve the user information.")
     else {
-        userAvatar.setAttribute("src", user.avatar_url)
+        userAvatar.setAttribute("src", user.avatarURL)
         userName.innerHTML = user.userName
     }
 
@@ -180,12 +216,14 @@
     prBodyField.value = PublishFormDefaults.pullrequestBody;
     githubUrlField.value = PublishFormDefaults.repo;
     subdirField.value = PublishFormDefaults.subdir;
+    checkActionPossible();
 
     function actOnOpenCSV() {
         MainMenu.lookForFile((path, msg) => {
             console.log(path + ',' + msg)
             if (path) csvPathField.value = path
             else showFeedback(msg)
+            checkActionPossible()
         })
     }
 
@@ -197,15 +235,85 @@
         ipc.send('hard-reset');
     }
 
-    function showFeedback(str) {
-        if (feedbackDiv.style.visibility === 'hidden') feedbackDiv.style.visibility = 'visible'
-        feedback.innerHTML = str
+    function showFeedback(str, secondLine="", path="") {
+        if (feedbackDiv.style.visibility === 'hidden') {
+            feedbackDiv.style.visibility = 'visible';
+        }
+        if (secondLine != "") {
+            feedback.innerHTML = str + '<br>' + secondLine;
+            document.getElementById("report").onclick = function(event) {
+                event.preventDefault();
+                console.log("open external");
+                electron.shell.openExternal(path);
+            }
+        } else {
+            feedback.innerHTML = str;
+        }
     }
 
-    function actOnSubmit() {
-        submitButton.setAttribute('disabled', 'disabled')
+    function actOnUpload() {
+        uploadButton.setAttribute('disabled', 'disabled');
         disableLogout();
         MainMenu.publish(csvPathField.value, subdirField.value, githubUrlField.value, branch.value, commitMsgField
+            .value, prTitleField.value, prBodyField.value, webserverApache.checked);
+    }
+
+    function checkActionPossible() {
+        let validatePossible = false;
+        let uploadPossible = false;
+        let uploadError = "";
+
+        if (csvPathField.value !== "") {
+            validatePossible = true;
+            if (githubUrlField.value !== "") {
+                if (subdirField.value !== "" || noSubDir.checked) {
+                    uploadPossible = true;
+                }
+            }
+        }
+        if (validatePossible) {
+            validateButton.removeAttribute('disabled');
+            validateButton.removeAttribute('title');
+        } else {
+            validateButton.setAttribute('disabled', 'disabled');
+            validateButton.setAttribute('title', 'CSV file is required');
+        }
+        if (uploadPossible) {
+            uploadButton.removeAttribute('disabled');
+            uploadButton.removeAttribute('title');
+        } else {
+            uploadButton.setAttribute('disabled', 'disabled');
+            uploadButton.setAttribute('title', 'CSV file, subdirectory and "upload to" are required');
+        }
+    }
+
+    function showHistory(index) {
+        console.log(index);
+        if (index < 0 || index >= prevData.length) {
+            return;
+        }
+        csvPathField.value = prevData[index].csvPath;
+        subdirField.value = prevData[index].subdir;
+        githubUrlField.value = prevData[index].repoUrl;
+        branchField.value = prevData[index].branch;
+        commitMsgField.value = prevData[index].commitMsg;
+        prTitleField.value = prevData[index].prTitle;
+        prBodyField.value = prevData[index].prBody;
+        noSubDir.checked = prevData[index].noSubDir;
+        subdirField.required = !prevData[index].noSubDir;
+        webserverNginx.checked = !prevData[index].forApache;
+        webserverApache.checked = prevData[index].forApache;
+        if (prevData[index].advanced && !optionsAreRevealed) {
+            actOnShowMore();
+        }
+
+        checkActionPossible();
+    }
+
+    function actOnValidate() {
+        uploadButton.setAttribute('disabled', 'disabled')
+        disableLogout();
+        MainMenu.validate(csvPathField.value, subdirField.value, githubUrlField.value, branch.value, commitMsgField
             .value, prTitleField.value, prBodyField.value, webserverApache.checked)
     }
 
@@ -222,15 +330,35 @@
             showMoreButton.innerText = 'Show less'
         }
     }
-    ipc.on('publish-done', (event, result) => {
-        if (result.successful == true) showFeedback('Success! (' + result.numLinesAccepted + ' rows used, ' +
-            result.numLinesRejected + ' rejected)')
-        else showFeedback(result.error)
+
+    ipc.on('action-done', (event, result) => {
+        if (result.successful == true) {
+            showFeedback('Success! (' + result.numLinesAccepted + ' rows used, ' + result.numLinesRejected + ' rejected)',
+                '<a href="' + result.reportPath +'" title="' + result.reportPath + '" id="report">Report</a> saved in CSV file directory', result.reportPath)
+        } else {
+            showFeedback(result.error)
+        }
         enableLogout();
-        submitButton.removeAttribute('disabled')
+        uploadButton.removeAttribute('disabled')
     })
-    ipc.on('update-publish-step', (event, step) => {
+    ipc.on('update-action-step', (event, step) => {
         showFeedback(step)
+    })
+    ipc.on('show-update', (event) => {
+        updateButton.style.display = 'block'
+    })
+    ipc.on('input-values', (event, data) => {
+        console.log(data);
+        prevData = data;
+        historyItems.innerHTML = "";
+        for (let i=0; i<data.length; i++) {
+            let row = data[i];
+            let item = document.createElement("p");
+            item.innerHTML = row.filename + " - " + row.timestamp;
+            item.onclick = function() {showHistory(i);};
+            
+            historyItems.appendChild(item);
+        }
     })
 </script>
 

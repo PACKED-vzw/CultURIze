@@ -62,7 +62,7 @@ describe("CSVRow", () => {
         let row = CSVRow.createRow(rowData);
         expect(row.isValidAndEnabled()).to.be.true;
         let html = row.createHTMLRow();
-        expect(html).to.eql(`<tr class="valid"><td>0</td><td>1</td><td>doctype</td><td>pid</td><td title="https://test.test">valid URL</td><td></td><td class="">NOK</td></tr>\n`);
+        expect(html).to.eql(`<tr class="valid"><td>0</td><td>1</td><td>doctype</td><td>pid</td><td title="https://test.test">valid URL</td><td></td><td class="check" title="URL not tested">?</td></tr>\n`);
 
         rowData[CSVConf.COL_ENABLED] = "x";
 
@@ -70,7 +70,7 @@ describe("CSVRow", () => {
         row = CSVRow.createRow(rowData);
         expect(row.isValidAndEnabled()).to.be.false;
         html = row.createHTMLRow();
-        expect(html).to.eql(`<tr class="invalid"><td>0</td><td class="error" title="not 0 or 1">x</td><td>doctype</td><td>pid</td><td title="https://test.test">valid URL</td><td>D0</td><td class="">NOK</td></tr>\n`);
+        expect(html).to.eql(`<tr class="invalid"><td>0</td><td class="error" title="not 0 or 1">x</td><td>doctype</td><td>pid</td><td title="https://test.test">valid URL</td><td>D0</td><td class="check" title="URL not tested">?</td></tr>\n`);
 
         rowData[CSVConf.COL_ENABLED] = "1";
         rowData[CSVConf.COL_DOCTYPE] = "..invalid";
@@ -79,7 +79,7 @@ describe("CSVRow", () => {
         row = CSVRow.createRow(rowData);
         expect(row.isValidAndEnabled()).to.be.false;
         html = row.createHTMLRow();
-        expect(html).to.eql(`<tr class="invalid"><td>0</td><td>1</td><td class="error" title="Invalid characters">..invalid</td><td>pid</td><td title="https://test.test">valid URL</td><td>B0</td><td class="">NOK</td></tr>\n`);
+        expect(html).to.eql(`<tr class="invalid"><td>0</td><td>1</td><td class="error" title="Invalid characters">..invalid</td><td>pid</td><td title="https://test.test">valid URL</td><td>B0</td><td class="check" title="URL not tested">?</td></tr>\n`);
 
         rowData[CSVConf.COL_DOCTYPE] = "doctype";
         rowData[CSVConf.COL_PID] = "..invalid";
@@ -88,7 +88,7 @@ describe("CSVRow", () => {
         row = CSVRow.createRow(rowData);
         expect(row.isValidAndEnabled()).to.be.false;
         html = row.createHTMLRow();
-        expect(html).to.eql(`<tr class="invalid"><td>0</td><td>1</td><td>doctype</td><td class="error" title="Invalid characters">..invalid</td><td title="https://test.test">valid URL</td><td>A0</td><td class="">NOK</td></tr>\n`);
+        expect(html).to.eql(`<tr class="invalid"><td>0</td><td>1</td><td>doctype</td><td class="error" title="Invalid characters">..invalid</td><td title="https://test.test">valid URL</td><td>A0</td><td class="check" title="URL not tested">?</td></tr>\n`);
 
         rowData[CSVConf.COL_PID] = "pid";
         rowData[CSVConf.COL_URL] = "..invalid";
@@ -97,7 +97,7 @@ describe("CSVRow", () => {
         row = CSVRow.createRow(rowData);
         expect(row.isValidAndEnabled()).to.be.false;
         html = row.createHTMLRow();
-        expect(html).to.eql(`<tr class="invalid"><td>0</td><td>1</td><td>doctype</td><td>pid</td><td class="error" title="..invalid">invalid URL</td><td>C0</td><td class="">NOK</td></tr>\n`);
+        expect(html).to.eql(`<tr class="invalid"><td>0</td><td>1</td><td>doctype</td><td>pid</td><td class="error" title="..invalid">invalid URL</td><td>C0</td><td class="check" title="URL not tested">?</td></tr>\n`);
         console.log(html);
     });
 

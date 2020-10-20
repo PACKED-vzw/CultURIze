@@ -98,7 +98,6 @@ describe("CSVRow", () => {
         expect(row.isValidAndEnabled()).to.be.false;
         html = row.createHTMLRow();
         expect(html).to.eql(`<tr class="invalid"><td>0</td><td>1</td><td>doctype</td><td>pid</td><td class="error" title="..invalid">invalid URL</td><td>C0</td><td class="check" title="URL not tested">?</td></tr>\n`);
-        console.log(html);
     });
 
     xit("check URL", () => {

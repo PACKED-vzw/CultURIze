@@ -31,8 +31,10 @@ type OnRejectRow = (row: CSVRow) => void;
  * @param {OnRejectRow} rowReject The function that will be called when a row is rejected
  *                      (= insufficient/incompatible data)
  */
-export async function createArrayFromCSV(filepath: string, rowAccept: OnAcceptRow,
-                                         rowReject: OnRejectRow): Promise<CSVRow[]> {
+export async function createArrayFromCSV(filepath: string,
+                                         rowAccept: OnAcceptRow,
+                                         rowReject: OnRejectRow,
+                                         allowDuplicates: boolean = false): Promise<CSVRow[]> {
     return new Promise<CSVRow[]>((resolve, reject) => {
         // Read the file to a buffer
         const str: string = fs.readFileSync(filepath, "utf8").replace("\r\n", "\n");
@@ -100,16 +102,20 @@ export async function createArrayFromCSV(filepath: string, rowAccept: OnAcceptRo
             } else {
                 // If the array contains something, check it for
                 // duplicates
-                checkArrayForDuplicates(array)
-                    .then(() => {
+                if (checkArrayForDuplicates(array)) {
+                    if (allowDuplicates) {
                         resolve(array);
-                    })
-                    .catch((reason: string) => {
-                        reject(reason);
-                    });
+                    } else {
+                        reject("Duplicates found, validate CSV first!");
+                    }
+                } else {
+                    resolve(array);
+                }
             }
         });
 
+        // reset row count in CSVRow class to 1
+        CSVRow.count = 1;
         // Send the .csv data to the parser & trigger the
         // parsing.
         parser.write(str);
@@ -126,54 +132,66 @@ export async function createArrayFromCSV(filepath: string, rowAccept: OnAcceptRo
  * an error message if it contains duplicates.
  * @param {CSVRow[]} array The array to be checked
  */
-function checkArrayForDuplicates(array: CSVRow[]): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        const redirs = new Array<string>();
+function checkArrayForDuplicates(array: CSVRow[]): boolean {
+    class Row {
+        public name: string;
+        public csvRow: CSVRow;
 
-        // Iterate over the array, and populate the "redirs" array
-        // with strings of the form element.docType + '/' + element.pid
-        for (const element of array) {
-            if (!element.isValidAndEnabled()) {
-                continue;
-            }
-            let tmp: string = element.docType + "/" + element.pid;
+        constructor(row: CSVRow) {
+            this.name = row.docType + "/" + row.pid;
+            this.csvRow = row;
+        }
+    }
+    const redirs = new Array<Row>();
+    // Iterate over the array, and populate the "redirs" array
+    // with strings of the form element.docType + '/' + element.pid
+    for (const element of array) {
+        if (!element.isValidAndEnabled()) {
+            continue;
+        }
+        const row = new Row(element);
 
-            // If the redirections are going to be case insensitive,
-            // compare all the redirections in uppercase.
-            // If we ignored this step, we could generate false positives,
-            // claiming that the array doesn't contain duplicate redirections
-            // while it does.
-            if (HTAccessConf.caseInsensitiveRedirs) {
-                tmp = tmp.toUpperCase();
-            }
-
-            redirs.push(tmp);
+        // If the redirections are going to be case insensitive,
+        // compare all the redirections in uppercase.
+        // If we ignored this step, we could generate false positives,
+        // claiming that the array doesn't contain duplicate redirections
+        // while it does.
+        if (HTAccessConf.caseInsensitiveRedirs) {
+            row.name = row.name.toUpperCase();
         }
 
-        // Sort the array
-        redirs.sort();
+        redirs.push(row);
+    }
 
-        // Check if there's a place where the (element before) === (element after)
-        const duplicates = new Array<string>();
-        const redirsLength = redirs.length;
-        for (let k = 0; k < redirsLength - 1; k++) {
-            if (redirs[k] === redirs[k + 1]) {
-                duplicates.push(redirs[k]);
-            }
+    function compare(firstEl: Row, secondEl: Row): number {
+        if (firstEl.name < secondEl.name) {
+            return -1;
+        } else if (firstEl.name === secondEl.name) {
+            return 0;
+        } else {
+            return 1;
         }
+    }
 
-        // Check if the duplicates contains anything
-        if (duplicates.length !== 0) {
-            // Create a "diagnostic" string that contains every duplicate
-            let diagStr: string = "Duplicate redirections found: ";
-            for (const duplicate of duplicates) {
-                diagStr += duplicate + ", ";
-            }
-            reject(diagStr);
-            return;
+    // Sort the array
+    redirs.sort(compare);
+
+    // Check if there's a place where the (element before) === (element after)
+    const duplicates = new Array<Row>();
+    const redirsLength = redirs.length;
+    for (let k = 0; k < redirsLength - 1; k++) {
+        if (redirs[k].name === redirs[k + 1].name) {
+            redirs[k].csvRow.markAsDuplicateOf(redirs[k + 1].csvRow.index);
+            redirs[k + 1].csvRow.markAsDuplicateOf(redirs[k].csvRow.index);
+            duplicates.push(redirs[k]);
         }
+    }
 
-        // If we passed every check, we are good!
-        resolve();
-    });
+    // Check if the duplicates contains anything
+    if (duplicates.length !== 0) {
+        return true;
+    }
+
+    // If we passed every check, we are good!
+    return false;
 }

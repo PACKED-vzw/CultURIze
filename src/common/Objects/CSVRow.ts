@@ -68,6 +68,7 @@ export class CSVRow {
     public affectedCels: string[];
     public urlChecked: boolean;
     public urlWorking: boolean;
+    public duplicateOf: number = -1;
 
     /**
      * The constructor of the class, which is private so it can
@@ -126,6 +127,22 @@ export class CSVRow {
      */
     public isValidAndEnabled(): boolean {
         return this.valid && this.enabled === "1";
+    }
+
+    /**
+     * Checks if a row should be converted
+     *
+     * A row is enabled in all cases, except if the COL_ENABLED field is
+     * present and set to 0.
+     * @static
+     * @param {number} othIndex: index of the duplicate entry
+     * @returns true if the row should be enabled, false otherwise.
+     */
+    public markAsDuplicateOf(othIndex: number) {
+        // E07 duplicate entry
+        this.error.push("E07");
+        this.duplicateOf = othIndex;
+        this.affectedCels.push("duplicate");
     }
 
     /**
@@ -197,11 +214,16 @@ export class CSVRow {
         } else {
             urlCheckCel = `<td class="check" title="URL not tested">?</td>`;
         }
+
+        let affectedCel: string;
+        if (this.error.indexOf("E07") !== -1) {
+            affectedCel = `<td class="error" title="doctype, pid combination is duplicate of row ${this.duplicateOf}">${this.affectedCels.join(",")}</td>`;
+        } else {
+            affectedCel = `<td>${this.affectedCels.join(",")}</td>`;
+        }
         return `<tr class="${this.error.length > 0 ? "invalid" : "valid"}">` +
             `<td>${this.index}</td>` +
-            enabledCel + doctypeCel + pidCel + urlCel +
-            `<td>${this.affectedCels.join(",")}</td>` +
-            urlCheckCel +
+            enabledCel + doctypeCel + pidCel + urlCel + affectedCel + urlCheckCel +
             `</tr>\n`;
     }
 

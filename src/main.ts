@@ -246,7 +246,7 @@ function saveInputSettings(request: ActionRequest) {
     input["csvPath"] = request.csvPath;
     input["subdir"] = request.subdir;
     input["noSubDir"] = false;
-    if (request.subdir === "") {
+    if (request.action === Action.publish && request.subdir === "") {
         input["noSubDir"] = true;
         input["advanced"] = true;
     }

@@ -109,7 +109,7 @@
             </div>
             <div class="buttons">
                 <div id="button-left">
-                    <button id="publish_button" class="button" type="button" onclick="actOnUpload()"> <span>Upload</span> </button>
+                    <button id="extra_button" class="button" type="button" onclick="actOnShowMore()"> <span >Advanced</span> </button>
                     &nbsp;
                     &nbsp;
                     &nbsp;
@@ -124,8 +124,7 @@
                     &nbsp;
                     &nbsp;
                     &nbsp;
-                    <button id="extra_button" class="button" type="button" onclick="actOnShowMore()"> <span
-                            class="hidden">Advanced</span> </button>
+                    <button id="publish_button" class="button" type="button" onclick="actOnUpload()"> <span>Upload</span> </button>
                 </div>
             </div>
         </form>
@@ -251,13 +250,6 @@
         }
     }
 
-    function actOnUpload() {
-        uploadButton.setAttribute('disabled', 'disabled');
-        disableLogout();
-        MainMenu.publish(csvPathField.value, subdirField.value, githubUrlField.value, branch.value, commitMsgField
-            .value, prTitleField.value, prBodyField.value, webserverApache.checked);
-    }
-
     function checkActionPossible() {
         let validatePossible = false;
         let uploadPossible = false;
@@ -310,8 +302,17 @@
         checkActionPossible();
     }
 
+    function actOnUpload() {
+        uploadButton.setAttribute('disabled', 'disabled');
+        validateButton.setAttribute('disabled', 'disabled')
+        disableLogout();
+        MainMenu.publish(csvPathField.value, subdirField.value, githubUrlField.value, branch.value, commitMsgField
+            .value, prTitleField.value, prBodyField.value, webserverApache.checked);
+    }
+
     function actOnValidate() {
         uploadButton.setAttribute('disabled', 'disabled')
+        validateButton.setAttribute('disabled', 'disabled')
         disableLogout();
         MainMenu.validate(csvPathField.value, subdirField.value, githubUrlField.value, branch.value, commitMsgField
             .value, prTitleField.value, prBodyField.value, webserverApache.checked)
@@ -331,15 +332,28 @@
         }
     }
 
-    ipc.on('action-done', (event, result) => {
+    ipc.on('validate-done', (event, result) => {
         if (result.successful == true) {
-            showFeedback('Success! (' + result.numLinesAccepted + ' rows used, ' + result.numLinesRejected + ' rejected)',
+            let total = result.numLinesAccepted + result.numLinesRejected;
+            showFeedback('Done! Checked ' + total + ' rows and found ' + result.numLinesRejected + ' errors.',
                 '<a href="' + result.reportPath +'" title="' + result.reportPath + '" id="report">Report</a> saved in CSV file directory', result.reportPath)
         } else {
             showFeedback(result.error)
         }
         enableLogout();
         uploadButton.removeAttribute('disabled')
+        validateButton.removeAttribute('disabled')
+    })
+    ipc.on('publish-done', (event, result) => {
+        if (result.successful == true) {
+            showFeedback('Upload successful! (' + result.numLinesAccepted + ' rows used, ' + result.numLinesRejected + ' rejected)',
+                '<a href="' + result.reportPath +'" title="' + result.reportPath + '" id="report">Report</a> saved in CSV file directory', result.reportPath)
+        } else {
+            showFeedback(result.error)
+        }
+        enableLogout();
+        uploadButton.removeAttribute('disabled');
+        validateButton.removeAttribute('disabled')
     })
     ipc.on('update-action-step', (event, step) => {
         showFeedback(step)

@@ -50,7 +50,9 @@ export class ActionRequest {
         this.prTitle = prTitle;
         this.prBody = prBody;
         this.target = target;
-        this.timestamp = new Date().toISOString().replace(/T/, " ").replace(/\..+/, "");
+        const now = new Date();
+        this.timestamp = `${now.getFullYear()}-${("0" + (now.getMonth() + 1)).slice(-2)}-${("0" + now.getDate()).slice(-2)} ` +
+            `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
     }
 
     /**

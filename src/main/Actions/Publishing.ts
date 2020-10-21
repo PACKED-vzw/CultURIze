@@ -195,7 +195,7 @@ function notifyStep(stepDesc: string) {
  * @param {ActionRequestResult} result The result of the request
  */
 function sendRequestResult(result: ActionRequestResult) {
-    mainWindow.webContents.send("action-done", result);
+    mainWindow.webContents.send("publish-done", result);
 }
 
 /**

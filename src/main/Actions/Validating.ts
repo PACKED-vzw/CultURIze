@@ -73,7 +73,8 @@ export async function validate(request: ActionRequest) {
         let numRejected: number = 0;
         const rows = await createArrayFromCSV(request.csvPath,
                                               () => { numAccepted++; },
-                                              (row: CSVRow) => { numRejected++; });
+                                              (row: CSVRow) => { numRejected++; },
+                                              true);
         notifyStep("Checking URLs");
         const resultWindow = showResultWindow();
         await resultWindow.loadFile(__dirname + "/../../../static/report.html");
@@ -129,7 +130,7 @@ function notifyStep(stepDesc: string) {
  * @param {ActionRequestResult} result The result of the request
  */
 function sendRequestResult(result: ActionRequestResult) {
-    mainWindow.webContents.send("action-done", result);
+    mainWindow.webContents.send("validate-done", result);
 }
 
 /**
@@ -167,7 +168,7 @@ async function checkURLs(rows: CSVRow[], resultWindow: BrowserWindow) {
     for (const row of rows) {
         await row.checkURL();
 
-        if (row.isValidAndEnabled() && row.urlWorking) {
+        if (row.valid && row.urlWorking) {
             numAccepted += 1;
         } else {
             numRejected += 1;

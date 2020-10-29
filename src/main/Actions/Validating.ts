@@ -82,6 +82,17 @@ export async function validate(request: ActionRequest) {
 
         await checkURLs(rows, resultWindow);
 
+        numAccepted = 0;
+        numRejected = 0;
+
+        for (const row of rows) {
+            if (row.valid && row.urlWorking && row.duplicateOf === -1) {
+                numAccepted += 1;
+            } else {
+                numRejected += 1;
+            }
+        }
+
         notifyStep("Writing report");
         // TODO writing report. Can we save html from window?
 

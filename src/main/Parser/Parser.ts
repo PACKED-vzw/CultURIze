@@ -114,8 +114,9 @@ export async function createArrayFromCSV(filepath: string,
             }
         });
 
-        // reset row count in CSVRow class to 1
-        CSVRow.count = 1;
+        // reset row count in CSVRow class to 2
+        // first row containing data is at row 2 of the csv sheet, because of header
+        CSVRow.count = 2;
         // Send the .csv data to the parser & trigger the
         // parsing.
         parser.write(str);

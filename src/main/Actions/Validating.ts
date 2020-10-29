@@ -168,7 +168,7 @@ async function checkURLs(rows: CSVRow[], resultWindow: BrowserWindow) {
     for (const row of rows) {
         await row.checkURL();
 
-        if (row.valid && row.urlWorking) {
+        if (row.valid && row.urlWorking && row.duplicateOf === -1) {
             numAccepted += 1;
         } else {
             numRejected += 1;

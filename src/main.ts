@@ -151,7 +151,6 @@ function passInputHistory() {
     if (settings["input-history"].length === 0) {
         return;
     }
-    const lastSettings = settings["input-history"][0];
     const prevData: Array<{ [index: string]: any}> = [];
     for (const input of settings["input-history"]) {
         const data: { [index: string]: any} = {};
@@ -171,7 +170,9 @@ function passInputHistory() {
         prevData.push(data);
     }
 
-    mainWindow.webContents.send("input-values", prevData);
+    if (prevData.length > 0) {
+        mainWindow.webContents.send("input-values", prevData);
+    }
 }
 
 ipcMain.on("validate-token", (event: Event, token: string) => {

@@ -114,13 +114,14 @@
                     &nbsp;
                     &nbsp;
                     <div id="hist-div">
-                        <button id="history_button" class="button" type="button" onclick="showHistory()"> <span>History</span> </button>
+                        <button id="history_button" class="button" type="button"> <span>History</span> </button>
                         <div id="hist-items">
+                            <p>No history available</p>
                         </div>
                     </div>
                 </div>
                 <div id="button-right">
-                    <button id="validate_button" class="button" type="button" onclick="actOnValidate()"> <span>validate</span> </button>
+                    <button id="validate_button" class="button" type="button" onclick="actOnValidate()"> <span>Validate</span> </button>
                     &nbsp;
                     &nbsp;
                     &nbsp;
@@ -240,10 +241,9 @@
         }
         if (secondLine != "") {
             feedback.innerHTML = str + '<br>' + secondLine;
-            document.getElementById("report").onclick = function(event) {
+            document.getElementById("report").onclick = async function(event) {
                 event.preventDefault();
-                console.log("open external");
-                electron.shell.openExternal(path);
+                await electron.shell.openPath(path);
             }
         } else {
             feedback.innerHTML = str;

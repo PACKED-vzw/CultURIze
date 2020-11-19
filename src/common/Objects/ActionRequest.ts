@@ -1,8 +1,12 @@
+import { PublishFormDefaults } from "./../../culturize.conf";
 import { User } from "./User";
+
+import path = require("path");
 
 export enum Action {
     publish,
     validate,
+    none,
 }
 
 export enum Target {
@@ -24,6 +28,9 @@ export class ActionRequest {
     public user: User;
     public target: Target;
     public timestamp: string;
+
+    public advanced: boolean;
+    public noSubDir: boolean;
 
     /**
      * Note: this constructor doesn't take the user object, because it's
@@ -53,6 +60,74 @@ export class ActionRequest {
         const now = new Date();
         this.timestamp = `${now.getFullYear()}-${("0" + (now.getMonth() + 1)).slice(-2)}-${("0" + now.getDate()).slice(-2)} ` +
             `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+
+        this.advanced = false;
+        if (this.branch !== PublishFormDefaults.branch) {
+            this.advanced = true;
+        }
+        if (this.commitMsg !== PublishFormDefaults.commitMessage) {
+            this.advanced = true;
+        }
+        if (this.prTitle !== PublishFormDefaults.pullrequestTitle) {
+            this.advanced = true;
+        }
+        if (this.prBody !== PublishFormDefaults.pullrequestBody) {
+            this.advanced = true;
+        }
+
+        this.noSubDir = false;
+        if (this.action === Action.publish && this.subdir === "") {
+            this.noSubDir = true;
+            this.advanced = true;
+        }
+    }
+
+    public copyFrom(other: ActionRequest) {
+        this.action = other.action;
+        this.csvPath = other.csvPath;
+        this.subdir = other.subdir;
+        this.repoUrl = other.repoUrl;
+        this.branch = other.branch;
+        this.commitMsg = other.commitMsg;
+        this.prTitle = other.prTitle;
+        this.prBody = other.prBody;
+        this.target = other.target;
+        this.advanced = other.advanced;
+        this.noSubDir = other.noSubDir;
+        this.timestamp = other.timestamp;
+    }
+
+    public loadData(data: { [index: string]: any}) {
+        this.csvPath = data.csvPath;
+        this.subdir = data.subdir;
+        this.repoUrl = data.repoUrl;
+        this.branch = data.branch;
+        this.commitMsg = data.commitMsg;
+        this.prTitle = data.prTitle;
+        this.prBody = data.prBody;
+        this.target = data.forApache ? Target.apache : Target.nginx;
+        this.advanced = data.advanced;
+        this.noSubDir = data.noSubDir;
+        this.timestamp = data.timestamp;
+    }
+
+    public dumpData(): { [index: string]: any} {
+        const data: { [index: string]: any} = {};
+
+        data.csvPath = this.csvPath;
+        data.filename = path.basename(this.csvPath);
+        data.subdir = this.subdir;
+        data.repoUrl = this.repoUrl;
+        data.branch = this.branch;
+        data.commitMsg = this.commitMsg;
+        data.prTitle = this.prTitle;
+        data.prBody = this.prBody;
+        data.forApache = this.target === Target.apache ? true : false;
+        data.advanced = this.advanced;
+        data.noSubDir = this.noSubDir;
+        data.timestamp = this.timestamp;
+
+        return data;
     }
 
     /**
@@ -69,5 +144,20 @@ export class ActionRequest {
      */
     public hasSelectedFile(): boolean {
         return (this.csvPath != null) && (this.csvPath !== "");
+    }
+
+    public hasSameArguments(other: ActionRequest): boolean {
+        if (this.csvPath === other.csvPath &&
+            this.subdir === other.subdir &&
+            this.repoUrl === other.repoUrl &&
+            this.branch === other.branch &&
+            this.commitMsg === other.commitMsg &&
+            this.prTitle === other.prTitle &&
+            this.prBody === other.prBody &&
+            this.target === other.target) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

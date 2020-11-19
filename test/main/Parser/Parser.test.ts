@@ -123,7 +123,7 @@ describe("Parser", () => {
                                                      (row: CSVRow) => { numAccepted++; },
                                                      (row: CSVRow) => { numRejected++; });
         } catch (error) {
-            expect(error).to.include("Duplicate redirections found");
+            expect(error).to.include("Duplicates found, validate CSV first!");
         }
 
         expect(numAccepted).to.eql(2);

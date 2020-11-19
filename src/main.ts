@@ -4,7 +4,7 @@
  */
 import { Octokit } from "@octokit/rest";
 import { app, BrowserWindow, dialog, globalShortcut, ipcMain } from "electron";
-import { Action, ActionRequest } from "./common/Objects/ActionRequest";
+import { Action, ActionRequest, Target } from "./common/Objects/ActionRequest";
 import { User } from "./common/Objects/User";
 import { Version } from "./common/Objects/Version";
 import { publish } from "./main/Actions/Publishing";
@@ -48,6 +48,7 @@ let version: Version = null;
  * The application settings
  */
 let settings: { [id: string]: any } = {"github-key": "", "input-history": []};
+let actionHistory: ActionRequest[] = [];
 
 /**
  * This function is called when the app is ready, and is tasked with
@@ -79,7 +80,7 @@ function createWindow() {
             settings = JSON.parse(fs.readFileSync(oldFilename, {encoding: "utf8"}));
             settings["input-history"] = [];
         }
-        console.log(settings["input-history"].length);
+        parseHistory();
 
     } catch (e) {/* */}
 
@@ -147,31 +148,30 @@ async function loadMainMenu() {
     }
 }
 
-function passInputHistory() {
+function parseHistory() {
     if (settings["input-history"].length === 0) {
         return;
     }
-    const lastSettings = settings["input-history"][0];
-    const prevData: Array<{ [index: string]: any}> = [];
-    for (const input of settings["input-history"]) {
-        const data: { [index: string]: any} = {};
-        data.csvPath = input.csvPath;
-        data.filename = path.basename(input.csvPath);
-        data.subdir = input.subdir;
-        data.repoUrl = input.repoUrl;
-        data.branch = input.branch;
-        data.commitMsg = input.commitMsg;
-        data.prTitle = input.prTitle;
-        data.prBody = input.prBody;
-        data.forApache = input.forApache;
-        data.advanced = input.advanced;
-        data.noSubDir = input.noSubDir;
-        data.timestamp = input.timestamp;
 
-        prevData.push(data);
+    for (const input of settings["input-history"]) {
+        const aReq: ActionRequest = new ActionRequest(Action.none, "", "", "", "", "", "", "", Target.nginx);
+        aReq.loadData(input);
+        actionHistory.push(aReq);
+    }
+}
+
+function passInputHistory() {
+    if (actionHistory.length === 0) {
+        return;
+    }
+    const prevData: Array<{ [index: string]: any}> = [];
+    for (const input of actionHistory) {
+        prevData.push(input.dumpData());
     }
 
-    mainWindow.webContents.send("input-values", prevData);
+    if (prevData.length > 0) {
+        mainWindow.webContents.send("input-values", prevData);
+    }
 }
 
 ipcMain.on("validate-token", (event: Event, token: string) => {
@@ -209,6 +209,13 @@ ipcMain.on("hard-reset", () => {
 });
 
 function writeSettings() {
+    settings["input-history"] = [];
+    if (actionHistory.length > 0) {
+        for (const hist of actionHistory) {
+            settings["input-history"].push(hist.dumpData());
+        }
+    }
+
     const settingsPath = app.getPath("userData") + "/culturize/culturize.json";
     fs.writeFileSync(settingsPath, JSON.stringify(settings));
 }
@@ -240,38 +247,28 @@ async function validateToken(token: string) {
  * Save input settings for restore on next convertion
  */
 function saveInputSettings(request: ActionRequest) {
-    const input: { [index: string]: any} = {};
-    input["timestamp"] = request.timestamp;
-    input["advanced"] = false;
-    input["csvPath"] = request.csvPath;
-    input["subdir"] = request.subdir;
-    input["noSubDir"] = false;
-    if (request.action === Action.publish && request.subdir === "") {
-        input["noSubDir"] = true;
-        input["advanced"] = true;
-    }
-    input["repoUrl"] = request.repoUrl;
-    input["branch"] = request.branch;
-    input["commitMsg"] = request.commitMsg;
-    input["prTitle"] = request.prTitle;
-    input["prBody"] = request.prBody;
-    input["forApache"] = request.target;
+    let index: number = -1;
 
-    if (request.branch !== PublishFormDefaults.branch) {
-        input["advanced"] = true;
-    }
-    if (request.commitMsg !== PublishFormDefaults.commitMessage) {
-        input["advanced"] = true;
-    }
-    if (request.prTitle !== PublishFormDefaults.pullrequestTitle) {
-        input["advanced"] = true;
-    }
-    if (request.prBody !== PublishFormDefaults.pullrequestBody) {
-        input["advanced"] = true;
+    for (let i: number = 0; i < actionHistory.length; i++) {
+        if (actionHistory[i].hasSameArguments(request)) {
+            index = i;
+            break;
+        }
     }
 
-    settings["input-history"].unshift(input);
-    settings["input-history"] = settings["input-history"].slice(0, 5);
+    if (index !== -1) {
+        if (index !== 0) {
+            const backup: ActionRequest = actionHistory[0];
+            actionHistory[0] = request;
+            actionHistory[index] = backup;
+        } else {
+            actionHistory[index] = request;
+        }
+    } else {
+        actionHistory.unshift(request);
+        actionHistory = actionHistory.slice(0, 5);
+    }
+
     writeSettings();
     passInputHistory();
 }
@@ -289,14 +286,17 @@ ipcMain.on("request-action", (event: Event, request: ActionRequest) => {
     // If the current logged in user is valid, proceed.
     log.info("Current user is valid, calling publish().");
     // Complete the request with the user
+    // objects coming from renderer process don't have a type, copy to fix this
+    const nReq: ActionRequest = new ActionRequest(Action.none, "", "", "", "", "", "", "", Target.nginx);
+    nReq.copyFrom(request);
     request.user = currentUser;
     // save input settings
-    saveInputSettings(request);
+    saveInputSettings(nReq);
     // Proceed
-    if (request.action === Action.publish) {
-        publish(request, path.join(app.getPath("userData"), "culturize", "repo"));
-    } else if (request.action === Action.validate) {
-        validate(request);
+    if (nReq.action === Action.publish) {
+        publish(nReq, path.join(app.getPath("userData"), "culturize", "repo"));
+    } else if (nReq.action === Action.validate) {
+        validate(nReq);
     }
 });
 
@@ -375,7 +375,6 @@ export function toggleTransformation(toggle: boolean) {
 toggleTransformation(false);
 
 export function showResultWindow(hide: boolean = false) {
-    console.log("showing results window");
     const resultWindow = new BrowserWindow({
         height: 820,
         width: 1000,
@@ -386,5 +385,9 @@ export function showResultWindow(hide: boolean = false) {
         show: !hide,
     });
     resultWindow.setMenu(null);
+    globalShortcut.register("f6", () => {
+        console.log("f6 is pressed");
+        resultWindow.webContents.openDevTools();
+    });
     return resultWindow;
 }

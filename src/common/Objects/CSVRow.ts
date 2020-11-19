@@ -13,7 +13,8 @@ const validUrl = require("valid-url");
  * used in arrays.
  */
 export class CSVRow {
-    public static count: number = 1;
+    // first row containing data is at row 2 of the csv sheet, because of header
+    public static count: number = 2;
 
 
     /**
@@ -142,7 +143,9 @@ export class CSVRow {
         // E07 duplicate entry
         this.error.push("E07");
         this.duplicateOf = othIndex;
-        this.affectedCels.push("duplicate");
+        if (this.affectedCels.indexOf("duplicate") === -1) {
+            this.affectedCels.push("duplicate");
+        }
     }
 
     /**

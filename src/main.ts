@@ -289,7 +289,7 @@ ipcMain.on("request-action", (event: Event, request: ActionRequest) => {
     // objects coming from renderer process don't have a type, copy to fix this
     const nReq: ActionRequest = new ActionRequest(Action.none, "", "", "", "", "", "", "", Target.nginx);
     nReq.copyFrom(request);
-    request.user = currentUser;
+    nReq.user = currentUser;
     // save input settings
     saveInputSettings(nReq);
     // Proceed

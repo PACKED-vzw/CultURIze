@@ -113,7 +113,7 @@
                     &nbsp;
                     &nbsp;
                     &nbsp;
-                    <div id="hist-div">
+                    <div id="hist-div" class="hist-container">
                         <button id="history_button" class="button" type="button"> <span>History</span> </button>
                         <div id="hist-items">
                             <p>No history available</p>
@@ -181,6 +181,7 @@
     const validateButton = document.getElementById('validate_button')
     const historyButton = document.getElementById('history_button')
     const historyItems = document.getElementById('hist-items')
+    const historyDiv = document.getElementById('hist-div')
     const logoutButton = document.getElementById('logout')
     enableLogout();
     const hardReset = document.getElementById('hard-reset')
@@ -298,6 +299,11 @@
         if (prevData[index].advanced && !optionsAreRevealed) {
             actOnShowMore();
         }
+
+        historyDiv.classList.remove("hist-container");
+        setTimeout(function() {
+            historyDiv.classList.add("hist-container");
+        }, 500);
 
         checkActionPossible();
     }

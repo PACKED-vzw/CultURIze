@@ -202,7 +202,11 @@ export class CSVRow {
 
         let urlCel: string;
         if (this.error.indexOf("E04") !== -1) {
-            urlCel = `<td class="error" title="${this.url}">invalid URL</td>`;
+            if (this.url === "") {
+                urlCel = `<td class="error" title="${this.url}">no URL</td>`;
+            } else {
+                urlCel = `<td class="error" title="${this.url}">invalid URL</td>`;
+            }
         } else {
             urlCel = `<td title="${this.url}">valid URL</td>`;
         }
@@ -210,12 +214,12 @@ export class CSVRow {
         let urlCheckCel: string;
         if (this.urlChecked) {
             if (this.urlWorking) {
-                urlCheckCel = `<td class="check">OK</td>`;
+                urlCheckCel = `<td class="check"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none" /><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#15B28E"/></svg></td>`;
             } else {
-                urlCheckCel = `<td class="check error" title="URL unavailable">NOK</td>`;
+                urlCheckCel = `<td class="check error" title="URL unavailable"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M17 7h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1 0 1.43-.98 2.63-2.31 2.98l1.46 1.46C20.88 15.61 22 13.95 22 12c0-2.76-2.24-5-5-5zm-1 4h-2.19l2 2H16zM2 4.27l3.11 3.11C3.29 8.12 2 9.91 2 12c0 2.76 2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1 0-1.59 1.21-2.9 2.76-3.07L8.73 11H8v2h2.73L13 15.27V17h1.73l4.01 4L20 19.74 3.27 3 2 4.27z "/><path d="M0 24V0" fill="none"/></svg></td>`;
             }
         } else {
-            urlCheckCel = `<td class="check" title="URL not tested">?</td>`;
+            urlCheckCel = `<td class="check" title="URL not tested"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg></td>`;
         }
 
         let affectedCel: string;

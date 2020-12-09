@@ -1,4 +1,3 @@
-
 /**
  * @file This file is responsible for orchestrating
  * the whole publishing process. Note: functions in this file won't check
@@ -26,6 +25,7 @@ import { ActionRequestResult } from "./../../common/Objects/ActionRequestResult"
 import { ConversionResult } from "./../../common/Objects/ConversionResult";
 import { CSVRow } from "./../../common/Objects/CSVRow";
 import { User } from "./../../common/Objects/User";
+import { writeReport } from "./../../common/ReportWriter";
 import { PublishOptions } from "./../../culturize.conf";
 import { mainWindow, showResultWindow, toggleTransformation } from "./../../main";
 import { convertCSVtoWebConfig } from "./../Converter/Converter";
@@ -151,7 +151,10 @@ export async function publish(request: ActionRequest, repoPath: string) {
         await manager.pushChanges(request.commitMsg);
 
         notifyStep("Writing report");
-        const reportFilename = await writeReport(request.csvPath, response, request);
+        const reportFilename: string = path.join(path.dirname(request.csvPath),
+                                                 path.basename(request.csvPath) + "-" +
+                                                 request.timestamp.replace(/ /, "_") + "-report.html");
+        writeReport(request.action, response.rows, reportFilename);
 
         notifyStep("Done !");
 
@@ -258,38 +261,4 @@ function checkRequestInput(request: ActionRequest): boolean {
 
     // If we passed every check, resolve the promise.
     return true;
-}
-
-
-/**
- * Write conversion result report
- * @param {string} csvPath location of the csv file, -report.html will be appended
- * @param {CSVRow[]} rows csv rows
- */
-async function writeReport(csvPath: string, result: ConversionResult, request: ActionRequest) {
-    const resultWindow = showResultWindow(true);
-    await resultWindow.loadFile(__dirname + "/../../../static/report.html");
-
-    let numAccepted = 0;
-    let numRejected = 0;
-
-    for (const row of result.rows) {
-        if (row.isValidAndEnabled()) {
-            numAccepted += 1;
-        } else {
-            numRejected += 1;
-        }
-        const data = {
-            html: row.createHTMLRow(),
-            accepted: numAccepted,
-            rejected: numRejected,
-        };
-        resultWindow.webContents.send("new-data", data);
-    }
-    const filename: string = path.join(path.dirname(csvPath),
-                                       path.basename(csvPath) + "-" +
-                                       request.timestamp.replace(/ /, "_") + "-report.html");
-    await resultWindow.webContents.savePage(filename, "HTMLComplete");
-    resultWindow.close();
-    return filename;
 }

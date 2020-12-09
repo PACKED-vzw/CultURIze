@@ -374,7 +374,7 @@ export function toggleTransformation(toggle: boolean) {
 }
 toggleTransformation(false);
 
-export function showResultWindow(hide: boolean = false) {
+export function showResultWindow() {
     const resultWindow = new BrowserWindow({
         height: 820,
         width: 1000,
@@ -382,7 +382,6 @@ export function showResultWindow(hide: boolean = false) {
             nodeIntegration: true,
         },
         parent: mainWindow,
-        show: !hide,
     });
     resultWindow.setMenu(null);
     globalShortcut.register("f6", () => {

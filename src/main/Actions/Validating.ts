@@ -11,6 +11,7 @@ import { ActionRequestResult } from "./../../common/Objects/ActionRequestResult"
 import { ConversionResult } from "./../../common/Objects/ConversionResult";
 import { CSVRow } from "./../../common/Objects/CSVRow";
 import { User } from "./../../common/Objects/User";
+import { writeReport } from "./../../common/ReportWriter";
 import { PublishOptions } from "./../../culturize.conf";
 import { mainWindow, showResultWindow, toggleTransformation } from "./../../main";
 import { createArrayFromCSV } from "./../Parser/Parser";
@@ -94,12 +95,11 @@ export async function validate(request: ActionRequest) {
         }
 
         notifyStep("Writing report");
-        // TODO writing report. Can we save html from window?
 
         const reportFilename: string = path.join(path.dirname(request.csvPath),
                                                  path.basename(request.csvPath) + "-" +
                                                  request.timestamp.replace(/ /, "_") + "-report.html");
-        await resultWindow.webContents.savePage(reportFilename, "HTMLComplete");
+        writeReport(request.action, rows, reportFilename);
 
         notifyStep("Done !");
 

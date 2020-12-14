@@ -153,7 +153,8 @@ export async function publish(request: ActionRequest, repoPath: string) {
         notifyStep("Writing report");
         const reportFilename: string = path.join(path.dirname(request.csvPath),
                                                  path.basename(request.csvPath) + "-" +
-                                                 request.timestamp.replace(/ /, "_") + "-report.html");
+                                                 request.timestamp.replace("/:/", "").replace(/ /, "_") +
+                                                 "-report.html");
         writeReport(request.action, response.rows, reportFilename);
 
         notifyStep("Done !");

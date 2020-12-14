@@ -98,7 +98,8 @@ export async function validate(request: ActionRequest) {
 
         const reportFilename: string = path.join(path.dirname(request.csvPath),
                                                  path.basename(request.csvPath) + "-" +
-                                                 request.timestamp.replace(/ /, "_") + "-report.html");
+                                                 request.timestamp.replace("/:/", "").replace(/ /, "_") +
+                                                 "-report.html");
         writeReport(request.action, rows, reportFilename);
 
         notifyStep("Done !");

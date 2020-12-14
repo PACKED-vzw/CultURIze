@@ -243,7 +243,7 @@ const footer =
 
 
 export function writeReport(action: Action, rows: CSVRow[], filename: string) {
-    fs.writeFileSync(filename, header, {flag: "w+"});
+    fs.writeFileSync(filename, header, {flag: "w"});
     let title: string = "";
     if (action === Action.publish) {
         title = `<p>Converted <span id="accepted">0</span> rows and rejected <span id="rejected">0</span>.</p>`;

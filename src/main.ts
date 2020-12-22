@@ -154,7 +154,7 @@ function parseHistory() {
     }
 
     for (const input of settings["input-history"]) {
-        const aReq: ActionRequest = new ActionRequest(Action.none, "", "", "", "", "", "", "", Target.nginx);
+        const aReq: ActionRequest = new ActionRequest(Action.none, "", "", "", "", "", Target.nginx);
         aReq.loadData(input);
         actionHistory.push(aReq);
     }
@@ -287,7 +287,7 @@ ipcMain.on("request-action", (event: Event, request: ActionRequest) => {
     log.info("Current user is valid, calling publish().");
     // Complete the request with the user
     // objects coming from renderer process don't have a type, copy to fix this
-    const nReq: ActionRequest = new ActionRequest(Action.none, "", "", "", "", "", "", "", Target.nginx);
+    const nReq: ActionRequest = new ActionRequest(Action.none, "", "", "", "", "", Target.nginx);
     nReq.copyFrom(request);
     nReq.user = currentUser;
     // save input settings

@@ -120,11 +120,6 @@ function createWindow() {
             }
         }
     });
-    globalShortcut.register("f4", () => {
-        console.log("f4 is pressed");
-        mainWindow.webContents.openDevTools();
-    });
-
 }
 
 /**
@@ -387,9 +382,5 @@ export function showResultWindow() {
         parent: mainWindow,
     });
     resultWindow.setMenu(null);
-    globalShortcut.register("f6", () => {
-        console.log("f6 is pressed");
-        resultWindow.webContents.openDevTools();
-    });
     return resultWindow;
 }

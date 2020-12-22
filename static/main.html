@@ -87,20 +87,6 @@
                     </span>
                     <input class="input-form" id="commit_msg" type="text" required> </div>
                 <div class="formrow"> <span class="label-info">
-                        <span class="p-form">Pull request title </span>
-                        <button class="info" type="button">? <span class="tooltiptext">A title that documents the
-                                upload to the GitHub repository</span> </button>
-                    </span>
-                    <input class="input-form" type="text" id="pr_title" required> </div>
-                <div class="formrow"> <span class="label-info">
-                        <span class="p-form">Pull request body </span>
-                        <button class="info" type="button">? <span class="tooltiptext">Additional information you'll
-                                want to add, e.g.
-                                the reason of this upload, etc.
-                            </span> </button>
-                    </span>
-                    <input class="input-form" type="text" id="pr_body" required> </div>
-                <div class="formrow"> <span class="label-info">
                         <span class="p-form">No subdirectory </span>
                         <button class="info" type="button">? <span class="tooltiptext">It's very dangerous otherwise!
                             </span> </button>
@@ -113,7 +99,7 @@
                     &nbsp;
                     &nbsp;
                     &nbsp;
-                    <div id="hist-div">
+                    <div id="hist-div" class="hist-container">
                         <button id="history_button" class="button" type="button"> <span>History</span> </button>
                         <div id="hist-items">
                             <p>No history available</p>
@@ -161,8 +147,6 @@
     // Extra fields
     const branchField = document.getElementById('branch')
     const commitMsgField = document.getElementById('commit_msg')
-    const prTitleField = document.getElementById('pr_title')
-    const prBodyField = document.getElementById('pr_body')
     const noSubDir = document.getElementById('no-subdir')
     noSubDir.addEventListener('change', function () {
         subdirField.required = !this.checked;
@@ -181,6 +165,7 @@
     const validateButton = document.getElementById('validate_button')
     const historyButton = document.getElementById('history_button')
     const historyItems = document.getElementById('hist-items')
+    const historyDiv = document.getElementById('hist-div')
     const logoutButton = document.getElementById('logout')
     enableLogout();
     const hardReset = document.getElementById('hard-reset')
@@ -212,8 +197,6 @@
     }
     branchField.value = PublishFormDefaults.branch;
     commitMsgField.value = PublishFormDefaults.commitMessage;
-    prTitleField.value = PublishFormDefaults.pullrequestTitle;
-    prBodyField.value = PublishFormDefaults.pullrequestBody;
     githubUrlField.value = PublishFormDefaults.repo;
     subdirField.value = PublishFormDefaults.subdir;
     checkActionPossible();
@@ -289,8 +272,6 @@
         githubUrlField.value = prevData[index].repoUrl;
         branchField.value = prevData[index].branch;
         commitMsgField.value = prevData[index].commitMsg;
-        prTitleField.value = prevData[index].prTitle;
-        prBodyField.value = prevData[index].prBody;
         noSubDir.checked = prevData[index].noSubDir;
         subdirField.required = !prevData[index].noSubDir;
         webserverNginx.checked = !prevData[index].forApache;
@@ -298,6 +279,11 @@
         if (prevData[index].advanced && !optionsAreRevealed) {
             actOnShowMore();
         }
+
+        historyDiv.classList.remove("hist-container");
+        setTimeout(function() {
+            historyDiv.classList.add("hist-container");
+        }, 500);
 
         checkActionPossible();
     }
@@ -307,7 +293,7 @@
         validateButton.setAttribute('disabled', 'disabled')
         disableLogout();
         MainMenu.publish(csvPathField.value, subdirField.value, githubUrlField.value, branch.value, commitMsgField
-            .value, prTitleField.value, prBodyField.value, webserverApache.checked);
+            .value, webserverApache.checked);
     }
 
     function actOnValidate() {
@@ -315,7 +301,7 @@
         validateButton.setAttribute('disabled', 'disabled')
         disableLogout();
         MainMenu.validate(csvPathField.value, subdirField.value, githubUrlField.value, branch.value, commitMsgField
-            .value, prTitleField.value, prBodyField.value, webserverApache.checked)
+            .value, webserverApache.checked)
     }
 
     function actOnShowMore() {

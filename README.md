@@ -6,7 +6,7 @@ This is the GitHub repository for CultURIze.
 
 ## About
 
-CultURIze is a four-step process to make persistent URI's for collection items, using a spreadsheet to record persistent URI's, a desktop app to turn it in a .htaccess file, and a Github repository to automate the configuration of an Apache webserver.
+CultURIze is a four-step process to make persistent URI's for collection items, using a spreadsheet to record persistent URI's, a desktop app to turn it in a .htaccess (apache) or redirect configuration (nginx) file, and a Github repository to automate the deployment of apache based system for persistent URI's.
 
 CultURIze is made for registrars, curators and managers of small to medium heritage collections.
 
@@ -14,9 +14,12 @@ More information about inspiration, governance, and howto's for setting up a Cul
 
 ## CultURIze relies on
 
-* an [Apache webserver](https://httpd.apache.org/)
-* [git](https://git-scm.com/)
-* [GitHub](https://github.com)
+* a webserver: [Apache](https://httpd.apache.org/) or [Nginx](https://www.nginx.com/)
+* [git](https://git-scm.com/), git can be used to track the history of the persistent
+  URI'sapplications.
+* [GitHub](https://github.com), we push the persistent URI's through GitHub API calls to a public or
+  private GitHub repository.
+* [Electron](https://www.electronjs.org/) to build cross platform applications.
 
 ## Getting Started
 
@@ -24,7 +27,7 @@ More information about inspiration, governance, and howto's for setting up a Cul
 
 #### Download
 
-You can download the [latest version of CultURIze here](https://github.com/PACKED-vzw/CultURIze/releases).
+You can download the [latest version of CultURIze here](https://github.com/PACKED-vzw/CultURIze/releases). We currently support Linux, Mac OSX and Windows.
 
 #### Usage
 

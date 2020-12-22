@@ -355,7 +355,7 @@ button:enabled:hover {
 
 #hist-items p:hover {background-color: #f1f1f1}
 
-#hist-div:hover #hist-items {
+.hist-container:hover #hist-items {
     display: block;
 }
 

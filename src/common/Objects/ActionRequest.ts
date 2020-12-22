@@ -23,8 +23,6 @@ export class ActionRequest {
     public repoUrl: string;
     public branch: string;
     public commitMsg: string;
-    public prTitle: string;
-    public prBody: string;
     public user: User;
     public target: Target;
     public timestamp: string;
@@ -43,19 +41,15 @@ export class ActionRequest {
      * @param {string} url URL of the repo to push/pr to
      * @param {string} branch The branch to push/pr to
      * @param {string} commitMsg The message of the commit which adds the .htaccess
-     * @param {string} prTitle The title of the pull request, if one is made
-     * @param {string} prBody The body of the pull request, if one is made.
      */
     constructor(action: Action, csv: string, dir: string, url: string, branch: string,
-                commitMsg: string, prTitle: string, prBody: string, target: Target) {
+                commitMsg: string, target: Target) {
         this.action = action;
         this.csvPath = csv;
         this.subdir = dir;
         this.repoUrl = url;
         this.branch = branch;
         this.commitMsg = commitMsg;
-        this.prTitle = prTitle;
-        this.prBody = prBody;
         this.target = target;
         const now = new Date();
         this.timestamp = `${now.getFullYear()}-${("0" + (now.getMonth() + 1)).slice(-2)}-${("0" + now.getDate()).slice(-2)} ` +
@@ -66,12 +60,6 @@ export class ActionRequest {
             this.advanced = true;
         }
         if (this.commitMsg !== PublishFormDefaults.commitMessage) {
-            this.advanced = true;
-        }
-        if (this.prTitle !== PublishFormDefaults.pullrequestTitle) {
-            this.advanced = true;
-        }
-        if (this.prBody !== PublishFormDefaults.pullrequestBody) {
             this.advanced = true;
         }
 
@@ -89,8 +77,6 @@ export class ActionRequest {
         this.repoUrl = other.repoUrl;
         this.branch = other.branch;
         this.commitMsg = other.commitMsg;
-        this.prTitle = other.prTitle;
-        this.prBody = other.prBody;
         this.target = other.target;
         this.advanced = other.advanced;
         this.noSubDir = other.noSubDir;
@@ -103,8 +89,6 @@ export class ActionRequest {
         this.repoUrl = data.repoUrl;
         this.branch = data.branch;
         this.commitMsg = data.commitMsg;
-        this.prTitle = data.prTitle;
-        this.prBody = data.prBody;
         this.target = data.forApache ? Target.apache : Target.nginx;
         this.advanced = data.advanced;
         this.noSubDir = data.noSubDir;
@@ -120,8 +104,6 @@ export class ActionRequest {
         data.repoUrl = this.repoUrl;
         data.branch = this.branch;
         data.commitMsg = this.commitMsg;
-        data.prTitle = this.prTitle;
-        data.prBody = this.prBody;
         data.forApache = this.target === Target.apache ? true : false;
         data.advanced = this.advanced;
         data.noSubDir = this.noSubDir;
@@ -152,8 +134,6 @@ export class ActionRequest {
             this.repoUrl === other.repoUrl &&
             this.branch === other.branch &&
             this.commitMsg === other.commitMsg &&
-            this.prTitle === other.prTitle &&
-            this.prBody === other.prBody &&
             this.target === other.target) {
             return true;
         } else {

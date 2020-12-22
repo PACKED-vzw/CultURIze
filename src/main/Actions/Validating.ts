@@ -11,14 +11,13 @@ import { ActionRequestResult } from "./../../common/Objects/ActionRequestResult"
 import { ConversionResult } from "./../../common/Objects/ConversionResult";
 import { CSVRow } from "./../../common/Objects/CSVRow";
 import { User } from "./../../common/Objects/User";
+import { writeReport } from "./../../common/ReportWriter";
 import { PublishOptions } from "./../../culturize.conf";
 import { mainWindow, showResultWindow, toggleTransformation } from "./../../main";
 import { createArrayFromCSV } from "./../Parser/Parser";
 
 import log = require("electron-log");
 import fs = require("fs");
-const isGithubUrl = require("is-github-url");
-import GitUrlParse = require("git-url-parse");
 import path = require("path");
 
 import { shell } from "electron";
@@ -94,12 +93,12 @@ export async function validate(request: ActionRequest) {
         }
 
         notifyStep("Writing report");
-        // TODO writing report. Can we save html from window?
 
         const reportFilename: string = path.join(path.dirname(request.csvPath),
                                                  path.basename(request.csvPath) + "-" +
-                                                 request.timestamp.replace(/ /, "_") + "-report.html");
-        await resultWindow.webContents.savePage(reportFilename, "HTMLComplete");
+                                                 request.timestamp.replace(/:/g, "").replace(/ /, "_") +
+                                                 "-report.html");
+        writeReport(request.action, rows, reportFilename);
 
         notifyStep("Done !");
 

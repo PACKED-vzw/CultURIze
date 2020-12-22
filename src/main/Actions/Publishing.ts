@@ -24,6 +24,7 @@ import { Action, ActionRequest, Target } from "./../../common/Objects/ActionRequ
 import { ActionRequestResult } from "./../../common/Objects/ActionRequestResult";
 import { ConversionResult } from "./../../common/Objects/ConversionResult";
 import { CSVRow } from "./../../common/Objects/CSVRow";
+import { RepoDetails } from "./../../common/Objects/RepoDetails";
 import { User } from "./../../common/Objects/User";
 import { writeReport } from "./../../common/ReportWriter";
 import { PublishOptions } from "./../../culturize.conf";
@@ -68,7 +69,8 @@ const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
  * @param {PublishRequest} request The request that will be processed
  * @param {string} path to sync git repositories to
  */
-export async function publish(request: ActionRequest, repoPath: string) {
+export async function publish(request: ActionRequest, repoDetails: RepoDetails,
+                              defaultBranch: string, repoPath: string) {
     notifyStep("Preparing");
     // Prepare the Subdirectory by inserting the baseSubdir if applicable.
     const baseSubdir: string = PublishOptions.baseSubdir ? PublishOptions.baseSubdir : "";
@@ -107,15 +109,9 @@ export async function publish(request: ActionRequest, repoPath: string) {
 
         // Parse the url
         notifyStep("Parsing URL");
-        const parsedURL = GitUrlParse(request.repoUrl);
-        log.info(`repo information ${parsedURL}`);
-
-        const destOwner = parsedURL.owner;
-        const destName = parsedURL.name;
-        const prettyName = destOwner + "/" + destName;
 
         // Case-insensitive comparison
-        const isOwnerOfRepo = (destOwner.toUpperCase() === user.userName.toUpperCase());
+        const isOwnerOfRepo = (repoDetails.getOwner().toUpperCase() === user.userName.toUpperCase());
 
         // The URL of the repo that we're going to clone/manage.
         let repoURL: string;
@@ -136,7 +132,7 @@ export async function publish(request: ActionRequest, repoPath: string) {
         // Prepare the repoManager
         notifyStep("Preparing Git");
         log.info("Preparing GitRepoManager instance");
-        const manager = await prepareGitRepoManager(repoURL, request.branch, user, repoPath);
+        const manager = await prepareGitRepoManager(repoURL, request.branch, user, repoPath, defaultBranch);
 
         // Save the file
         notifyStep("Saving the configuration file to the desired location");
@@ -215,8 +211,9 @@ function sendRequestResult(result: ActionRequestResult) {
  * @param {string} repoPath   Path to sync git repositories to
  */
 async function prepareGitRepoManager(repoURL: string, branch: string,
-                                     user: User, repoPath: string): Promise<GitRepoManager> {
-    const grm = new GitRepoManager(repoURL, branch, user, repoPath);
+                                     user: User, repoPath: string,
+                                     defaultBranch: string): Promise<GitRepoManager> {
+    const grm = new GitRepoManager(repoURL, branch, defaultBranch, user, repoPath);
     log.info("Updating local copy");
     try {
         await grm.updateLocalCopy();

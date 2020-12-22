@@ -18,3 +18,11 @@ export async function getLatestRelease(octokit: Octokit): Promise<Version> {
 
     return version;
 }
+
+export async function getDefaultBranch(octokit: Octokit, repoOwner: string, repoName: string): Promise<string> {
+    const repo = await octokit.repos.get({
+        owner: repoOwner,
+        repo: repoName,
+    });
+    return repo.data.default_branch;
+}

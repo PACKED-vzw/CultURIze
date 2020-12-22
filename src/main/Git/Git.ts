@@ -30,6 +30,7 @@ export class GitRepoManager {
     public repoDir: string;
     public user: User;
     public branch: string;
+    public defaultBranch: string;
 
     /**
      * @constructor
@@ -39,10 +40,17 @@ export class GitRepoManager {
      * @param {string} workingDir (optional) The working directory where we'll operate
      * If "workingDir" is not provided, the default directory will be localed in %appdata%/(application name)/repo/
      */
-    constructor(repoURL: string, branch: string, user: User, workingDir: string) {
+    constructor(repoURL: string, branch: string, defaultBranch: string, user: User, workingDir: string) {
         this.repoURL = repoURL;
         this.user = user;
         this.branch = branch;
+        this.defaultBranch = defaultBranch;
+        if (this.branch !== this.defaultBranch) {
+            if ((this.branch === "master" || this.branch === "main") &&
+                (this.defaultBranch === "master" || this.defaultBranch === "main")) {
+                this.branch = this.defaultBranch;
+            }
+        }
         this.workingDir = workingDir;
 
         // Parse the URL to retrieve the repoName & username
@@ -76,7 +84,13 @@ export class GitRepoManager {
             // master until we make the initial commit.
 
             const git = simpleGit(this.repoDir);
-            await git.checkout(this.branch);
+            try {
+                await git.checkout(this.defaultBranch);
+            } catch (error) {
+                log.error(`Failed to checkout default branch. Error msg: ${error}`);
+                throw error;
+            }
+
             try {
                 await git.reset(ResetMode.HARD);
             } catch (error) {
@@ -89,6 +103,16 @@ export class GitRepoManager {
             } catch (error) {
                 log.error(`Failed to pull. Error msg: ${error}`);
                 throw error;
+            }
+            try {
+                await git.checkout(this.branch);
+            } catch (error) {
+                try {
+                    await git.checkoutBranch(this.branch, this.defaultBranch);
+                } catch (error) {
+                    log.error(`Failed to checkout new branch of the repo. Error msg: ${error}`);
+                    throw error;
+                }
             }
         } else {
             log.info("No local copy detected - Cloning");
@@ -105,8 +129,12 @@ export class GitRepoManager {
                 await git.checkout(this.branch);
                 log.info("Checkout Success");
             } catch (error) {
-                log.error(`Failed to checkout branch ${error}`);
-                throw error;
+                try {
+                    await git.checkoutBranch(this.branch, this.defaultBranch);
+                } catch (error) {
+                    log.error(`Failed to checkout new branch of the repo. Error msg: ${error}`);
+                    throw error;
+                }
             }
         }
     }

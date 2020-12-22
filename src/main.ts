@@ -5,12 +5,13 @@
 import { Octokit } from "@octokit/rest";
 import { app, BrowserWindow, dialog, globalShortcut, ipcMain } from "electron";
 import { Action, ActionRequest, Target } from "./common/Objects/ActionRequest";
+import { RepoDetails } from "./common/Objects/RepoDetails";
 import { User } from "./common/Objects/User";
 import { Version } from "./common/Objects/Version";
 import { publish } from "./main/Actions/Publishing";
 import { validate } from "./main/Actions/Validating";
 import { getUserInfo } from "./main/Api/GithubUser";
-import { getLatestRelease } from "./main/Api/Release";
+import { getDefaultBranch, getLatestRelease } from "./main/Api/Release";
 
 import { PublishFormDefaults } from "./culturize.conf";
 
@@ -282,7 +283,7 @@ function saveInputSettings(request: ActionRequest) {
  * If the user is not valid, authError is called and a error is logged to the console
  * using console.error()
  */
-ipcMain.on("request-action", (event: Event, request: ActionRequest) => {
+ipcMain.on("request-action", async (event: Event, request: ActionRequest) => {
     // If the current logged in user is valid, proceed.
     log.info("Current user is valid, calling publish().");
     // Complete the request with the user
@@ -293,8 +294,10 @@ ipcMain.on("request-action", (event: Event, request: ActionRequest) => {
     // save input settings
     saveInputSettings(nReq);
     // Proceed
+    const repoDetails = new RepoDetails(nReq.repoUrl);
+    const defaultBranch = await getDefaultBranch(octokit, repoDetails.getOwner(), repoDetails.getRepo());
     if (nReq.action === Action.publish) {
-        publish(nReq, path.join(app.getPath("userData"), "culturize", "repo"));
+        publish(nReq, repoDetails, defaultBranch, path.join(app.getPath("userData"), "culturize", "repo"));
     } else if (nReq.action === Action.validate) {
         validate(nReq);
     }

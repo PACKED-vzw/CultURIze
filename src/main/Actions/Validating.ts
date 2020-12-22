@@ -18,8 +18,6 @@ import { createArrayFromCSV } from "./../Parser/Parser";
 
 import log = require("electron-log");
 import fs = require("fs");
-const isGithubUrl = require("is-github-url");
-import GitUrlParse = require("git-url-parse");
 import path = require("path");
 
 import { shell } from "electron";

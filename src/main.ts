@@ -2,14 +2,22 @@
  * @file This file contains the entry point of the app, and handles most ipc events sent
  * the main process.
  */
+import { Octokit } from "@octokit/rest";
 import { app, BrowserWindow, dialog, globalShortcut, ipcMain } from "electron";
-import { PublishRequest } from "./common/Objects/PublishObjects";
-import { User } from "./common/Objects/UserObject";
-import { getUserInfo } from "./main/Api/User";
-import { publish } from "./main/Publishing/Publishing";
+import { Action, ActionRequest, Target } from "./common/Objects/ActionRequest";
+import { RepoDetails } from "./common/Objects/RepoDetails";
+import { User } from "./common/Objects/User";
+import { Version } from "./common/Objects/Version";
+import { publish } from "./main/Actions/Publishing";
+import { validate } from "./main/Actions/Validating";
+import { getUserInfo } from "./main/Api/GithubUser";
+import { getDefaultBranch, getLatestRelease } from "./main/Api/Release";
+
+import { PublishFormDefaults } from "./culturize.conf";
 
 import log = require("electron-log");
 import fs = require("fs");
+import path = require("path");
 const rimraf = require("rimraf");
 
 
@@ -27,6 +35,23 @@ export let mainWindow: BrowserWindow;
 let currentUser: User = null;
 
 /**
+ * An initiated octokit object
+ * It is null if not yes initiated
+ */
+let octokit: Octokit = null;
+
+/**
+ * The application version
+ */
+let version: Version = null;
+
+/**
+ * The application settings
+ */
+let settings: { [id: string]: any } = {"github-key": "", "input-history": []};
+let actionHistory: ActionRequest[] = [];
+
+/**
  * This function is called when the app is ready, and is tasked with
  * creating the main window.
  */
@@ -41,22 +66,33 @@ function createWindow() {
     mainWindow.setMenu(null);
     mainWindow.maximize();
 
-    let settings = {"github-key": ""};
     try {
-        const path = app.getPath("userData") + "/culturize.json";
-        console.log(path);
-        settings = JSON.parse(fs.readFileSync(path, {encoding: "utf8"}));
+        const appPath = app.getPath("userData") + "/culturize";
+        const filename = appPath + "/culturize.json";
+        const oldFilename = app.getPath("userData") + "/culturize.json";
+        if (!fs.existsSync(appPath)) {
+            fs.mkdirSync(appPath);
+        }
+        if (fs.existsSync(filename)) {
+            console.log("reading from " + filename);
+            settings = JSON.parse(fs.readFileSync(filename, {encoding: "utf8"}));
+        } else if (fs.existsSync(oldFilename)) {
+            console.log("reading from " + oldFilename);
+            settings = JSON.parse(fs.readFileSync(oldFilename, {encoding: "utf8"}));
+            settings["input-history"] = [];
+        }
+        parseHistory();
+
     } catch (e) {/* */}
+
+    version = new Version(app.getVersion());
 
     if (!settings["github-key"]) {
         console.log("retreiving github pa token");
         loadTokenLoginpage();
     } else {
-        // validating token
         validateToken(settings["github-key"]);
     }
-
-    // loadLoginpage();
 
     mainWindow.on("closed", () => {
         mainWindow = null;
@@ -84,19 +120,11 @@ function createWindow() {
             }
         }
     });
-
-    globalShortcut.register("f5", () => {
-        console.log("f5 is pressed");
-        mainWindow.reload();
-    });
     globalShortcut.register("f4", () => {
         console.log("f4 is pressed");
         mainWindow.webContents.openDevTools();
     });
-    globalShortcut.register("CommandOrControl+R", () => {
-        console.log("CommandOrControl+R is pressed");
-        mainWindow.reload();
-    });
+
 }
 
 /**
@@ -111,8 +139,40 @@ function loadTokenLoginpage() {
  * This function set the current active page of the mainwindow
  * to the main menu (/static/main.html)
  */
-function loadMainMenu() {
-    mainWindow.loadFile(__dirname + "/../static/main.html");
+async function loadMainMenu() {
+    await mainWindow.loadFile(__dirname + "/../static/main.html");
+    passInputHistory();
+    const latestVersion = await getLatestRelease(octokit);
+    console.log(latestVersion, version);
+    if (version.isNewer(latestVersion)) {
+        mainWindow.webContents.send("show-update");
+    }
+}
+
+function parseHistory() {
+    if (settings["input-history"].length === 0) {
+        return;
+    }
+
+    for (const input of settings["input-history"]) {
+        const aReq: ActionRequest = new ActionRequest(Action.none, "", "", "", "", "", Target.nginx);
+        aReq.loadData(input);
+        actionHistory.push(aReq);
+    }
+}
+
+function passInputHistory() {
+    if (actionHistory.length === 0) {
+        return;
+    }
+    const prevData: Array<{ [index: string]: any}> = [];
+    for (const input of actionHistory) {
+        prevData.push(input.dumpData());
+    }
+
+    if (prevData.length > 0) {
+        mainWindow.webContents.send("input-values", prevData);
+    }
 }
 
 ipcMain.on("validate-token", (event: Event, token: string) => {
@@ -129,8 +189,9 @@ ipcMain.on("validate-token", (event: Event, token: string) => {
  */
 ipcMain.on("logout-user", () => {
     // Clear the cookies
-    mainWindow.webContents.session.clearStorageData(null, () => {});
-    writeToken("");
+    mainWindow.webContents.session.clearStorageData();
+    settings["github-key"] = "";
+    writeSettings();
     loadTokenLoginpage();
 });
 
@@ -140,27 +201,34 @@ ipcMain.on("logout-user", () => {
  */
 ipcMain.on("hard-reset", () => {
     // Clear the cookies
-    mainWindow.webContents.session.clearStorageData(null, () => {});
+    mainWindow.webContents.session.clearStorageData();
     loadTokenLoginpage();
 
     // removes the repositories
-    const workingDir = app.getPath("userData") + "/repo";
+    const workingDir = app.getPath("userData") + "/culturize/repo";
     rimraf(workingDir, () => { log.info(`Folder repo deleted ${workingDir}`); });
 });
 
-function writeToken(token: string) {
-    const path = app.getPath("userData") + "/culturize.json";
-    console.log(path);
-    const settings = {"github-key": token};
-    fs.writeFileSync(path, JSON.stringify(settings));
+function writeSettings() {
+    settings["input-history"] = [];
+    if (actionHistory.length > 0) {
+        for (const hist of actionHistory) {
+            settings["input-history"].push(hist.dumpData());
+        }
+    }
+
+    const settingsPath = app.getPath("userData") + "/culturize/culturize.json";
+    fs.writeFileSync(settingsPath, JSON.stringify(settings));
 }
 
 async function validateToken(token: string) {
     try {
         log.info("validating user token");
-        currentUser = await getUserInfo(token);
+        octokit = new Octokit({ auth: `token ${token}`});
+        currentUser = await getUserInfo(token, octokit);
         loadMainMenu();
-        writeToken(token);
+        settings["github-key"] = token;
+        writeSettings();
     } catch (error) {
         log.error("Token isn't valid " + error);
         const url: string = mainWindow.webContents.getURL();
@@ -177,6 +245,36 @@ async function validateToken(token: string) {
 }
 
 /**
+ * Save input settings for restore on next convertion
+ */
+function saveInputSettings(request: ActionRequest) {
+    let index: number = -1;
+
+    for (let i: number = 0; i < actionHistory.length; i++) {
+        if (actionHistory[i].hasSameArguments(request)) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index !== -1) {
+        if (index !== 0) {
+            const backup: ActionRequest = actionHistory[0];
+            actionHistory[0] = request;
+            actionHistory[index] = backup;
+        } else {
+            actionHistory[index] = request;
+        }
+    } else {
+        actionHistory.unshift(request);
+        actionHistory = actionHistory.slice(0, 5);
+    }
+
+    writeSettings();
+    passInputHistory();
+}
+
+/**
  * Handles the publishing request event, fired by the renderer process when "publish" is
  * pressed. This will check that the current user is valid before proceeding.
  * If the user is valid, it'll complete the request with the user's information
@@ -185,22 +283,23 @@ async function validateToken(token: string) {
  * If the user is not valid, authError is called and a error is logged to the console
  * using console.error()
  */
-ipcMain.on("request-publishing", (event: Event, request: PublishRequest) => {
+ipcMain.on("request-action", async (event: Event, request: ActionRequest) => {
     // If the current logged in user is valid, proceed.
-    if (isCurrentUserValid()) {
-        log.info("Current user is valid, calling publish().");
-        // Complete the request with the user
-        request.user = currentUser;
-        // Proceed
-        publish(request);
-    } else {
-        log.error("Aborting publishing process because the current user is invalid.");
-        // Else, the user is not valid, request him to login again
-        loadTokenLoginpage();
-        mainWindow.webContents.once("dom-ready", () => {
-            log.info("sending login failure");
-            mainWindow.webContents.send("token-expired");
-        });
+    log.info("Current user is valid, calling publish().");
+    // Complete the request with the user
+    // objects coming from renderer process don't have a type, copy to fix this
+    const nReq: ActionRequest = new ActionRequest(Action.none, "", "", "", "", "", Target.nginx);
+    nReq.copyFrom(request);
+    nReq.user = currentUser;
+    // save input settings
+    saveInputSettings(nReq);
+    // Proceed
+    const repoDetails = new RepoDetails(nReq.repoUrl);
+    const defaultBranch = await getDefaultBranch(octokit, repoDetails.getOwner(), repoDetails.getRepo());
+    if (nReq.action === Action.publish) {
+        publish(nReq, repoDetails, defaultBranch, path.join(app.getPath("userData"), "culturize", "repo"));
+    } else if (nReq.action === Action.validate) {
+        validate(nReq);
     }
 });
 
@@ -215,11 +314,11 @@ function isCurrentUserValid(): boolean {
         return false;
     }
 
-    if ((currentUser.userName == null) || (currentUser.avatar_url == null) || (currentUser.token == null)) {
+    if ((currentUser.userName == null) || (currentUser.avatarURL == null) || (currentUser.token == null)) {
         return false;
     }
 
-    return (currentUser.avatar_url !== "") && (currentUser.userName !== "") && (currentUser.token !== "");
+    return (currentUser.avatarURL !== "") && (currentUser.userName !== "") && (currentUser.token !== "");
 }
 
 /**
@@ -277,3 +376,20 @@ export function toggleTransformation(toggle: boolean) {
     }
 }
 toggleTransformation(false);
+
+export function showResultWindow() {
+    const resultWindow = new BrowserWindow({
+        height: 820,
+        width: 1000,
+        webPreferences: {
+            nodeIntegration: true,
+        },
+        parent: mainWindow,
+    });
+    resultWindow.setMenu(null);
+    globalShortcut.register("f6", () => {
+        console.log("f6 is pressed");
+        resultWindow.webContents.openDevTools();
+    });
+    return resultWindow;
+}

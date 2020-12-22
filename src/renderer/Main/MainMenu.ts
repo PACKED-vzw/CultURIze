@@ -2,7 +2,7 @@
  * @file This file contains function used by the main.html
  */
 import { ipcRenderer, remote } from "electron";
-import { PublishRequest } from "./../../common/Objects/PublishObjects";
+import { Action, ActionRequest, Target } from "./../../common/Objects/ActionRequest";
 const dialog = remote.dialog;
 
 /**
@@ -34,19 +34,22 @@ export async function lookForFile(callback: FileFoundCallback) {
                 },
             ],
             properties: ["openFile"],
-        },
-        (files: string[]) => {
-            if (files) {
-                if (files.length > 1) {
-                    callback(null, "Too many files selected!");
-                } else if (files.length === 1) {
-                    callback(files[0], "");
-                }
-            } else {
+        }).then((result) => {
+            if (result.canceled) {
                 callback(null, "No file selected!");
+            } else {
+               const files = result.filePaths;
+               if (files) {
+                  if (files.length > 1) {
+                     callback(null, "Too many files selected!");
+                  } else if (files.length === 1) {
+                     callback(files[0], "");
+                  }
+               } else {
+                  callback(null, "No file selected!");
+               }
             }
-        },
-    );
+      });
 }
 
 /**
@@ -57,12 +60,18 @@ export async function lookForFile(callback: FileFoundCallback) {
  * @param {string} repoUrl  GitHub repo URL
  * @param {string} branch   GitHub branch to use
  * @param {string} commitMsg GitHub commit message
- * @param {string} prTitle  GitHub Pull Request title
- * @param {string} prBody   GitHub Pull Request body.
  */
 export function publish(filepath: string, subdir: string, repoUrl: string, branch: string,
-                        commitMsg: string, prTitle: string, prBody: string, forApache: boolean) {
-   ipcRenderer.send("request-publishing",
-                    new PublishRequest(filepath, subdir, repoUrl, branch,
-                                       commitMsg, prTitle, prBody, forApache));
+                        commitMsg: string, forApache: boolean,
+                        checkUrl: boolean) {
+   ipcRenderer.send("request-action",
+                    new ActionRequest(Action.publish, filepath, subdir, repoUrl, branch,
+                                      commitMsg, forApache ? Target.apache : Target.nginx));
+}
+
+export function validate(filepath: string, subdir: string, repoUrl: string, branch: string,
+                         commitMsg: string, forApache: boolean) {
+   ipcRenderer.send("request-action",
+                    new ActionRequest(Action.validate, filepath, subdir, repoUrl, branch,
+                                      commitMsg, forApache ? Target.apache : Target.nginx));
 }

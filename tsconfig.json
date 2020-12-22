@@ -2,7 +2,9 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es2015",
+    "sourceMap": true,
     "noImplicitAny": true,
+    "allowJs": true,
     "outDir":"dist",
     "baseUrl": ".",
     "paths": {

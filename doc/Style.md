@@ -1,7 +1,11 @@
+# Code style
+
+
 This file describes the style of the code used in the project. Code style is highly subjective, but
 we tried to stick to the following guidelines when writing the code. Is is recommended that you follow the same guidelines when contributing to this project.
 
 ### Typescript vs Javascript
+
 * Typescript
     * Use semicolons at the end of statements
     * Use Typescript features whenever possible (avoid javascript-like imports, etc)
@@ -13,4 +17,5 @@ we tried to stick to the following guidelines when writing the code. Is is recom
     * JS: No Semicolons
 
 ### Code comments
+
 * Typescript/Javascript code : JSDoc style: http://usejsdoc.org/about-getting-started.html

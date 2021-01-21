@@ -83,6 +83,7 @@ export async function validate(request: ActionRequest) {
         if (validationAborted) {
             notifyStep("Validation aborted");
             toggleTransformation(false);
+            sendRequestResult(new ActionRequestResult(Action.validate, false, true));
             return;
         }
 
@@ -114,6 +115,7 @@ export async function validate(request: ActionRequest) {
         sendRequestResult(
             new ActionRequestResult(Action.validate,
                                     true,
+                                    false,
                                     null,
                                     reportFilename,
                                     numAccepted,
@@ -124,9 +126,7 @@ export async function validate(request: ActionRequest) {
         toggleTransformation(false);
 
         log.error(error as string);
-        sendRequestResult(
-            new ActionRequestResult(Action.validate, false, error as string),
-        );
+        sendRequestResult(new ActionRequestResult(Action.validate, false, false, error as string));
     }
 }
 

@@ -163,6 +163,7 @@ export async function publish(request: ActionRequest, repoDetails: RepoDetails,
         sendRequestResult(
             new ActionRequestResult(Action.publish,
                                     true,
+                                    false,
                                     null,
                                     reportFilename,
                                     response.numLinesAccepted,
@@ -173,9 +174,7 @@ export async function publish(request: ActionRequest, repoDetails: RepoDetails,
         toggleTransformation(false);
 
         log.error(error as string);
-        sendRequestResult(
-            new ActionRequestResult(Action.publish, false, error as string),
-        );
+        sendRequestResult(new ActionRequestResult(Action.publish, false, false, error as string));
     }
 }
 

@@ -289,9 +289,10 @@ ipcMain.on("request-action", async (event: Event, request: ActionRequest) => {
     // save input settings
     saveInputSettings(nReq);
     // Proceed
-    const repoDetails = new RepoDetails(nReq.repoUrl);
-    const defaultBranch = await getDefaultBranch(octokit, repoDetails.getOwner(), repoDetails.getRepo());
     if (nReq.action === Action.publish) {
+        const repoDetails = new RepoDetails(nReq.repoUrl);
+        const defaultBranch = await getDefaultBranch(octokit, repoDetails.getOwner(), repoDetails.getRepo());
+
         publish(nReq, repoDetails, defaultBranch, path.join(app.getPath("userData"), "culturize", "repo"));
     } else if (nReq.action === Action.validate) {
         validate(nReq);

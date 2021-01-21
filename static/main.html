@@ -324,7 +324,9 @@
             showFeedback('Done! Checked ' + total + ' rows and found ' + result.numLinesRejected + ' errors.',
                 '<a href="' + result.reportPath +'" title="' + result.reportPath + '" id="report">Report</a> saved in CSV file directory', result.reportPath)
         } else {
-            showFeedback(result.error)
+            if (!result.aborted) {
+                showFeedback(result.error);
+            }
         }
         enableLogout();
         uploadButton.removeAttribute('disabled')

@@ -27,6 +27,7 @@ const rimraf = require("rimraf");
  * send events, attach child windows to it, etc.
  */
 export let mainWindow: BrowserWindow;
+export let validationAborted: boolean = false;
 
 /**
  * The currently logged-in user.
@@ -99,6 +100,7 @@ function createWindow() {
     });
 
     mainWindow.on("close", (e: any) => {
+        console.log("main window close");
         const globalAny: any = global;
 
         if (globalAny.sharedObj.transforming)  {
@@ -289,11 +291,13 @@ ipcMain.on("request-action", async (event: Event, request: ActionRequest) => {
     // save input settings
     saveInputSettings(nReq);
     // Proceed
-    const repoDetails = new RepoDetails(nReq.repoUrl);
-    const defaultBranch = await getDefaultBranch(octokit, repoDetails.getOwner(), repoDetails.getRepo());
     if (nReq.action === Action.publish) {
+        const repoDetails = new RepoDetails(nReq.repoUrl);
+        const defaultBranch = await getDefaultBranch(octokit, repoDetails.getOwner(), repoDetails.getRepo());
+
         publish(nReq, repoDetails, defaultBranch, path.join(app.getPath("userData"), "culturize", "repo"));
     } else if (nReq.action === Action.validate) {
+        validationAborted = false;
         validate(nReq);
     }
 });
@@ -382,5 +386,10 @@ export function showResultWindow() {
         parent: mainWindow,
     });
     resultWindow.setMenu(null);
+    resultWindow.on("close", (e: any) => {
+        console.log("result window close");
+        validationAborted = true;
+    });
+
     return resultWindow;
 }

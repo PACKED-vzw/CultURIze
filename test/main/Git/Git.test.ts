@@ -1,6 +1,7 @@
 import * as octo from "@octokit/rest";
 import { expect } from "chai";
 import * as path from "path";
+import { RepoDetails } from "../../../src/common/Objects/RepoDetails";
 import { User } from "../../../src/common/Objects/User";
 import { GitRepoManager } from "../../../src/main/Git/Git";
 
@@ -16,7 +17,7 @@ describe("GitRepoManager", () => {
         const fsstub = sinon.stub(fs, "existsSync").returns(true);
 
         let gitRepoManager: GitRepoManager =
-            new GitRepoManager("https://github.com/PACKED-vzw/CultURIze", "master", user, "/test");
+            new GitRepoManager("https://github.com/PACKED-vzw/CultURIze", "master", "master", user, "/test");
 
         expect(gitRepoManager.repoURL).to.eql("https://github.com/PACKED-vzw/CultURIze");
         expect(gitRepoManager.user.userName).to.eql("user");
@@ -30,7 +31,7 @@ describe("GitRepoManager", () => {
         const fsmock = sinon.mock(fs).expects("mkdirSync");
         fsmock.once();
 
-        gitRepoManager = new GitRepoManager("https://github.com/PACKED-vzw/CultURIze", "master", user, "/test");
+        gitRepoManager = new GitRepoManager("https://github.com/PACKED-vzw/CultURIze", "master", "master", user, "/test");
 
         fsmock.verify();
         fsstub.restore();
@@ -51,7 +52,7 @@ describe("GitRepoManager", () => {
         //});
 
         const gitRepoManager: GitRepoManager =
-            new GitRepoManager("https://github.com/PACKED-vzw/CultURIze", "master", user, "/test");
+            new GitRepoManager("https://github.com/PACKED-vzw/CultURIze", "master", "master", user, "/test");
         // hasRepo
         //  fs existsSync mock
         //  simpleGit isRepo mock

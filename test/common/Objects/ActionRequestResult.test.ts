@@ -4,8 +4,9 @@ import { ActionRequestResult } from "../../../src/common/Objects/ActionRequestRe
 
 describe("PublishRequestResult", () => {
     it("PublishRequestResult construction", () => {
-        const arr = new ActionRequestResult(Action.publish, true);
+        const arr = new ActionRequestResult(Action.publish, true, false);
         expect(arr.successful).to.be.true;
+        expect(arr.aborted).to.be.false;
         expect(arr.error).to.be.null;
         expect(arr.numLinesAccepted).to.eql(0);
         expect(arr.numLinesRejected).to.eql(0);

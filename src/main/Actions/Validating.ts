@@ -13,7 +13,7 @@ import { CSVRow } from "./../../common/Objects/CSVRow";
 import { User } from "./../../common/Objects/User";
 import { writeReport } from "./../../common/ReportWriter";
 import { PublishOptions } from "./../../culturize.conf";
-import { mainWindow, showResultWindow, toggleTransformation } from "./../../main";
+import { mainWindow, showResultWindow, toggleTransformation, validationAborted } from "./../../main";
 import { createArrayFromCSV } from "./../Parser/Parser";
 
 import log = require("electron-log");
@@ -80,6 +80,12 @@ export async function validate(request: ActionRequest) {
         resultWindow.webContents.send("start-validation");
 
         await checkURLs(rows, resultWindow);
+        if (validationAborted) {
+            notifyStep("Validation aborted");
+            toggleTransformation(false);
+            return;
+        }
+
 
         numAccepted = 0;
         numRejected = 0;
@@ -176,6 +182,10 @@ async function checkURLs(rows: CSVRow[], resultWindow: BrowserWindow) {
     let numRejected = 0;
 
     for (const row of rows) {
+        if (validationAborted) {
+            console.log("abort");
+            break;
+        }
         await row.checkURL();
 
         if (row.valid && row.urlWorking && row.duplicateOf === -1) {
@@ -188,6 +198,8 @@ async function checkURLs(rows: CSVRow[], resultWindow: BrowserWindow) {
             accepted: numAccepted,
             rejected: numRejected,
         };
-        resultWindow.webContents.send("new-data", data);
+        if (!validationAborted) {
+            resultWindow.webContents.send("new-data", data);
+        }
     }
 }

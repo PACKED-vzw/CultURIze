@@ -159,7 +159,9 @@ export class CSVRow {
         }
         try {
             this.urlChecked = true;
-            const result = await got(this.url, {method: "HEAD", throwHttpErrors: false, timeout: 2000});
+            const result = await got(this.url,
+                                     {method: "HEAD", throwHttpErrors: false, timeout: 2000,
+                                        https: {rejectUnauthorized: false }});
             if (result.statusCode !== 200) {
                 this.urlWorking = false;
                 this.error.push("E06");
@@ -167,6 +169,7 @@ export class CSVRow {
                 this.urlWorking = true;
             }
         } catch (error) {
+            console.log("error in HTTP request");
             this.urlWorking = false;
             this.error.push("E06");
         }

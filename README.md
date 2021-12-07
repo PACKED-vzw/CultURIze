@@ -30,7 +30,7 @@ More information about inspiration, governance, and howto's for setting up a Cul
 You can download the [latest version of CultURIze here](https://github.com/PACKED-vzw/CultURIze/releases). We currently support Linux, Mac OSX and Windows.
 
 #### Usage
-Make sure Git is installed and configured on your system, check [here](https://github.com/PACKED-vzw/CultURIze/wiki/App-Installation-Instructions) for instruction on how to do that.
+Make sure Git is installed and configured on your system, check [here](https://github.com/PACKED-vzw/CultURIze/wiki/App-Installation-Instructions) for instructions.
 
 Check out [the wiki](https://github.com/PACKED-vzw/CultURIze/wiki).
 

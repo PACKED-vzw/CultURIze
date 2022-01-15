@@ -54,7 +54,7 @@
         "got": "^11.7.0",
         "is-github-url": "^1.2.2",
         "rimraf": "^2.7.1",
-        "shelljs": "^0.8.4",
+        "shelljs": "^0.8.5",
         "simple-git": "^2.20.1",
         "valid-url": "^1.0.9"
     }

@@ -12,6 +12,8 @@ import { publish } from "./main/Actions/Publishing";
 import { validate } from "./main/Actions/Validating";
 import { getUserInfo } from "./main/Api/GithubUser";
 import { getDefaultBranch, getLatestRelease } from "./main/Api/Release";
+// const { BrowserWindow } = require("@electron/remote");
+import * as remoteMain from "@electron/remote/main";
 
 import { PublishFormDefaults } from "./culturize.conf";
 
@@ -19,6 +21,7 @@ import log = require("electron-log");
 import fs = require("fs");
 import path = require("path");
 const rimraf = require("rimraf");
+remoteMain.initialize();
 
 
 /**
@@ -62,8 +65,10 @@ function createWindow() {
         width: 900,
         webPreferences: {
             nodeIntegration: true,
+            contextIsolation: false,
         },
     });
+    require("@electron/remote/main").enable(mainWindow.webContents);
     mainWindow.setMenu(null);
     mainWindow.maximize();
 
@@ -130,6 +135,8 @@ function createWindow() {
  */
 function loadTokenLoginpage() {
     mainWindow.loadFile(__dirname + "/../static/tokenlogin.html");
+    // mainWindow.webContents.openDevTools();
+    console.log("token login loaded");
 }
 
 /**
@@ -226,6 +233,7 @@ async function validateToken(token: string) {
         loadMainMenu();
         settings["github-key"] = token;
         writeSettings();
+        log.info("user validated");
     } catch (error) {
         log.error("Token isn't valid " + error);
         const url: string = mainWindow.webContents.getURL();
@@ -382,6 +390,7 @@ export function showResultWindow() {
         width: 1000,
         webPreferences: {
             nodeIntegration: true,
+            contextIsolation: false,
         },
         parent: mainWindow,
     });

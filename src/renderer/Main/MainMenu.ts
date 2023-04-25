@@ -1,7 +1,8 @@
 /**
  * @file This file contains function used by the main.html
  */
-import { ipcRenderer, remote } from "electron";
+import remote = require("@electron/remote");
+import { ipcRenderer } from "electron";
 import { Action, ActionRequest, Target } from "./../../common/Objects/ActionRequest";
 const dialog = remote.dialog;
 

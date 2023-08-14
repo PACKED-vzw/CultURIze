@@ -133,8 +133,8 @@ function createWindow() {
  * This function set the current active page of the mainwindow
  * to the token login page. (/static/tokenlogin.html)
  */
-function loadTokenLoginpage() {
-    mainWindow.loadFile(__dirname + "/../static/tokenlogin.html");
+async function loadTokenLoginpage() {
+    await mainWindow.loadFile(__dirname + "/../static/tokenlogin.html");
     // mainWindow.webContents.openDevTools();
     console.log("token login loaded");
 }

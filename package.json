@@ -55,6 +55,7 @@
         "git-url-parse": "^13.1.0",
         "got": "^11.8.5",
         "is-github-url": "^1.2.2",
+        "macos-release": "^3.2.0",
         "rimraf": "^2.7.1",
         "shelljs": "^0.8.4",
         "simple-git": "^3.17.0",

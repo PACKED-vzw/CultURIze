@@ -84,7 +84,6 @@ Inspired by [w3id.org](http://w3id.org)
 
 ## License
 
-Copyright (c) 2019 PACKED vzw.
 
 All content in this repository is released under the [CC-BY-SA License](https://creativecommons.org/licenses/by-sa/4.0/).
 

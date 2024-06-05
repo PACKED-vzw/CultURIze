@@ -83,7 +83,7 @@ Check out [the wiki](https://github.com/PACKED-vzw/CultURIze/wiki).
 Inspired by [w3id.org](http://w3id.org)
 
 ## License
-
+CC BY-SA 4.0 meemoo / Open Summer of Code
 
 All content in this repository is released under the [CC-BY-SA License](https://creativecommons.org/licenses/by-sa/4.0/).
 

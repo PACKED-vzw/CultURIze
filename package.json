@@ -1,6 +1,6 @@
 {
     "name": "culturizeapp",
-    "version": "1.2.3",
+    "version": "1.2.4",
     "description": "The Culturize Desktop Application",
     "main": "./dist/main.js",
     "scripts": {

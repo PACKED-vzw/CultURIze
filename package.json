@@ -45,8 +45,8 @@
     },
     "dependencies": {
         "@electron/remote": "^2.0.9",
-        "@octokit/rest": "^16.43.2",
-        "@octokit/types": "^5.5.0",
+        "@octokit/rest": "^20.1.1",
+        "@octokit/types": "^13.5.0",
         "@types/git-url-parse": "^9.0.0",
         "@types/node": "^18.11.9",
         "@types/valid-url": "^1.0.3",

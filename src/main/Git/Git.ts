@@ -98,7 +98,7 @@ export class GitRepoManager {
                 throw error;
             }
             try {
-                await git.pull();
+                await git.pull(this.HTTPSRepoURL, this.branch);
                 log.info("pull successful");
             } catch (error) {
                 log.error(`Failed to pull. Error msg: ${error}`);
